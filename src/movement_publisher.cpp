@@ -11,8 +11,7 @@
 * Software Foundation, either version 2 of the License, or (at your option)
 * any later version.
 *
-* This program is distributed
-    shadowrobot::MovementPublisher mvt_pub( min, max, publish_rate, repetition );in the hope that it will be useful, but WITHOUT
+* This program is distributed in the hope that it will be useful, but WITHOUT
 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 * more details.
@@ -38,18 +37,18 @@ namespace shadowrobot
     pub_2 = nh_tilde.advertise<std_msgs::Float64>("mse_out", 5);
     if(controller_type.compare("sr")==0)
     {
-		//nb_mvt_step is used to set the size of the buffer
-		sub_ = nh_tilde.subscribe("inputs", nb_mvt_step, &MovementPublisher::calculateErrorCallback, this);
+      //nb_mvt_step is used to set the size of the buffer
+      sub_ = nh_tilde.subscribe("inputs", nb_mvt_step, &MovementPublisher::calculateErrorCallback, this);
     }
     else if(controller_type.compare("pr2")==0)
     {
-    	sub_ = nh_tilde.subscribe("inputs", nb_mvt_step, &MovementPublisher::pr2_calculateErrorCallback, this);
+      sub_ = nh_tilde.subscribe("inputs", nb_mvt_step, &MovementPublisher::pr2_calculateErrorCallback, this);
     }
     else
     {
-    	ROS_WARN_STREAM("Warning: You didn't choose a msg_type to listen. sr_robot_msgs was chosen by default");
-    	//nb_mvt_step is used to set the size of the buffer
-    	sub_ = nh_tilde.subscribe("inputs", nb_mvt_step, &MovementPublisher::calculateErrorCallback, this);
+      ROS_WARN_STREAM("Warning: You didn't choose a msg_type to listen. sr_robot_msgs was chosen by default");
+      //nb_mvt_step is used to set the size of the buffer
+      sub_ = nh_tilde.subscribe("inputs", nb_mvt_step, &MovementPublisher::calculateErrorCallback, this);
     }
   }
 
@@ -104,26 +103,26 @@ namespace shadowrobot
 
   void MovementPublisher::calculateErrorCallback(const sr_robot_msgs::JointControllerState::ConstPtr& msg)
   {
-	double error = msg->set_point - msg->process_value;
-	ROS_DEBUG_STREAM("Error: " << error);
-	SError_ = SError_ + ( error * error );
-	ROS_DEBUG_STREAM("SError: " << SError_);
-	n_samples_++;
-	ROS_DEBUG_STREAM("Samples: " << n_samples_);
-	MSError_ = SError_ / ( static_cast<double>(n_samples_) );
-	ROS_DEBUG_STREAM("MSe: " << MSError_);
+    double error = msg->set_point - msg->process_value;
+    ROS_DEBUG_STREAM("Error: " << error);
+    SError_ = SError_ + ( error * error );
+    ROS_DEBUG_STREAM("SError: " << SError_);
+    n_samples_++;
+    ROS_DEBUG_STREAM("Samples: " << n_samples_);
+    MSError_ = SError_ / ( static_cast<double>(n_samples_) );
+    ROS_DEBUG_STREAM("MSe: " << MSError_);
   }
 
   void MovementPublisher::pr2_calculateErrorCallback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg)
   {
-	double error = msg->set_point - msg->process_value;
-	ROS_DEBUG_STREAM("Error: " << error);
-	SError_ = SError_ + ( error * error );
-	ROS_DEBUG_STREAM("SError: " << SError_);
-	n_samples_++;
-	ROS_DEBUG_STREAM("Samples: " << n_samples_);
-	MSError_ = SError_ / ( static_cast<double>(n_samples_) );
-	ROS_DEBUG_STREAM("MSe: " << MSError_);
+    double error = msg->set_point - msg->process_value;
+    ROS_DEBUG_STREAM("Error: " << error);
+    SError_ = SError_ + ( error * error );
+    ROS_DEBUG_STREAM("SError: " << SError_);
+    n_samples_++;
+    ROS_DEBUG_STREAM("Samples: " << n_samples_);
+    MSError_ = SError_ / ( static_cast<double>(n_samples_) );
+    ROS_DEBUG_STREAM("MSe: " << MSError_);
   }
 
   void MovementPublisher::execute_step(int index_mvt_step, int index_partial_movement)

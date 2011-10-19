@@ -49,19 +49,19 @@ namespace shadowrobot
     void stop();
 
     /**
-	 * Used to listen to a sr_robot_msgs::JointControllerState
-	 * and calculate the mean square error of every movement repetition
-	 *
-	 * @msg the current state of the controller.
-	 */
+     * Used to listen to a sr_robot_msgs::JointControllerState
+     * and calculate the mean square error of every movement repetition
+     *
+     * @msg the current state of the controller.
+     */
     void calculateErrorCallback(const sr_robot_msgs::JointControllerState::ConstPtr& msg);
 
     /**
-	 * Used to listen to a pr2_controller_msgs::JointControllerState
-	 * and calculate the mean square error of every movement repetition
-	 *
-	 * @msg the current state of the controller.
-	 */
+     * Used to listen to a pr2_controller_msgs::JointControllerState
+     * and calculate the mean square error of every movement repetition
+     *
+     * @msg the current state of the controller.
+     */
     void pr2_calculateErrorCallback(const pr2_controllers_msgs::JointControllerState::ConstPtr& msg);
 
     /**
@@ -89,10 +89,10 @@ namespace shadowrobot
     double last_target_;
 
     unsigned int nb_mvt_step;
-	double SError_;
-	double MSError_;
-	unsigned int n_samples_;
-	std::string controller_type;
+    double SError_;
+    double MSError_;
+    unsigned int n_samples_;
+    std::string controller_type;
   };
 }
 

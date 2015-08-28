@@ -38,7 +38,7 @@ namespace shadowrobot
   class MovementFromImage : public PartialMovement
   {
   public:
-    MovementFromImage(std::string image_path);
+    explicit MovementFromImage(std::string image_path);
     virtual ~MovementFromImage();
 
   protected:
@@ -59,7 +59,7 @@ namespace shadowrobot
     /// The number of rows in the image
     ssize_t nb_rows_;
   };
-} // namespace shadowrobot
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:

@@ -57,13 +57,13 @@ namespace shadowrobot
      * @param hand_commander helper for controlling the shadow hand
      */
     MovementPublisher(std::string joint_name, double rate = 100.0,
-		      unsigned int repetition = 1, unsigned int nb_mvt_step = 1000 ,
-		      std::string controller_type = "", bool testing = false,
-		      HandCommander* hand_commander = NULL);
+                      unsigned int repetition = 1, unsigned int nb_mvt_step = 1000 ,
+                      std::string controller_type = "", bool testing = false,
+                      HandCommander* hand_commander = NULL);
 
     MovementPublisher(double min_value = 0.0, double max_value = 1.5,
-		      double rate=100.0, unsigned int repetition = 1,
-		      unsigned int nb_mvt_step = 1000 , std::string controller_type = "");
+                      double rate = 100.0, unsigned int repetition = 1,
+                      unsigned int nb_mvt_step = 1000 , std::string controller_type = "");
 
     virtual ~MovementPublisher();
 
@@ -140,7 +140,7 @@ namespace shadowrobot
     unsigned int n_samples_;
     std::string controller_type;
   };
-} // namespace shadowrobot
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:

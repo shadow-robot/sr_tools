@@ -23,16 +23,20 @@
  *
  */
 
-#include "sr_movements/movement_publisher.hpp"
 
 #include <math.h>
+#include <utility>
+#include <string>
+#include <algorithm>
+
+#include "sr_movements/movement_publisher.hpp"
 #include <sr_utilities/sr_math_utils.hpp>
 
 namespace shadowrobot
 {
   MovementPublisher::MovementPublisher(std::string joint_name, double rate,
-				       unsigned int repetition, unsigned int nb_mvt_step,
-				       std::string controller_type, bool testing, HandCommander* hand_commander)
+                                       unsigned int repetition, unsigned int nb_mvt_step,
+                                       std::string controller_type, bool testing, HandCommander* hand_commander)
     : joint_name_(joint_name), nh_tilde("~"), publishing_rate(rate), repetition(repetition),
       min(0.0), max(1.5), last_target_(0.0), nb_mvt_step(nb_mvt_step),
       SError_(0.0), MSError_(0.0), n_samples_(0), controller_type(controller_type)
@@ -228,7 +232,7 @@ namespace shadowrobot
   {
     return hand_commander_->get_controller_state_topic(joint_name_);
   }
-} // namespace shadowrobot
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:

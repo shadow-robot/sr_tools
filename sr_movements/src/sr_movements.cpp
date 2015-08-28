@@ -74,9 +74,9 @@ int main(int argc, char *argv[])
         max = 1.5;
 
       shadowrobot::MovementPublisher mvt_pub(min, max, publish_rate,
-					     static_cast<unsigned int>(repetition),
-					     static_cast<unsigned int>(nb_mvt_step),
-					     controller_type);
+                                             static_cast<unsigned int>(repetition),
+                                             static_cast<unsigned int>(nb_mvt_step),
+                                             controller_type);
 
       mvt_pub.add_movement(mvt_im);
       mvt_pub.start();
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     {
       // check if this is a test using gazebo
       bool testing;
-      if(!nh_tilde.getParam("testing", testing))
+      if (!nh_tilde.getParam("testing", testing))
         testing = false;
 
       // This is the new easier to implement version of the movement
@@ -93,9 +93,9 @@ int main(int argc, char *argv[])
       // the MovementPublisher, grabbing min, max and topics from the
       // HandCommander.
       shadowrobot::MovementPublisher mvt_pub(joint_name, publish_rate,
-					     static_cast<unsigned int>(repetition),
-					     static_cast<unsigned int>(nb_mvt_step),
-					     controller_type, testing);
+                                             static_cast<unsigned int>(repetition),
+                                             static_cast<unsigned int>(nb_mvt_step),
+                                             controller_type, testing);
 
       mvt_pub.add_movement(mvt_im);
       mvt_pub.start();

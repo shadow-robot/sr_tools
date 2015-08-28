@@ -40,7 +40,7 @@ namespace shadowrobot
     SrMovements();
     virtual ~SrMovements();
   };
-} // namespace shadowrobot
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:

@@ -29,6 +29,8 @@
 
 #include <ros/ros.h>
 #include <boost/thread.hpp>
+#include <string>
+#include <vector>
 
 #include <std_msgs/Float64.h>
 #include "sr_movements/partial_movement.hpp"
@@ -54,14 +56,14 @@ namespace shadowrobot
      * @param testing set to true when running a gazebo test (just adds a long sleep).
      * @param hand_commander helper for controlling the shadow hand
      */
-    MovementPublisher( std::string joint_name, double rate=100.0,
-                       unsigned int repetition = 1, unsigned int nb_mvt_step = 1000 ,
-                       std::string controller_type = "", bool testing = false,
-                       HandCommander* hand_commander = NULL);
+    MovementPublisher(std::string joint_name, double rate = 100.0,
+		      unsigned int repetition = 1, unsigned int nb_mvt_step = 1000 ,
+		      std::string controller_type = "", bool testing = false,
+		      HandCommander* hand_commander = NULL);
 
-    MovementPublisher( double min_value = 0.0, double max_value = 1.5,
-                       double rate=100.0, unsigned int repetition = 1,
-                       unsigned int nb_mvt_step = 1000 , std::string controller_type = "");
+    MovementPublisher(double min_value = 0.0, double max_value = 1.5,
+		      double rate=100.0, unsigned int repetition = 1,
+		      unsigned int nb_mvt_step = 1000 , std::string controller_type = "");
 
     virtual ~MovementPublisher();
 
@@ -138,7 +140,7 @@ namespace shadowrobot
     unsigned int n_samples_;
     std::string controller_type;
   };
-}
+} // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:

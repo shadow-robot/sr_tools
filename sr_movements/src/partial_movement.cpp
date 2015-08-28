@@ -44,11 +44,10 @@ namespace shadowrobot
     int index = static_cast<int>( steps.size() * static_cast<double>(percentage) );
     return steps[index];
   }
-}
+} // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:
    c-basic-offset: 2
 End:
 */
-

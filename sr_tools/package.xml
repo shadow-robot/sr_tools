@@ -12,8 +12,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>sr_description</run_depend>
-  <run_depend>sr_robot_msgs</run_depend>
+  <run_depend>sr_movements</run_depend>
 
   <export>
     <metapackage/>

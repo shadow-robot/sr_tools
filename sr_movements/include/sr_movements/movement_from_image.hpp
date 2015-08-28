@@ -28,6 +28,7 @@
 #ifndef _MOVEMENT_FROM_IMAGE_HPP_
 #define _MOVEMENT_FROM_IMAGE_HPP_
 
+#include <string>
 #include <Magick++.h>
 #include "sr_movements/partial_movement.hpp"
 #include <boost/smart_ptr.hpp>
@@ -37,7 +38,7 @@ namespace shadowrobot
   class MovementFromImage : public PartialMovement
   {
   public:
-    MovementFromImage(std::string image_path);
+    explicit MovementFromImage(std::string image_path);
     virtual ~MovementFromImage();
 
   protected:
@@ -50,15 +51,15 @@ namespace shadowrobot
      */
     void generate_movement_();
 
-    ///The image from which the movement is generated
+    /// The image from which the movement is generated
     boost::shared_ptr<Magick::Image> image_;
 
-    ///The number of columns in the image
+    /// The number of columns in the image
     ssize_t nb_cols_;
-    ///The number of rows in the image
+    /// The number of rows in the image
     ssize_t nb_rows_;
   };
-}
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:

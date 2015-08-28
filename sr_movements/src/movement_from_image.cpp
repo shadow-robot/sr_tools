@@ -24,11 +24,11 @@
  *
  */
 
+#include <iostream>
+#include <string>
 
 #include "sr_movements/movement_from_image.hpp"
 #include <ros/ros.h>
-
-#include <iostream>
 
 namespace shadowrobot
 {
@@ -36,7 +36,7 @@ namespace shadowrobot
     : PartialMovement()
   {
     image_ = boost::shared_ptr<Magick::Image>( new Magick::Image() );
-    image_->read( image_path );
+    image_->read(image_path);
 
     nb_cols_ = image_->columns();
     nb_rows_ = image_->rows();
@@ -50,34 +50,33 @@ namespace shadowrobot
 
   void MovementFromImage::generate_movement_()
   {
-    const Magick::PixelPacket* pixel_cache = image_->getConstPixels(0,0,nb_cols_, nb_rows_);
+    const Magick::PixelPacket* pixel_cache = image_->getConstPixels(0, 0, nb_cols_, nb_rows_);
 
-    for( ssize_t col = 0; col < nb_cols_; ++col)
+    for (ssize_t col = 0; col < nb_cols_; ++col)
     {
       bool no_pixel = true;
-      for( ssize_t row=0; row < nb_rows_; ++row)
+      for (ssize_t row = 0; row < nb_rows_; ++row)
       {
         const Magick::PixelPacket* tmp_pixel = pixel_cache + row * nb_cols_ + col;
-        if( tmp_pixel->red != 0xFFFF && tmp_pixel->green != 0xFFFF
-            && tmp_pixel->blue != 0xFFFF)
+        if (tmp_pixel->red != 0xFFFF && tmp_pixel->green != 0xFFFF
+           && tmp_pixel->blue != 0xFFFF)
         {
           no_pixel = false;
-          steps.push_back( 1.0 - static_cast<double>(row) / static_cast<double>(nb_rows_) );
+          steps.push_back(1.0 - static_cast<double>(row) / static_cast<double>(nb_rows_));
           break;
         }
       }
-      if(no_pixel)
+      if (no_pixel)
       {
-        //not sending any targets for this point.
-        steps.push_back( -1.0 );
+        // not sending any targets for this point.
+        steps.push_back(-1.0);
       }
     }
   }
-}
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:
    c-basic-offset: 2
 End:
 */
-

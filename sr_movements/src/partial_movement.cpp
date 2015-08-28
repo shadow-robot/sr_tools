@@ -36,19 +36,18 @@ namespace shadowrobot
 
   double PartialMovement::get_target(double percentage)
   {
-    if( percentage < 0.0)
+    if (percentage < 0.0)
       percentage = 0.0;
-    if( percentage > 1.0)
+    if (percentage > 1.0)
       percentage = 1.0;
 
-    int index = static_cast<int>( steps.size() * static_cast<double>(percentage) );
+    int index = static_cast<int>(steps.size() * static_cast<double>(percentage));
     return steps[index];
   }
-}
+}  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.
 Local Variables:
    c-basic-offset: 2
 End:
 */
-

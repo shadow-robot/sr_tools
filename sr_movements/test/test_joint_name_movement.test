@@ -1,5 +1,7 @@
 <launch>
-  <include file="$(find sr_hand)/launch/gazebo/gazebo_hand.launch" />
+  <include file="$(find sr_hand)/launch/gazebo/gazebo_hand.launch">
+    <arg name="gui" value="false"/>
+  </include>
   <include file="$(find sr_description)/loaders/load_hand_model.launch" />
 
   <node pkg="sr_movements" name="sr_movements" type="sr_movements">

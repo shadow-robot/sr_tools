@@ -34,12 +34,12 @@
 
 namespace shadowrobot
 {
-  class SrMovements
-  {
-  public:
-    SrMovements();
-    virtual ~SrMovements();
-  };
+class SrMovements
+{
+public:
+  SrMovements();
+  virtual ~SrMovements();
+};
 }  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.

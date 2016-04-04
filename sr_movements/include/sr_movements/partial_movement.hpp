@@ -32,28 +32,28 @@
 
 namespace shadowrobot
 {
-  class PartialMovement
-  {
-  public:
-    PartialMovement();
-    virtual ~PartialMovement();
+class PartialMovement
+{
+public:
+  PartialMovement();
+  virtual ~PartialMovement();
 
-    /**
-     * Returns a target for the given percentage.
-     *
-     * @param percentage must be between 0 and 1
-     *
-     * @return target from this movement.
-     */
-    double get_target(double percentage);
+  /**
+   * Returns a target for the given percentage.
+   *
+   * @param percentage must be between 0 and 1
+   *
+   * @return target from this movement.
+   */
+  double get_target(double percentage);
 
-  protected:
-    /**
-     * A vector containing the steps for this movement, in percentage
-     * of the range. Contains -1 if no target for this point.
-     */
-    std::vector<double> steps;
-  };
+protected:
+  /**
+   * A vector containing the steps for this movement, in percentage
+   * of the range. Contains -1 if no target for this point.
+   */
+  std::vector<double> steps;
+};
 }  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.

@@ -35,30 +35,30 @@
 
 namespace shadowrobot
 {
-  class MovementFromImage : public PartialMovement
-  {
-  public:
-    explicit MovementFromImage(std::string image_path);
-    virtual ~MovementFromImage();
+class MovementFromImage : public PartialMovement
+{
+public:
+  explicit MovementFromImage(std::string image_path);
+  virtual ~MovementFromImage();
 
-  protected:
-    /**
-     * Generates a movement from the given png file:
-     *  - Reads the image from the top left corner, row by row.
-     *  - The first encountered pixel is the target (the scale is
-     *    the full range of the joint = the height of the png).
-     *
-     */
-    void generate_movement_();
+protected:
+  /**
+   * Generates a movement from the given png file:
+   *  - Reads the image from the top left corner, row by row.
+   *  - The first encountered pixel is the target (the scale is
+   *    the full range of the joint = the height of the png).
+   *
+   */
+  void generate_movement_();
 
-    /// The image from which the movement is generated
-    boost::shared_ptr<Magick::Image> image_;
+  /// The image from which the movement is generated
+  boost::shared_ptr<Magick::Image> image_;
 
-    /// The number of columns in the image
-    ssize_t nb_cols_;
-    /// The number of rows in the image
-    ssize_t nb_rows_;
-  };
+  /// The number of columns in the image
+  ssize_t nb_cols_;
+  /// The number of rows in the image
+  ssize_t nb_rows_;
+};
 }  // namespace shadowrobot
 
 /* For the emacs weenies in the crowd.

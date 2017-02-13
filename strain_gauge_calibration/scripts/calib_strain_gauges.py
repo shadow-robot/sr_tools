@@ -80,7 +80,7 @@ class Calib_gauges():
 
         elif self.strain_gauges_id == 1:
 
-            csv_output = csv.writer(open("calib_strain_gauges/scripts/Motor_%s_strain_gauge_%s.csv" % (self.motor_id, self.strain_gauges_id), "wb"), lineterminator='\n') # create csv to write
+            csv_output = csv.writer(open("Motor_%s_strain_gauge_%s.csv" % (self.motor_id, self.strain_gauges_id), "wb"), lineterminator='\n') # create csv to write
             self.headline_1.append(self.initial_weight)
             csv_output.writerow(self.headline_1) # write headline row with weight values
             measurement = map(int, measurement)

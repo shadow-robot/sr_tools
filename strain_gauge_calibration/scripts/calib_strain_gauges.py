@@ -61,7 +61,7 @@ class Calib_gauges():
                 self.sub = rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.data_callback)  # Subscribe diagnostic topic to collect data
                 print("Measuring...")
 
-                rospy.sleep(3.0)  # give time to collect measurements
+                rospy.sleep(5.0)  # give time to collect measurements
                 self.sub.unregister()  # stop subscribing topic
 
                 self.update_csv_file(self.measurement, self.strain_gauges_id)  # write measurements into csv file

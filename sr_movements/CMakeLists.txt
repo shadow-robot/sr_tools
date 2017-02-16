@@ -20,7 +20,6 @@ add_dependencies(sr_movement ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sr_movement ${ImageMagick_LIBRARIES} ${catkin_LIBRARIES})
 
 add_rostest(test/test_movements.test)
-add_rostest(test/test_joint_name_movement.test)
 
 
 install(TARGETS sr_movement sr_movements

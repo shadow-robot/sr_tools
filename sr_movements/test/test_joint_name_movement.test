@@ -18,6 +18,6 @@
     <param name="hz" value="100.0" />
     <param name="hzerror" value="0.5" />
     <param name="test_duration" value="5.0" />
-    <param name="wait_time" value="500" />
+    <param name="wait_time" value="120" />
   </test>
 </launch>

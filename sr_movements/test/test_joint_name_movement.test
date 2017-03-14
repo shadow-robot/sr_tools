@@ -13,11 +13,11 @@
     <param name="msg_type" value="pr2"/>
     <param name="testing" value="true"/>
   </node>
-  <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest1">
+  <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest1" time-limit="1000.0">
     <param name="topic" value="/sh_rh_ffj3_position_controller/command" />
     <param name="hz" value="100.0" />
     <param name="hzerror" value="0.5" />
     <param name="test_duration" value="5.0" />
-    <param name="wait_time" value="300" />
+    <param name="wait_time" value="480" />
   </test>
 </launch>

@@ -11,7 +11,7 @@
     <param name="msg_type" value="sr"/>
   </node>
 
-  <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest1">
+  <test test-name="hztest_test1" pkg="rostest" type="hztest" name="hztest1">
     <param name="topic" value="/sh_ffj3_mixed_position_velocity_controller/command" />
     <param name="hz" value="100.0" />
     <param name="hzerror" value="0.5" />

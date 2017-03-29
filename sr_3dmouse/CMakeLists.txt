@@ -10,7 +10,6 @@ project(sr_3dmouse)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  spacenavd_node
   std_msgs
 )
 

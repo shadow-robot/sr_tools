@@ -68,7 +68,7 @@ class MouseCommand():
 
 
         # create quaternion to add to current rotation. Reverse pitch and yaw
-        diff_quaternion = tf.transformations.quaternion_from_euler(yaw, -pitch, roll)
+        diff_quaternion = tf.transformations.quaternion_from_euler(-pitch, -yaw, roll)
 
         start_pose_quaternion = (
                  start_pose.orientation.x,

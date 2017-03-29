@@ -1,3 +1,5 @@
+3D Mouse controller
+
 The /sr_3dmouse package allows you to control the ur10 robot with the 3Dconnection mouse in 6-axis
 
 In order to communicate with the device, you must first install the spacenav daemon from here:http://spacenav.sourceforge.net/

@@ -48,8 +48,6 @@ class MouseCommand():
             rate.sleep()
 
     def compute_joy_pose(self, start_pose):
-            
-
         # might need adjustment on real robot
         scale = 10
         roll = 0.0
@@ -90,7 +88,6 @@ class MouseCommand():
         new_pose.pose.orientation.z = new_pose_quaternion[2]
         new_pose.pose.orientation.w = new_pose_quaternion[3]
         # move arm
-        #self._arm_commander.move_to_pose_target(new_pose.pose)
         self._arm_commander.move_to_pose_value_target_unsafe(new_pose, avoid_collisions=True, wait=False)
         self.pub.publish(new_pose)
 

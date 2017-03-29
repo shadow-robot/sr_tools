@@ -11,7 +11,7 @@ You also need to install the spacenav ROS node from: http://wiki.ros.org/spacena
 
 To run it:
 
-First execute spacenav daemon:
+First execute spacenav daemon: (if its not autoloading on startup)
 ```
 ./spacenav
 ```
@@ -19,12 +19,13 @@ Launch gazebo with rviz with:
 ```
 roslaunch sr_robot_launch sr_right_ur10arm_hand.launch
 ```
-Run spacenav node:
-```
-rosrun spacenav_node spacenav_node
-```
-Run mousecontrol:
+Run mousecontrol: (it will run spacenav node as well)
 ```
 roslaunch sr_3dmouse 3dmouse.launch
 ```
-or run the python file directly
+
+Using it:
+
+Moving the 3D mouse in 6 axis will move the robot in the world frame
+
+Right button enables or disables the teaching mode (only works on real robots)

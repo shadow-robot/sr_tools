@@ -3,7 +3,6 @@
 import rospy
 import tf
 from sr_robot_commander.sr_arm_commander import SrArmCommander
-from sr_robot_commander.sr_robot_commander import SrRobotCommander
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import Joy
@@ -20,15 +19,12 @@ class MouseCommand():
                         "angularX": 3,
                         "angularY": 4,
                         "angularZ": 5}
-
+        self.toggleT = False
         self.data = Joy()
         self.start_pose = Pose()
         #subscribe to mouse topic
         self.sub = rospy.Subscriber("/spacenav/joy", Joy, self.joy_msg_callback)
         self._arm_commander = SrArmCommander(name="right_arm", set_ground=True)
-        #self._arm_commander = SrRobotCommander(name="right_arm")
-        self.names = self._arm_commander._move_group_commander._g.get_active_joints()
-        print "Active joints: " + str(self.names)
         self.pub = rospy.Publisher("command", PoseStamped, queue_size=1)
 
     def joy_msg_callback(self, data):
@@ -40,10 +36,20 @@ class MouseCommand():
         rate = rospy.Rate(100)
         while not rospy.is_shutdown():
             self.start_pose = deepcopy(self._arm_commander.get_current_pose())
-            self.compute_joy_pose(self.start_pose)
+            
+            if(self.data.buttons[1]):
+                #toggle teach switch
+                self.toggleT=not self.toggleT
+                self._arm_commander.set_teach_mode(self.toggleT)
+                rospy.loginfo("Teaching toggle is:" + str(self.toggleT))
+                rospy.sleep(1)
+            if(self.toggleT==False):
+                self.compute_joy_pose(self.start_pose)
             rate.sleep()
 
     def compute_joy_pose(self, start_pose):
+            
+
         # might need adjustment on real robot
         scale = 10
         roll = 0.0

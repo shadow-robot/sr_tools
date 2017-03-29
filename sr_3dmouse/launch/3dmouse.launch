@@ -1,3 +1,4 @@
 <launch>
-	<node name="mousecontrol" pkg="sr_3dmouse" type="mousecontrol.py" />
+  <node name="space_mouse" pkg="spacenav_node" type="spacenav_node"/>
+  <node name="mousecontrol" pkg="sr_3dmouse" type="mousecontrol"/>
 </launch>

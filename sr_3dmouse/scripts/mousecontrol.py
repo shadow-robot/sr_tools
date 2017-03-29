@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 import tf
 from sr_robot_commander.sr_arm_commander import SrArmCommander

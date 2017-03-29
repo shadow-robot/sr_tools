@@ -45,7 +45,7 @@ class MouseCommand():
 
     def compute_joy_pose(self, start_pose):
         # might need adjustment on real robot
-        scale = 5
+        scale = 10
         roll = 0.0
         pitch = 0.0
         yaw = 0.0
@@ -57,18 +57,18 @@ class MouseCommand():
         new_pose.pose = deepcopy(start_pose)
 
         # retrieve joy commands
-        new_pose.pose.position.x += (self.data.axes[self.buttons['linearX']])/scale
-        new_pose.pose.position.y += (self.data.axes[self.buttons['linearY']])/scale
+        new_pose.pose.position.x += (self.data.axes[self.buttons['linearX']] *-1)/scale
+        new_pose.pose.position.y += (self.data.axes[self.buttons['linearY']] *-1)/scale
         new_pose.pose.position.z += (self.data.axes[self.buttons['linearZ']])/scale
 
         # set new rotation for joint handle from joystick
-        yaw += (self.data.axes[self.buttons['angularZ']])/scale
-        roll += (self.data.axes[self.buttons['angularX']])/scale
-        pitch += (self.data.axes[self.buttons['angularY']])/scale
+        yaw += (self.data.axes[self.buttons['angularY']])/scale
+        roll += (self.data.axes[self.buttons['angularZ']])/scale
+        pitch += (self.data.axes[self.buttons['angularX']])/scale
 
 
         # create quaternion to add to current rotation. Reverse pitch and yaw
-        diff_quaternion = tf.transformations.quaternion_from_euler(roll, pitch*-1, yaw*-1)
+        diff_quaternion = tf.transformations.quaternion_from_euler(roll*-1, pitch, yaw*-1)
 
         start_pose_quaternion = (
                  start_pose.orientation.x,
@@ -85,7 +85,7 @@ class MouseCommand():
         new_pose.pose.orientation.w = new_pose_quaternion[3]
         # move arm
         #self._arm_commander.move_to_pose_target(new_pose.pose)
-        self._arm_commander.move_to_pose_value_target_unsafe(new_pose, avoid_collisions=True, time=0.3, wait=False)
+        self._arm_commander.move_to_pose_value_target_unsafe(new_pose, avoid_collisions=True, wait=False)
         self.pub.publish(new_pose)
 
 if __name__ == '__main__':

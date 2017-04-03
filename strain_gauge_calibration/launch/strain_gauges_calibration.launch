@@ -1,0 +1,7 @@
+<launch>
+  <node name="calib_strain_gauges" pkg="strain_gauge_calibration" type="calib_strain_gauges.py" output="screen">
+    <param name="initial_weight" type="int" value="0" />
+    <param name="incremental_weight" type="int" value="100" />
+    <param name="final_weight" type="int" value="500" />
+  </node>
+</launch>

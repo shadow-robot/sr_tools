@@ -37,4 +37,6 @@
   <run_depend>sr_hand</run_depend>
   <run_depend>libmagick</run_depend>
 
+  <test_depend>sr_description</test_depend>
+
 </package>

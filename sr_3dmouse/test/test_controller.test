@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find sr_3dmouse)/launch/3dmousetest.launch" />
+  <test test-name="test_controller" pkg="sr_3dmouse" type="test_controller.py" time-limit="200.0"/>
+</launch>

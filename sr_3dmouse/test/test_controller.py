@@ -113,4 +113,5 @@ class MouseTester(unittest.TestCase):
 
 if __name__ == '__main__':
     import rostest
+    rospy.sleep(30.)
     rostest.rosrun(PKG, "mouse_test", MouseTester)

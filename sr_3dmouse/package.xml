@@ -20,7 +20,7 @@
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   
-  <test_depend>sr_description</test_depend>
+  <test_depend>sr_robot_launch</test_depend>
 
   <export>
 

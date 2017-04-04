@@ -94,13 +94,13 @@ class MouseTester(unittest.TestCase):
                 self.assertAlmostEqual(self.target_pose.pose.position.z,
                                        abs(self.expvals[i][j][2]), msg="poseZ failed", delta=1)
                 self.assertAlmostEqual(self.target_pose.pose.orientation.x,
-                                       abs(self.expvals[i][j][3]), msg="rotX failed", delta=1.5)
+                                       abs(self.expvals[i][j][3]), msg="rotX failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.orientation.y,
-                                       abs(self.expvals[i][j][4]), msg="rotY failed", delta=1.5)
+                                       abs(self.expvals[i][j][4]), msg="rotY failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.orientation.z,
-                                       abs(self.expvals[i][j][5]), msg="rotZ failed", delta=1.5)
+                                       abs(self.expvals[i][j][5]), msg="rotZ failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.orientation.w,
-                                       abs(self.expvals[i][j][6]), msg="rotW failed", delta=1.5)
+                                       abs(self.expvals[i][j][6]), msg="rotW failed", delta=2)
         # reset joystic
         self.reset_joy.axes = [0, 0, 0, 0, 0, 0]
         self.pub.publish(self.reset_joy)

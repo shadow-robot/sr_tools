@@ -6,6 +6,7 @@ import rospy
 import tf
 
 if __name__ == '__main__':
+
     rospy.init_node('sr_grasp_stability')
 
     listener = tf.TransformListener()
@@ -18,31 +19,27 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(10.0)  # Hz
 
+    trans = {}
+
     while not rospy.is_shutdown():
 
         # figure tip frames:
         # '/rh_rftip', '/rh_lftip', '/rh_mftip', '/rh_thtip', '/rh_fftip',
 
         try:
-            (trans_rh_rftip, rot_rh_rftip) = listener.lookupTransform('rh_rftip', 'rh_forearm', rospy.Time(0))
+            (trans['rh_ffdistal'], rot_rh_rftip) = listener.lookupTransform('/rh_ffdistal', '/rh_forearm', rospy.Time(0))
+            (trans['rh_ffdistal'], rot_rh_rftip) = listener.lookupTransform('/rh_lfdistal', '/rh_forearm', rospy.Time(0))
+            (trans['rh_mfdistal'], rot_rh_rftip) = listener.lookupTransform('/rh_mfdistal', '/rh_forearm', rospy.Time(0))
+            (trans['rh_ffdistal'], rot_rh_lftip) = listener.lookupTransform('/rh_rfdistal', '/rh_forearm', rospy.Time(0))
 
-        # rh_ffknuckle
-
-        # (trans_rh_rftip, rot_rh_rftip) = listener.lookupTransform('/rh_ffdistal', '/rh_rftip', rospy.Time(0))
-        # (trans_rh_lftip, rot_rh_lftip) = listener.lookupTransform('/world', '/rh_lftip', rospy.Time(0))
-        # (trans_rh_mftip, rot_rh_mftip) = listener.lookupTransform('/world', '/rh_mftip', rospy.Time(0))
-        # (trans_rh_thtip, rot_rh_thtip) = listener.lookupTransform('/world', '/rh_thtip', rospy.Time(0))
-        # (trans_rh_fftip, rot_rh_fftip) = listener.lookupTransform('/world', '/rh_fftip', rospy.Time(0))
+            (trans['rh_thdistal'], rot_rh_thtip) = listener.lookupTransform('/rh_thdistal', '/rh_forearm', rospy.Time(0))
 
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue
 
-        # rospy.loginfo("transform_1 %s", trans_rh_rftip[0])
+        # rospy.loginfo("transform_1 %s", trans['rh_ffdistal'])
 
-        rospy.loginfo("transform_1 %s", trans_rh_rftip)
-
-
-        # print trans_rh_rftip[0], trans_rh_rftip[1], trans_rh_rftip[2]
+        print trans
 
         # angular = 4 * math.atan2(trans[1], trans[0])
         # linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
@@ -52,3 +49,16 @@ if __name__ == '__main__':
         # turtle_vel.publish(cmd)
 
         rate.sleep()
+
+
+# class TfComputator():
+#
+#     def __innit__(self):
+#
+#
+# if __name__ == '__main__':
+#     rospy.init_node("mouse_tele_op", anonymous=True)
+#     tf_computator = TfComputator()
+#     # update pose
+#     MouseSim.update_robot_pose()
+#     rospy.spin()

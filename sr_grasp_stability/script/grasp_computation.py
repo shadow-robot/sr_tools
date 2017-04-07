@@ -5,7 +5,7 @@ import tf
 
 from tf_computation import tf_comp
 
-tf_comp = tf_comp()
+tf_comp = tf_comp() # Create an instance
 
 state = {}
 while not rospy.is_shutdown():

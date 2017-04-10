@@ -17,6 +17,7 @@ class TfComputator:
     def get_finger_tips(self):
         """
         Get fingertip transformations
+
         () -> return (dict, dict)
         """
         # finger-tip frames:

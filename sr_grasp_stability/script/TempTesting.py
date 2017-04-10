@@ -85,5 +85,3 @@ if __name__ == '__main__':
         rospy.loginfo("The grasp 2d-polygon area is %s", tf_computator.measure_grasp_polygon_area())
 
         rate.sleep()
-
-#   rospy.spin()

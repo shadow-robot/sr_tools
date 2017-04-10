@@ -1,18 +1,23 @@
 #!/usr/bin/env python
 
 import rospy
-import tf
+from tf_computation import TfComputator
+from polygon_computation import Polygon
 
-from tf_computation import tf_comp
+rospy.init_node('sr_grasp_stability')
 
-tf_comp = tf_comp() # Create an instance
+TF_comp = TfComputator()  # Create an instance
+Poly = Polygon()  # Create an instance
 
-state = {}
+trans = {}
+rot = {}
+
 while not rospy.is_shutdown():
 
     rate = rospy.Rate(10.0)
 
-    state = tf_comp.listening()
-    print state
+    trans, rot = TF_comp.get_finger_tips()
+    rospy.loginfo("The grasp 2d-polygon area is %s", Poly.measure_grasp_polygon_area(trans))
+    # print trans
 
     rate.sleep()

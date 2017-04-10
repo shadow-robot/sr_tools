@@ -4,7 +4,7 @@ import numpy as np
 
 class Polygon:
     """
-    Computes the polugon area of the grasp
+    Computes the polygon area of the grasp
     """
 
     #def __init__(self):
@@ -37,7 +37,7 @@ class Polygon:
 
     def measure_grasp_polygon_area(self, trans):
         """
-        Calculates polugon area
+        Calculates polygon area
 
         () -> return (float)
         """

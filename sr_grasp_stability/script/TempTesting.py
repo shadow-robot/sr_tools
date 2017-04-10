@@ -16,13 +16,14 @@ class TfComputator:
 
     def __init__(self):
 
-        self.trans = {}
-        self.tf_listener = tf.TransformListener()
+        self.trans = {} # initialize trans dict
+        self.tf_listener = tf.TransformListener() # initialize listener
 
     def get_finger_tips(self):
         # finger-tip frames:
         # '/rh_rftip', '/rh_lftip', '/rh_mftip', '/rh_thtip', '/rh_fftip',
 
+        # Get transforms from forearm to distal #
         try:
             (self.trans['rh_ffdistal'], rot_rh_rftip) = self.tf_listener.lookupTransform(
                 '/rh_ffdistal', '/rh_forearm', rospy.Time(0))
@@ -41,21 +42,32 @@ class TfComputator:
             # continue
 
     def convert_points_to_Xs_and_Ys(self):
+        """
+        Convert point to cartesian coordinates
+        """
         Xs = np.array([])
         Ys = np.array([])
+        Zs = np.array([])
 
         for key, (x, y, z) in self.trans.items():
             Xs = np.append(Xs, x)
             Ys = np.append(Ys, y)
+            Zs = np.append(Zs, z)
 
         return Xs, Ys
 
 
-    # Implementation of Shoelace formula
+
     def poly_area(self, (Xs, Ys)):
+        """
+        Implementation of Shoelace formula
+        """
         return 0.5 * np.abs(np.dot(Xs, np.roll(Ys, 1)) - np.dot(Ys, np.roll(Xs, 1)))
 
     def measure_grasp_polygon_area(self):
+        """
+        Calculates polugon area
+        """
         self.get_finger_tips()
         return self.poly_area(self.convert_points_to_Xs_and_Ys())
 

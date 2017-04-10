@@ -3,31 +3,43 @@
 import rospy
 import tf
 
-class tf_comp:
+class TfComputator:
+    """
+    Hand tf transformation computation
+    """
+
     def __init__(self):
-        rospy.init_node('sr_grasp_stability')
-        self.listener = tf.TransformListener()
 
-    def listening(self):
+        self.trans = {}
+        self. rot = {}
+        self.tf_listener = tf.TransformListener()
 
+    def get_finger_tips(self):
+        """
+        Get fingertip transformations
+        () -> return (dict, dict)
+        """
+        # finger-tip frames:
+        # '/rh_rftip', '/rh_lftip', '/rh_mftip', '/rh_thtip', '/rh_fftip',
 
-
-        trans = {}
-
-
-
+        # Get transforms from forearm to distal #
         try:
-            (trans['rh_ffdistal'], rot_rh_rftip) = self.listener.lookupTransform('/rh_ffdistal', '/rh_forearm', rospy.Time(0))
-            (trans['rh_ffdistal'], rot_rh_rftip) = self.listener.lookupTransform('/rh_lfdistal', '/rh_forearm', rospy.Time(0))
-            (trans['rh_mfdistal'], rot_rh_rftip) = self.listener.lookupTransform('/rh_mfdistal', '/rh_forearm', rospy.Time(0))
-            (trans['rh_ffdistal'], rot_rh_lftip) = self.listener.lookupTransform('/rh_rfdistal', '/rh_forearm', rospy.Time(0))
+            (self.trans['rh_ffdistal'], self.rot['rh_ffdistal']) = self.tf_listener.lookupTransform(
+                '/rh_ffdistal', '/rh_forearm', rospy.Time(0))
 
-            (trans['rh_thdistal'], rot_rh_thtip) = self.listener.lookupTransform('/rh_thdistal', '/rh_forearm', rospy.Time(0))
+            (self.trans['rh_lfdistal'], self.rot['rh_lfdistal']) = self.tf_listener.lookupTransform(
+                '/rh_lfdistal', '/rh_forearm', rospy.Time(0))
+
+            (self.trans['rh_mfdistal'], self.rot['rh_mfdistal']) = self.tf_listener.lookupTransform(
+                '/rh_mfdistal', '/rh_forearm', rospy.Time(0))
+
+            (self.trans['rh_rfdistal'], self.rot['rh_rfdistal']) = self.tf_listener.lookupTransform(
+                '/rh_rfdistal', '/rh_forearm', rospy.Time(0))
+
+            (self.trans['rh_thdistal'], self.rot['rh_thdistal']) = self.tf_listener.lookupTransform(
+                '/rh_thdistal', '/rh_forearm', rospy.Time(0))
 
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            print "exception"
+            rospy.loginfo("Failed to get tf for grasp measurement computation")
 
-        # print trans
-
-
-        return trans
+        return self.trans, self.rot

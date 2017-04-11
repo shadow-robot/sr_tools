@@ -7,8 +7,8 @@ class Polygon:
     Computes the polygon area of the grasp
     """
 
-    #def __init__(self):
-
+    def __init__(self):
+        pub = rospy.Publisher('grasp_quality_measure', Polygon, queue_size=10)
 
     def convert_points_to_Xs_and_Ys(self, trans):
         """

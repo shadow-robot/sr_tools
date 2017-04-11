@@ -33,13 +33,13 @@ class TfComputator:
             self.trans['rh_fftip'] = (transform.x, transform.y, transform.z)
 
             transform = self.tfBuffer.lookup_transform('world', 'rh_mftip', rospy.Time()).transform.translation
-            self.trans['rh_lftip'] = (transform.x, transform.y, transform.z)
+            self.trans['rh_mftip'] = (transform.x, transform.y, transform.z)
 
             transform = self.tfBuffer.lookup_transform('world', 'rh_rftip', rospy.Time()).transform.translation
             self.trans['rh_rftip'] = (transform.x, transform.y, transform.z)
 
             transform = self.tfBuffer.lookup_transform('world', 'rh_lftip', rospy.Time()).transform.translation
-            self.trans['rh_mftip'] = (transform.x, transform.y, transform.z)
+            self.trans['rh_lftip'] = (transform.x, transform.y, transform.z)
 
             transform = self.tfBuffer.lookup_transform('world', 'rh_thtip', rospy.Time()).transform.translation
             self.trans['rh_thtip'] = (transform.x, transform.y, transform.z)

@@ -1,11 +1,8 @@
 #!/usr/bin/env python
-import rospy, math
-# from teb_local_planner.msg import ObstacleMsg
-
-from base.src.sr_tools.sr_grasp_stability.src.sr_grasp_stability.tf_computation import TfComputator
-
-
+import rospy
 from geometry_msgs.msg import PolygonStamped, Point32
+
+from base.src.sr_tools.sr_grasp_stability.src.superseded.tf_computation import TfComputator
 
 
 def publish_obstacle_msg():

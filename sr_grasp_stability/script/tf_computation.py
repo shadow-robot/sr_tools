@@ -10,8 +10,10 @@ class TfComputator:
 
     def __init__(self):
 
+        # Dictionaries to store transformations
         self.trans = {}
         self. rot = {}
+
         self.tf_listener = tf.TransformListener()
 
     def get_finger_tips(self):

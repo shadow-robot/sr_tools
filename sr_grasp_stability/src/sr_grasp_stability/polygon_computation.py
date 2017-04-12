@@ -3,10 +3,29 @@
 import numpy as np
 
 # class Polygon:
+
+"""
+Calculate the centre of the grasp
+"""
+def get_centre_of_grasp(finger_tips):
+
+    n = len(finger_tips)
+    sum_x = 0.0
+    sum_y = 0.0
+    sum_z = 0.0
+
+    for keys, values in finger_tips.items():
+        x, y, z = values
+        sum_x += x
+        sum_y += y
+        sum_z += z
+
+    return (sum_x/n), (sum_y/n), (sum_z/n)
+
+
 """
 Computes the polygon area of the grasp
 """
-
 
 def convert_points_to_Xs_and_Ys(trans):
     """
@@ -42,3 +61,35 @@ def measure_grasp_polygon_area(trans):
     () -> return (float)
     """
     return poly_area(convert_points_to_Xs_and_Ys(trans))
+
+"""
+Computes the angles of polygon at each finger-tip
+"""
+def measure_grasp_polygon_angles(finger_tips):
+
+    n = len(finger_tips)
+    print n
+
+    ideal_angle = (180 * (n-2) / n)
+
+    summation = 2
+
+    measure = summation/((n-2) * (180 - ideal_angle) * 2*ideal_angle)
+
+    return measure
+
+
+# if __name__ == '__main__':
+#
+#     from sr_grasp_stability.tf2_computation import TfComputator
+#
+#     TF_comp = TfComputator()
+#
+#     finger_tips = False
+#
+#     while not finger_tips:
+#         finger_tips, exc = TF_comp.get_finger_tips('world')
+#         print finger_tips
+#     print finger_tips
+#
+#     measure_grasp_polygon_angles(finger_tips)

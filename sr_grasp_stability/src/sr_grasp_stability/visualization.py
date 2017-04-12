@@ -9,8 +9,9 @@ class Visualise:
     def __init__(self, ref_frame):
         self.polygon_msg = PolygonStamped()
         self.polygon_msg.header.frame_id = "/rh_forearm"  # CHANGE HERE: odom/map
-        self.pub = rospy.Publisher('/grasp_quality_measure', PolygonStamped, queue_size=1)
         self.polygon_msg.header.frame_id = ref_frame
+
+        self.pub = rospy.Publisher('/grasp_quality_measure', PolygonStamped, queue_size=1)
 
     def new_polygon_point(self, (x, y, z), points_list):
         point = Point32()

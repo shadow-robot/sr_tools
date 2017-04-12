@@ -17,23 +17,21 @@ TF_comp = TfComputator()  # Create an instance
 # Visual = Visualize()
 
 trans = {}
+# Set reference frame
+ref_frame = 'world'
 
 polygon_msg = PolygonStamped()
-polygon_msg.header.frame_id = "world"  # CHANGE HERE: odom/map
+polygon_msg.header.frame_id = ref_frame
 
 while not rospy.is_shutdown():
 
     rate = rospy.Rate(10.0)
 
-    trans, exc = TF_comp.get_finger_tips()
+    # Get finger-tips position relative to reference frame
+    trans, exc = TF_comp.get_finger_tips(ref_frame)
 
-    # if not exc:
-    #     print trans['rh_fftip']
-    #     rospy.loginfo("The grasp 2d-polygon area is %s", Poly.measure_grasp_polygon_area(trans))
-    #     # Visual.vis(trans)
-
+    # Create polygon message, populate it and publish for rViz
     polygon_msg.polygon.points = []
-
     if not exc:
         for key, value in trans.items():
             point = Point32()

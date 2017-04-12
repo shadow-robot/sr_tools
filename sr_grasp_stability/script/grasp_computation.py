@@ -2,7 +2,7 @@
 
 import rospy
 from sr_grasp_stability.tf2_computation import TfComputator
-# from src.polygon_computation import Polygon
+from sr_grasp_stability.polygon_computation import measure_grasp_polygon_area
 # from visualization_2 import Visualize
 
 from std_msgs.msg import Header
@@ -23,6 +23,11 @@ ref_frame = 'world'
 polygon_msg = PolygonStamped()
 polygon_msg.header.frame_id = ref_frame
 
+def new_polygon_point((x, y, z), points_list):
+    point = Point32()
+    point.x, point.y, point.z = x, y, z
+    points_list.append(point)
+
 while not rospy.is_shutdown():
 
     rate = rospy.Rate(10.0)
@@ -33,11 +38,26 @@ while not rospy.is_shutdown():
     # Create polygon message, populate it and publish for rViz
     polygon_msg.polygon.points = []
     if not exc:
-        for key, value in trans.items():
-            point = Point32()
-            point.x, point.y, point.z = value
-            polygon_msg.polygon.points.append(point)
+
+        poly_area = measure_grasp_polygon_area(trans)
+
+        # for key, value in trans.items():
+        #     point = Point32()
+        #     point.x, point.y, point.z = value
+        #     polygon_msg.polygon.points.append(point)
+        #     print key, value
+
+        new_polygon_point(trans['rh_fftip'], polygon_msg.polygon.points)
+        new_polygon_point(trans['rh_mftip'], polygon_msg.polygon.points)
+        new_polygon_point(trans['rh_rftip'], polygon_msg.polygon.points)
+        new_polygon_point(trans['rh_lftip'], polygon_msg.polygon.points)
+        new_polygon_point(trans['rh_thtip'], polygon_msg.polygon.points)
+
+        # rh_fftip rh_mftip rh_rftip rh_lftip rh_thtip
+
 
         pub.publish(polygon_msg)
+        rospy.loginfo("Grasp polygon area = %s", poly_area)
+
 
     rate.sleep()

@@ -21,7 +21,7 @@ trunks:
       ros:
         release: kinetic
       docker:
-        tag: xenial-kinetic
+        tag: xenial-kinetic-mongodb-fix
 
 branch:
   parent: kinetic-devel

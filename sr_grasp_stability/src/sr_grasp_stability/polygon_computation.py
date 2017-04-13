@@ -4,11 +4,11 @@ import numpy as np
 
 # class Polygon:
 
-"""
-Calculate the centre of the grasp
-"""
-def get_centre_of_grasp(finger_tips):
 
+def get_centre_of_grasp(finger_tips):
+    """
+    Calculate the centre of the grasp
+    """
     n = len(finger_tips)
     sum_x = 0.0
     sum_y = 0.0
@@ -22,8 +22,9 @@ def get_centre_of_grasp(finger_tips):
 
     return (sum_x/n), (sum_y/n), (sum_z/n)
 
-''' NOT TESTED '''
+
 def find_cosine_angle(a, b, c):
+    """ NOT TESTED """
     ba = a - b
     bc = c - b
 
@@ -32,17 +33,19 @@ def find_cosine_angle(a, b, c):
 
     return angle  # np.degrees(angle)
 
-''' TEST for find_triangle_area '''
+
 def main():
+    """ TEST for find_triangle_area """
     a = np.array([0.0, 0.0, 1.0])
     b = np.array([2.0, 3.0, 1.0])
     c = np.array([3.0, 0.0, 1.0])
     print find_triangle_area(a, b, c)
 
-'''
-Calculates the area of a triangle given the points at its corners
-'''
+
 def find_triangle_area(a, b, c):
+    """
+    Calculates the area of a triangle given the points at its corners
+    """
     ab = a - b  # np.dot(a, b)
     ac = a - c  # np.dot(a, c)
 
@@ -62,11 +65,11 @@ def find_triangle_area(a, b, c):
 #                                   (ab[0]*ac[1] - ab[1]*ac[0])**2)
 #     return triangle_area
 
-"""
-Polygon area in 3D for Hand E (Five fingers)
-"""
-def poly_3d_area (finger_tips):
 
+def poly_3d_area(finger_tips):
+    """
+    Polygon area in 3D for Hand E (Five fingers)
+    """
     polygon_area = 0.0
 
     # 'rh_fftip', 'rh_mftip', 'rh_rftip',    'rh_lftip', 'rh_thtip'
@@ -129,11 +132,11 @@ Computes the polygon area of the grasp
 #     """
 #     return poly_area(convert_points_to_Xs_and_Ys(trans))
 
-"""
-Computes the angles of polygon at each finger-tip
-"""
-def measure_grasp_polygon_angles(finger_tips):
 
+def measure_grasp_polygon_angles(finger_tips):
+    """
+    Computes the angles of polygon at each finger-tip
+    """
     n = len(finger_tips)
     print n
 

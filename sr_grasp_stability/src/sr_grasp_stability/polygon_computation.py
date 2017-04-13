@@ -23,23 +23,12 @@ def get_centre_of_grasp(finger_tips):
     return (sum_x/n), (sum_y/n), (sum_z/n)
 
 
-def find_cosine_angle(a, b, c):
-    """ NOT TESTED """
-    ba = a - b
-    bc = c - b
-
-    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.arccos(cosine_angle)
-
-    return angle  # np.degrees(angle)
-
-
-def main():
-    """ TEST for find_triangle_area """
-    a = np.array([0.0, 0.0, 1.0])
-    b = np.array([2.0, 3.0, 1.0])
-    c = np.array([3.0, 0.0, 1.0])
-    print find_triangle_area(a, b, c)
+# def main():
+#     """ TEST for find_triangle_area """
+#     a = np.array([0.0, 0.0, 1.0])
+#     b = np.array([2.0, 3.0, 1.0])
+#     c = np.array([3.0, 0.0, 1.0])
+#     print find_triangle_area(a, b, c)
 
 
 def find_triangle_area(a, b, c):
@@ -133,6 +122,21 @@ Computes the polygon area of the grasp
 #     return poly_area(convert_points_to_Xs_and_Ys(trans))
 
 
+def main():
+    print 1
+
+
+def find_cosine_angle(a, b, c):
+    """ NOT TESTED """
+    ba = a - b
+    bc = c - b
+
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+
+    return angle  # np.degrees(angle)
+
+
 def measure_grasp_polygon_angles(finger_tips):
     """
     Computes the angles of polygon at each finger-tip
@@ -142,9 +146,11 @@ def measure_grasp_polygon_angles(finger_tips):
 
     ideal_angle = (180 * (n-2) / n)
 
+    max_angle = ((n-2) * (180 - ideal_angle) * 2*ideal_angle)
+
     summation = 2
 
-    measure = summation/((n-2) * (180 - ideal_angle) * 2*ideal_angle)
+    measure = summation/max_angle
 
     return measure
 

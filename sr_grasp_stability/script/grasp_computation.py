@@ -2,7 +2,7 @@
 
 import rospy
 from sr_grasp_stability.tf2_computation import TfComputator
-from sr_grasp_stability.polygon_computation import measure_grasp_polygon_area, get_centre_of_grasp
+from sr_grasp_stability.polygon_computation import poly_3d_area, get_centre_of_grasp
 from sr_grasp_stability.visualization import Visualise
 from sr_grasp_stability.place_marker import PlaceMarker
 
@@ -27,7 +27,7 @@ while not rospy.is_shutdown():
 
     if not exc:
 
-        poly_area = measure_grasp_polygon_area(finger_tips)
+        poly_area = poly_3d_area(finger_tips)
         centre_of_grasp = get_centre_of_grasp(finger_tips)
 
         Visual.publish_obstacle_msg(finger_tips)

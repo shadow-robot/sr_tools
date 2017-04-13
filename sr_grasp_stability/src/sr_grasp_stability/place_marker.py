@@ -2,19 +2,13 @@
 
 import rospy
 
-from std_msgs.msg import String
-# from geometry_msgs.msg import PointStamped
 from visualization_msgs.msg import Marker
 
 
 class PlaceMarker:
 
     def __init__(self, ref_frame):
-        # self.pub = rospy.Publisher('state', PointStamped, queue_size=10)
-
         self.markerPub = rospy.Publisher('grasp_centre_Marker', Marker, queue_size=10)
-
-        # rospy.Subscriber("action", String, self.move_callback)
 
         self.robotMarker = Marker()
         self.robotMarker.header.frame_id = ref_frame

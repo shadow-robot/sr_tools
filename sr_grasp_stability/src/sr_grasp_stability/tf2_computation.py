@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-import math
 import tf2_ros
-import geometry_msgs.msg
 
 class TfComputator:
     """
@@ -24,7 +22,7 @@ class TfComputator:
         () -> return (dict, dict)
         """
         # finger-tip frames:
-        # '/rh_rftip', '/rh_lftip', '/rh_mftip', '/rh_thtip', '/rh_fftip',
+        # '/rh_fftip', '/rh_mftip', '/rh_rftip', '/rh_lftip', '/rh_thtip',
 
         exc = False
         # Get transforms from forearm to distal #

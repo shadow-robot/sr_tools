@@ -26,7 +26,7 @@ class TfComputator:
         # '/rh_fftip', '/rh_mftip', '/rh_rftip', '/rh_lftip', '/rh_thtip',
 
         exc = False
-        # Get transforms from forearm to distal #
+        # Get transforms from reference frame to finger-tips
         try:
             transform = self.tfBuffer.lookup_transform(ref_frame, 'rh_fftip', rospy.Time()).transform.translation
             self.trans['rh_fftip'] = (transform.x, transform.y, transform.z)

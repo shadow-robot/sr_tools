@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sleep 30
+sleep 20
 
 echo "Starting the node"
-roslaunch sr_3dmouse test.launch
+roslaunch sr_3dmouse 3dmousetest.launch

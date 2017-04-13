@@ -1,4 +1,10 @@
 <launch>
-  <include file="$(find sr_3dmouse)/launch/3dmousetest.launch" />
-  <test test-name="test_controller" pkg="sr_3dmouse" type="test_controller.py" time-limit="400.0"/>
+<include file="$(find sr_robot_launch)/launch/sr_right_ur10arm_hand.launch">
+  <arg name="gui" value="false"/>
+</include> 
+
+<node name="delayedtest" pkg="sr_3dmouse" type="delayed.sh"/>
+
+<include file="$(find sr_3dmouse)/launch/3dmousetest.launch" />
+<test test-name="test_controller" pkg="sr_3dmouse" type="test_controller.py" time-limit="400.0"/>
 </launch>

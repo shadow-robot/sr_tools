@@ -121,7 +121,11 @@ Computes the polygon area of the grasp
 
 
 def main():
-    print 1
+    """ TEST for find_triangle_area """
+    a = np.array([0.0, 0.0, 1.0])
+    b = np.array([2.0, 3.0, 1.0])
+    c = np.array([3.0, 0.0, 1.0])
+    print find_cosine_angle(a, b, c)
 
 
 def find_cosine_angle(a, b, c):
@@ -139,14 +143,37 @@ def measure_grasp_polygon_angles(finger_tips):
     """
     Computes the angles of polygon at each finger-tip
     """
+
     n = len(finger_tips)
-    print n
+
+    if n < 3:
+        return 0
 
     ideal_angle = (180 * (n-2) / n)
-
     max_angle = ((n-2) * (180 - ideal_angle) * 2*ideal_angle)
+    summation = 0.0
 
-    summation = 2
+    xa, ya, za = finger_tips['rh_fftip']  # 1st finger-tip
+    xb, yb, zb = finger_tips['rh_mftip']  # 2nd finger-tip
+    xc, yc, zc = finger_tips['rh_rftip']  # 3rd finger-tip
+
+    a = np.array([xa, ya, za])
+    b = np.array([xb, yb, zb])
+    c = np.array([xc, yc, zc])
+
+    angle = find_cosine_angle(a, b, c)
+    summation += abs(angle - ideal_angle)
+
+    xb, yb, zb = finger_tips['rh_lftip']  # 4nd finger-tip
+    b = np.array([xb, yb, zb])
+
+    polygon_area += find_triangle_area(a, b, c)
+
+    xc, yc, zc = finger_tips['rh_thtip']  # 5nd finger-tip
+    c = np.array([xc, yc, zc])
+
+    polygon_area += find_triangle_area(a, b, c)
+
 
     measure = summation/max_angle
 

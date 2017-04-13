@@ -11,7 +11,7 @@ rospy.init_node('sr_grasp_stability')
 # Set reference frame
 ref_frame = 'world'
 
-TF_comp = TfComputator()  # Create an instance
+TF_comp = TfComputator()
 Visual = Visualise(ref_frame)
 marker = PlaceMarker(ref_frame)
 

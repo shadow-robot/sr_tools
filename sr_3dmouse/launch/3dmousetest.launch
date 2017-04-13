@@ -1,6 +1,7 @@
 <launch>
-<node name="mousecontrol" pkg="sr_3dmouse" type="mousecontrol" respawn="true"/>
-  <include file="$(find sr_robot_launch)/launch/sr_right_ur10arm_hand.launch">
+
+ <include file="$(find sr_robot_launch)/launch/sr_right_ur10arm_hand.launch">
   <arg name="gui" value="false"/>
   </include> 
+<node name="delayedtest" pkg="sr_3dmouse" type="delayed.sh"/>
 </launch>

@@ -16,17 +16,17 @@ class TfComputator:
         self.tfBuffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tfBuffer)
 
-    def get_finger_tips(self, ref_frame):
+    def get_fingertips(self, ref_frame):
         """
         Get fingertip transformations
 
         () -> return (dict, dict)
         """
-        # finger-tip frames:
+        # fingertip frames:
         # '/rh_fftip', '/rh_mftip', '/rh_rftip', '/rh_lftip', '/rh_thtip',
 
         exc = False
-        # Get transforms from reference frame to finger-tips
+        # Get transforms from reference frame to fingertips
         try:
             transform = self.tfBuffer.lookup_transform(ref_frame, 'rh_fftip', rospy.Time()).transform.translation
             self.trans['rh_fftip'] = (transform.x, transform.y, transform.z)

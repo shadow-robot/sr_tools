@@ -2,19 +2,17 @@
 
 import numpy as np
 
-# class Polygon:
 
-
-def get_centre_of_grasp(finger_tips):
+def get_centre_of_grasp(fingertips):
     """
     Calculate the centre of the grasp
     """
-    n = len(finger_tips)
+    n = len(fingertips)
     sum_x = 0.0
     sum_y = 0.0
     sum_z = 0.0
 
-    for keys, values in finger_tips.items():
+    for keys, values in fingertips.items():
         x, y, z = values
         sum_x += x
         sum_y += y

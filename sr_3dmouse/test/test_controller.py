@@ -4,7 +4,9 @@
 '''
 from __future__ import division
 import unittest
+import actionlib
 import rospy
+from moveit_msgs.msg import MoveGroupAction
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
@@ -45,8 +47,8 @@ class MouseTester(unittest.TestCase):
                          [0.27, 0.25, 1.1, 0.7, 0.6, 0.05, 0.08],
                          [0.27, 0.25, 1.1, 0.7, 0.6, 0.05, 0.05]]]
         # initialize arm's position
-        self.arm_commander = SrArmCommander(name="right_arm", set_ground=True)
-        start_pose = self.arm_commander.get_current_pose()
+        self._arm_commander = SrArmCommander(name="right_arm", set_ground=True)
+        start_pose = self._arm_commander.get_current_pose()
         self.new_pose.header.stamp = rospy.get_rostime()
         self.new_pose.header.frame_id = "world"
         self.new_pose.pose = start_pose
@@ -68,7 +70,7 @@ class MouseTester(unittest.TestCase):
         self.reset_joy = self.data
         self.pub.publish(self.data)
         # move arm to initial position
-        self.arm_commander.move_to_pose_value_target_unsafe(self.new_pose,
+        self._arm_commander.move_to_pose_value_target_unsafe(self.new_pose,
                                                              avoid_collisions=True,
                                                              wait=False)
         self.pub_arm.publish(self.new_pose)
@@ -113,10 +115,6 @@ class MouseTester(unittest.TestCase):
 
 if __name__ == '__main__':
     import rostest
-    try:
-        print "waiting for simulation to load"
-        rospy.wait_for_service('/warehouse_trajectory_planner/get_loggers', timeout=600)
-    except rospy.ROSException:
-        print "simulation never loaded"
-        sys.exit(0)
+    client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
+    client.wait_for_server()
     rostest.rosrun(PKG, "mouse_test", MouseTester)

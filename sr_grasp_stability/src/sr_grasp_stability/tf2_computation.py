@@ -22,7 +22,7 @@ class TfComputator:
             from the reference_frame
         :param reference_frame: Frame in which transforms will be generated from
         :return fingertip_transforms: Dictionary of transform vectors from reference_frame to fingertips
-        :return exception_has_been_triggered: XX
+        :return exception_has_been_triggered: TODO(@anastasios)
         """
         exception_has_been_triggered = False
 

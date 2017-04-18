@@ -11,7 +11,7 @@ rospy.init_node('sr_grasp_stability')
 # Set reference frame
 ref_frame = 'world'
 
-TF_comp = TfComputator()
+TF_computator = TfComputator()
 Visual = Visualise(ref_frame)
 marker = PlaceMarker(ref_frame)
 
@@ -25,7 +25,7 @@ while not rospy.is_shutdown():
     list_of_fingertips = ['rh_fftip', 'rh_mftip', 'rh_rftip', 'rh_lftip', 'rh_thtip']  # Hand E fingertip frames:
 
     # Get fingertip positions relative to reference frame
-    fingertips, exc = TF_comp.get_fingertips(list_of_fingertips, ref_frame)
+    fingertips, exc = TF_computator.get_fingertips(list_of_fingertips, ref_frame)
 
     if not exc:
 

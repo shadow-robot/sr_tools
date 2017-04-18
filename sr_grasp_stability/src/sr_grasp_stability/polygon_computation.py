@@ -118,6 +118,7 @@ def measure_grasp_polygon_angles(fingertips):
 
 def main():
     """ TEST for find_triangle_area """
+    # TODO(): yugigi
     a = np.array([0.0, 0.0, 1.0])
     b = np.array([2.0, 3.0, 1.0])
     c = np.array([4.0, 0.0, 1.0])

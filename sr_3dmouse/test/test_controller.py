@@ -25,7 +25,6 @@ class MouseTester(unittest.TestCase):
         self.target_pose = PoseStamped()
         start_pose = Pose()
         self.new_pose = PoseStamped()
-        self._arm_commander = SrArmCommander(name="right_arm", set_ground=True)
         # expected values
         self.expvals = [[[0.3, 0.0, 1.1, 0, 0.7, 0.05, 0.05],
                          [0.51, 0.25, 1.1, 0.7, 0.71, 0.05, 0.048],
@@ -46,7 +45,8 @@ class MouseTester(unittest.TestCase):
                          [0.27, 0.25, 1.1, 0.7, 0.6, 0.05, 0.08],
                          [0.27, 0.25, 1.1, 0.7, 0.6, 0.05, 0.05]]]
         # initialize arm's position
-        start_pose = self._arm_commander.get_current_pose()
+        self.arm_commander = SrArmCommander(name="right_arm", set_ground=True)
+        start_pose = self.arm_commander.get_current_pose()
         self.new_pose.header.stamp = rospy.get_rostime()
         self.new_pose.header.frame_id = "world"
         self.new_pose.pose = start_pose
@@ -68,7 +68,7 @@ class MouseTester(unittest.TestCase):
         self.reset_joy = self.data
         self.pub.publish(self.data)
         # move arm to initial position
-        self._arm_commander.move_to_pose_value_target_unsafe(self.new_pose,
+        self.arm_commander.move_to_pose_value_target_unsafe(self.new_pose,
                                                              avoid_collisions=True,
                                                              wait=False)
         self.pub_arm.publish(self.new_pose)

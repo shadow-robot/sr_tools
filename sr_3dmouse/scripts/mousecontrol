@@ -3,6 +3,7 @@
 from copy import deepcopy
 import rospy
 import tf
+import sys
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
@@ -98,6 +99,12 @@ class MouseCommand():
 
 if __name__ == '__main__':
     rospy.init_node("mouse_tele_op", anonymous=True)
+    try:
+        print "waiting for simulation to load"
+        rospy.wait_for_service('move_group/monitored_planning_scene', timeout=600)
+    except rospy.ROSException:
+        print "simulation never loaded"
+        sys.exit(0)
     MouseSim = MouseCommand()
     # update pose
     MouseSim.update_robot_pose()

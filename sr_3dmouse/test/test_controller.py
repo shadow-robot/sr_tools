@@ -88,11 +88,11 @@ class MouseTester(unittest.TestCase):
                 self.data.axes[i] = self.data.axes[i] + 0.08
                 rate.sleep()
                 self.assertAlmostEqual(self.target_pose.pose.position.x,
-                                       abs(self.expvals[i][j][0]), msg="poseX failed", delta=1)
+                                       abs(self.expvals[i][j][0]), msg="poseX failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.position.y,
-                                       abs(self.expvals[i][j][1]), msg="poseY failed", delta=1)
+                                       abs(self.expvals[i][j][1]), msg="poseY failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.position.z,
-                                       abs(self.expvals[i][j][2]), msg="poseZ failed", delta=1)
+                                       abs(self.expvals[i][j][2]), msg="poseZ failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.orientation.x,
                                        abs(self.expvals[i][j][3]), msg="rotX failed", delta=2)
                 self.assertAlmostEqual(self.target_pose.pose.orientation.y,
@@ -113,5 +113,10 @@ class MouseTester(unittest.TestCase):
 
 if __name__ == '__main__':
     import rostest
-    rospy.sleep(30.)
+    try:
+        print "waiting for simulation to load"
+        rospy.wait_for_service('move_group/monitored_planning_scene', timeout=600)
+    except rospy.ROSException:
+        print "simulation never loaded"
+        sys.exit(0)
     rostest.rosrun(PKG, "mouse_test", MouseTester)

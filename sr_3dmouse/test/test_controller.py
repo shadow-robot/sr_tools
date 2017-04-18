@@ -115,7 +115,7 @@ if __name__ == '__main__':
     import rostest
     try:
         print "waiting for simulation to load"
-        rospy.wait_for_service('move_group/monitored_planning_scene', timeout=600)
+        rospy.wait_for_service('/warehouse_trajectory_planner/get_loggers', timeout=600)
     except rospy.ROSException:
         print "simulation never loaded"
         sys.exit(0)

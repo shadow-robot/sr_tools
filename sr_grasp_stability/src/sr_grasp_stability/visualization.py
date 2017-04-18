@@ -17,15 +17,15 @@ class Visualise:
         point.x, point.y, point.z = x, y, z
         points_list.append(point)
 
-    def publish_obstacle_msg(self, trans):
+    def publish_obstacle_msg(self, fingertips):
         # Adjust the topic for navigation or remap
         self.polygon_msg.header.stamp = rospy.Time.now()
         self.polygon_msg.polygon.points = []
 
-        self.new_polygon_point(trans['rh_fftip'], self.polygon_msg.polygon.points)
-        self.new_polygon_point(trans['rh_mftip'], self.polygon_msg.polygon.points)
-        self.new_polygon_point(trans['rh_rftip'], self.polygon_msg.polygon.points)
-        self.new_polygon_point(trans['rh_lftip'], self.polygon_msg.polygon.points)
-        self.new_polygon_point(trans['rh_thtip'], self.polygon_msg.polygon.points)
+        self.new_polygon_point(fingertips['rh_fftip'], self.polygon_msg.polygon.points)
+        self.new_polygon_point(fingertips['rh_mftip'], self.polygon_msg.polygon.points)
+        self.new_polygon_point(fingertips['rh_rftip'], self.polygon_msg.polygon.points)
+        self.new_polygon_point(fingertips['rh_lftip'], self.polygon_msg.polygon.points)
+        self.new_polygon_point(fingertips['rh_thtip'], self.polygon_msg.polygon.points)
 
         self.pub.publish(self.polygon_msg)

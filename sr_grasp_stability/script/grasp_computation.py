@@ -22,7 +22,7 @@ while not rospy.is_shutdown():
     rate = rospy.Rate(10.0)
 
     # State which fingertips are used in grasp calculation
-    list_of_fingertips = ['rh_fftip', 'rh_mftip', 'rh_rftip', 'rh_lftip', 'rh_thtip']
+    list_of_fingertips = ['rh_fftip', 'rh_mftip', 'rh_rftip', 'rh_lftip', 'rh_thtip']  # Hand E fingertip frames:
 
     # Get fingertip positions relative to reference frame
     fingertips, exc = TF_comp.get_fingertips(list_of_fingertips, ref_frame)

@@ -25,6 +25,7 @@ class MouseTester(unittest.TestCase):
         rospy.init_node("mouse_tester", anonymous=True)
         client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
         client.wait_for_server()
+        rospy.sleep(15.)
         self.data = Joy()
         self.target_pose = PoseStamped()
         start_pose = Pose()

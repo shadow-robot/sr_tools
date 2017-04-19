@@ -103,6 +103,7 @@ if __name__ == '__main__':
     client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
     print "Waiting for action server"
     client.wait_for_server()
+    rospy.sleep(15.)
     MouseSim = MouseCommand()
     # update pose
     MouseSim.update_robot_pose()

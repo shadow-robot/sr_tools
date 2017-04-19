@@ -51,8 +51,9 @@ def poly_3d_area(fingertips):
 
     # Set first fingertip as common corner of all triangles
     common_triangle_corner = fingertips[0]['transform'].translation
-    a = np.array([common_triangle_corner.x, common_triangle_corner.y, common_triangle_corner.z]) # 1st finger-tip
+    a = np.array([common_triangle_corner.x, common_triangle_corner.y, common_triangle_corner.z])
 
+    # Loop through the rest of the corners of the polygon, making triangles to find area of
     for idx in xrange(2, num_of_fingertips):
 
         b = np.array([fingertips[idx - 1]['transform'].translation.x, fingertips[idx - 1]['transform'].translation.y,

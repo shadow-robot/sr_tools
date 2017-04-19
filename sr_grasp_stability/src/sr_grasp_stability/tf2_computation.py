@@ -30,7 +30,7 @@ class TfComputator:
             while not rospy.is_shutdown():
                 try:
                     fingertip['transform'] = self.tfBuffer.lookup_transform(reference_frame, fingertip_in,
-                                                                         rospy.Time()).transform
+                                                                            rospy.Time()).transform
                     break
                 except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
                     if rospy.get_time() - start_time > individual_tf_timeout:

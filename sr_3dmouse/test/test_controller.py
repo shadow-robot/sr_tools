@@ -23,6 +23,8 @@ class MouseTester(unittest.TestCase):
     def setUp(self):
         # init
         rospy.init_node("mouse_tester", anonymous=True)
+        client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
+        client.wait_for_server()
         self.data = Joy()
         self.target_pose = PoseStamped()
         start_pose = Pose()
@@ -115,6 +117,4 @@ class MouseTester(unittest.TestCase):
 
 if __name__ == '__main__':
     import rostest
-    client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
-    client.wait_for_server()
     rostest.rosrun(PKG, "mouse_test", MouseTester)

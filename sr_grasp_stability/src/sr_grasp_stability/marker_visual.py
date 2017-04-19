@@ -5,7 +5,10 @@ import rospy
 from visualization_msgs.msg import Marker
 
 
-class PlaceMarker:
+class MarkerVisual:
+    """
+    Makes a marker for RViz and publishes it
+    """
 
     def __init__(self, ref_frame):
         self.markerPub = rospy.Publisher('grasp_centre_Marker', Marker, queue_size=10)

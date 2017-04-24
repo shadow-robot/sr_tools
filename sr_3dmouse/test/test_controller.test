@@ -4,5 +4,5 @@
 </include> 
 
 <include file="$(find sr_3dmouse)/launch/3dmousefortest.launch" />
-<test test-name="test_controller" pkg="sr_3dmouse" type="test_controller.py" time-limit="600.0"/>
+<test test-name="test_controller" pkg="sr_3dmouse" type="test_controller.py" time-limit="800.0"/>
 </launch>

@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+"3D Mouse controller"
+from copy import deepcopy
+import rospy
+import tf
+import actionlib
+from moveit_msgs.msg import MoveGroupAction
+from sr_robot_commander.sr_arm_commander import SrArmCommander
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose
+from sensor_msgs.msg import Joy
+
+
+class MouseCommand():
+
+    def __init__(self):
+        # map 3d mouse buttons
+        self.buttons = {"linearX": 0,
+                        "linearY": 1,
+                        "linearZ": 2,
+                        "angularX": 3,
+                        "angularY": 4,
+                        "angularZ": 5}
+        self.toggleT = False
+        self.data = Joy()
+        self.start_pose = Pose()
+        # subscribe to mouse topic
+        self.sub = rospy.Subscriber("/spacenav/joy", Joy, self.joy_msg_callback)
+        self._arm_commander = SrArmCommander(name="right_arm", set_ground=True)
+        self.pub = rospy.Publisher("command", PoseStamped, queue_size=1)
+
+    def joy_msg_callback(self, data):
+        "retrieve the mouse 3d data"
+        self.data = data
+
+    def update_robot_pose(self):
+        "updates the robot pose"
+        rate = rospy.Rate(100)
+        while not rospy.is_shutdown():
+            self.start_pose = deepcopy(self._arm_commander.get_current_pose())
+            # check if spacenav_node filled data
+            if self.data.axes:
+                if self.data.buttons[1]:
+                    # toggle teach switch
+                    self.toggleT = not self.toggleT
+                    self._arm_commander.set_teach_mode(self.toggleT)
+                    rospy.loginfo("Teaching toggle is:" + str(self.toggleT))
+                    rospy.sleep(1)
+                if self.toggleT is False:
+                    self.compute_joy_pose(self.start_pose)
+            else:
+                rospy.logwarn("no data from spacenav_node. Is it running?")
+            rate.sleep()
+
+    def compute_joy_pose(self, start_pose):
+        "computes the position of the mouse"
+        # might need adjustment on real robot
+        scale = 10
+        roll = 0.0
+        pitch = 0.0
+        yaw = 0.0
+
+        # set new position for the robot
+        new_pose = PoseStamped()
+        new_pose.header.stamp = rospy.get_rostime()
+        new_pose.header.frame_id = "world"
+        new_pose.pose = deepcopy(start_pose)
+
+        # retrieve joy commands
+        new_pose.pose.position.x += (self.data.axes[self.buttons['linearX']] * -1)/scale
+        new_pose.pose.position.y += (self.data.axes[self.buttons['linearY']] * -1)/scale
+        new_pose.pose.position.z += (self.data.axes[self.buttons['linearZ']])/scale
+
+        # set new rotation for joint handle from joystick
+        yaw += (self.data.axes[self.buttons['angularY']])/scale
+        roll += (self.data.axes[self.buttons['angularZ']])/scale
+        pitch += (self.data.axes[self.buttons['angularX']])/scale
+
+        # create quaternion to add to current rotation. Reverse pitch and yaw
+        diff_quaternion = tf.transformations.quaternion_from_euler(-pitch, -yaw, roll)
+
+        start_pose_quaternion = (
+            start_pose.orientation.x,
+            start_pose.orientation.y,
+            start_pose.orientation.z,
+            start_pose.orientation.w)
+
+        # multiply current quaternion and difference
+        new_pose_quaternion = tf.transformations.quaternion_multiply(diff_quaternion,
+                                                                     start_pose_quaternion)
+        new_pose.pose.orientation.x = new_pose_quaternion[0]
+        new_pose.pose.orientation.y = new_pose_quaternion[1]
+        new_pose.pose.orientation.z = new_pose_quaternion[2]
+        new_pose.pose.orientation.w = new_pose_quaternion[3]
+        # move arm
+        self._arm_commander.move_to_pose_value_target_unsafe(new_pose,
+                                                             avoid_collisions=True,
+                                                             wait=False)
+        self.pub.publish(new_pose)
+
+if __name__ == '__main__':
+    rospy.init_node("mouse_tele_op", anonymous=True)
+    client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
+    print "Waiting for action server"
+    client.wait_for_server()
+    rospy.sleep(15.)
+    MouseSim = MouseCommand()
+    # update pose
+    MouseSim.update_robot_pose()
+    rospy.spin()

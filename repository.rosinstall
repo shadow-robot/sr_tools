@@ -2,3 +2,8 @@
     local-name: sr_core
     uri: https://github.com/shadow-robot/sr_core.git
     version: kinetic-devel
+
+- git:
+    local-name: sr_interface
+    uri: https://github.com/shadow-robot/sr_interface
+    version: 'kinetic-devel'

@@ -1,0 +1,5 @@
+<launch>
+
+ <node name="mousecontrol" pkg="sr_3dmouse" type="mousecontrol" respawn="true"/>
+
+</launch>

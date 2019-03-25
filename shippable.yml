@@ -9,13 +9,13 @@ env:
 build:
   pre_ci_boot:
     image_name: shadowrobot/build-tools
-    image_tag: xenial-kinetic
+    image_tag: bionic-melodic
     pull: true
   ci:
     - export toolset_branch="master"
     - export server_type="shippable"
-    - export ros_release_name="kinetic"
-    - export ubuntu_version_name="xenial"
+    - export ros_release_name="melodic"
+    - export ubuntu_version_name="bionic"
     - export used_modules="build_pr_only,check_cache,code_coverage"
     - export remote_shell_script="https://raw.githubusercontent.com/shadow-robot/sr-build-tools/$toolset_branch/bin/sr-run-ci-build.sh"
     - apt-get update

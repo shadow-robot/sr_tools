@@ -1,3 +1,4 @@
+
 settings:
   ubuntu:
     version: xenial
@@ -5,7 +6,7 @@ settings:
     release: kinetic
   docker:
     image: shadowrobot/build-tools
-    tag: xenial-kinetic-mongodb-fix
+    tag: xenial-kinetic
   toolset:
     template_job_name: template_unit_tests_and_code_coverage
     modules:
@@ -14,6 +15,14 @@ settings:
 
 trunks:
   - name: kinetic-devel
+  - name: melodic-devel
+    settings:
+      ubuntu:
+        version: bionic
+      ros:
+        release: melodic
+      docker:
+        tag: bionic-melodic
 
 branch:
-  parent: kinetic-devel
+  parent: melodic-devel

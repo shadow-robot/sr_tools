@@ -11,6 +11,9 @@ catkin_package(
     LIBRARIES sr_movement
 )
 
+add_definitions(-DMAGICKCORE_QUANTUM_DEPTH=16)
+add_definitions(-DMAGICKCORE_HDRI_ENABLE=0)
+
 add_executable(sr_movements src/sr_movements.cpp src/movement_from_image.cpp src/partial_movement.cpp src/movement_publisher.cpp)
 add_dependencies(sr_movements ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sr_movements ${ImageMagick_LIBRARIES} ${catkin_LIBRARIES})

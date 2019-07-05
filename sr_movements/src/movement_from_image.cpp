@@ -50,16 +50,14 @@ namespace shadowrobot
 
   void MovementFromImage::generate_movement_()
   {
-    const Magick::PixelPacket* pixel_cache = image_->getConstPixels(0, 0, nb_cols_, nb_rows_);
+    Magick::Color white("white");
 
     for (ssize_t col = 0; col < nb_cols_; ++col)
     {
       bool no_pixel = true;
       for (ssize_t row = 0; row < nb_rows_; ++row)
       {
-        const Magick::PixelPacket* tmp_pixel = pixel_cache + row * nb_cols_ + col;
-        if (tmp_pixel->red != 0xFFFF && tmp_pixel->green != 0xFFFF
-           && tmp_pixel->blue != 0xFFFF)
+        if (image_->pixelColor(row, col) != white)
         {
           no_pixel = false;
           steps.push_back(1.0 - static_cast<double>(row) / static_cast<double>(nb_rows_));

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sr_hand_health_report</name>
+  <version>0.0.1</version>
+  <description>The sr_hand_health_report package</description>
+  <author email="giuseppe@shadowrobot.com">Giuseppe Barbieri</author>
+  <maintainer email="software@shadowrobot.com">Shadow Robot Software Team</maintainer>
+  <license>Private</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

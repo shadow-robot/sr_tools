@@ -1,0 +1,8 @@
+<launch>
+  <!-- version of the test to be launched-->
+  <!-- <arg name="real_hand" default="true"/> -->
+
+  <include file="$(find sr_hand_health_report)/launch/sr_hand_health_report.launch"/>
+    <!-- <param name="real_hand" value="$(arg real_hand)"/>
+  </include> -->
+</launch>

@@ -28,30 +28,33 @@ class MonotonicityCheck(SrHealthReportCheck):
         result = {"monotonicity_check" : []}
         rospy.loginfo("Running Monotonicity Test")
         self.switch_controller_mode("effort")
+        
+        # execute test for each finger and wrist
         for finger in self.fingers_to_check:
-            if finger.finger_name is 'FF':
-                for joint in finger.joints:
-                    if joint.joint_name == "lh_ffj4":
-                        self.drive_joint_to_position(finger.joints[2], 0.785)
-                    rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
-                    self._is_joint_monotonous = True
-                    self._count_time = 0
-                    end_reached = False
-                    while self._count_time < 200:
-                        joint.move_joint(self._pwm_command, "effort")
-                        is_joint_monotonous = self.check_monotonicity(joint)
-                        if is_joint_monotonous == False:
-                            self._is_joint_monotonous = False
-                        self._count_time += 1
-                        self._publishing_rate.sleep()
-                        if self._count_time == 200 and end_reached == False:
-                            self._count_time = 0
-                            self._pwm_command = - self._pwm_command
-                            end_reached = True
-                    self._dict_of_monotonic_joints[joint.joint_name] = self._is_joint_monotonous
-                    self.drive_joint_to_position(joint, 0.0)
-                    if joint.joint_name == "lh_ffj4":
-                        self.drive_joint_to_position(finger.joints[2], 0)
+            for joint in finger.joints:
+                if joint.joint_name == "lh_ffj4":   # TODO: replace hardcoded name with proper variable
+                    self.drive_joint_to_position(finger.joints[2], 0.785)
+                rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+                self._is_joint_monotonous = True
+                self._count_time = 0
+                end_reached = False
+                while self._count_time < 200:   # TODO: replace count_time with duration
+                    joint.move_joint(self._pwm_command, "effort")
+                    is_joint_monotonous = self.check_monotonicity(joint)
+                    if is_joint_monotonous == False:
+                        self._is_joint_monotonous = False
+                    self._count_time += 1
+                    self._publishing_rate.sleep()
+                    if self._count_time == 200 and end_reached == False:
+                        self._count_time = 0
+                        self._pwm_command = - self._pwm_command
+                        end_reached = True
+                self._dict_of_monotonic_joints[joint.joint_name] = self._is_joint_monotonous
+                self.drive_joint_to_position(joint, 0.0)
+                if joint.joint_name == "lh_ffj4":
+                    # TODO: add cleaner way to call joint in finger
+                    self.drive_joint_to_position(finger.joints[2], 0.0)
+ 
         result["monotonicity_check"].append(self._dict_of_monotonic_joints)
         return result
 

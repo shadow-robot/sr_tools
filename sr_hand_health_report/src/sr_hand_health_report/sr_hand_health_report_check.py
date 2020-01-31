@@ -58,8 +58,10 @@ class Joint(object):
 class SrHealthReportCheck(object):
     def __init__(self, hand_prefix):
         self._hand_prefix = hand_prefix
-        self._hand_commander = SrHandCommander(name="left_hand")
+        self._hand_commander = SrHandCommander(name="left_hand")  # TODO: pass hand name
         self._joint_states_dict = {}
+
+        # TODO: remove multiple lists
         self.joints = ["ffj0", "ffj3", "ffj4",
                        "mfj0", "mfj3", "mfj4",
                        "rfj0", "rfj3", "rfj4",
@@ -126,9 +128,3 @@ class SrHealthReportCheck(object):
         rospy.loginfo("Sending robot to home position (open)")
         self.switch_controller_mode("trajectory")
         self._hand_commander.move_to_named_target('open', wait = True)
-
-    def run_test(self):
-        """
-        execute the test
-        """
-        pass

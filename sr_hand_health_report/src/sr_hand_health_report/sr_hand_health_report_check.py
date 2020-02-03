@@ -15,6 +15,8 @@ from sr_controllers_tools.sr_controller_helper import ControllerHelper
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
 
+NUMBER_OF_IMU_FIELDS = 11
+
 class Finger(object):
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
@@ -34,11 +36,12 @@ class Joint(object):
         self.joint_name = self._hand_prefix + "_" + self._finger_name + self.joint_index
 
         # deal with different convention sensor/controllers due to coupled joints
-        if self.joint_index == "j1" or self.joint_index == "j2":
-            self.joint_index_controller = "j0"
-        else:
-            self.joint_index_controller = self.joint_index
-        
+        if self._finger_name != "WR" and self._finger_name != "TH":
+            if self.joint_index == "j1" or self.joint_index == "j2":
+                self.joint_index_controller = "j0"
+            else:
+                self.joint_index_controller = self.joint_index
+
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 
         self._pwm_command_publisher = rospy.Publisher("/sh_%s_effort_controller/command" %
@@ -57,28 +60,19 @@ class Joint(object):
 
 
 class SrHealthReportCheck(object):
-    def __init__(self, hand_prefix):
-        self._hand_prefix = hand_prefix
-        self._hand_commander = SrHandCommander(name="left_hand")  # TODO: pass hand name
+    def __init__(self, hand_side):
+        self._hand_prefix = hand_side[0] + "h"
+        self._hand_name = hand_side + "_hand"
+        self._hand_commander = SrHandCommander(name=self._hand_name)
         self._joint_states_dict = {}
 
-        # TODO: remove multiple lists
-        self.joints = ["ffj0", "ffj3", "ffj4",
-                       "mfj0", "mfj3", "mfj4",
-                       "rfj0", "rfj3", "rfj4",
-                       "lfj0", "lfj3", "lfj4", "lfj5",
-                       "thj1", "thj2", "thj3", "thj4", "thj5",
-                       "wrj1", "wrj2"]
-        self.ctrl_helper = ControllerHelper([self._hand_prefix], [self._hand_prefix + "_"], self.joints)
-        self._fingers_to_joint_dict = OrderedDict([
-                                                   ("FF", ['J1', 'J2', 'J3', 'J4']),
-                                                   ("MF", ['J1', 'J2', 'J3', 'J4']),
-                                                   ("RF", ['J1', 'J2', 'J3', 'J4']),
-                                                   ("LF", ['J1', 'J2', 'J3', 'J4', 'J5']),
-                                                   ("TH", ['J1', 'J2', 'J3', 'J4', 'J5']),
-                                                   ("WR", ['J1', 'J2'])
-                                                  ])
+        self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
+        self._fingers_to_joint_dict = self._init_dict_finger_joints()
+        self._controller_joints_names = self._init_controller_joints()
+
+        self.ctrl_helper = ControllerHelper([self._hand_prefix], [self._hand_prefix + "_"], self._controller_joints_names)
         self.fingers_to_check = self._init_finger_objects()
+
         self._raw_sensor_data_dict = {}
         self._raw_sensor_names_list = ['FFJ1', 'FFJ2', 'FFJ3', 'FFJ4', 'MFJ1', 'MFJ2', 'MFJ3', 'MFJ4',
                                        'RFJ1', 'RFJ2', 'RFJ3', 'RFJ4', 'LFJ1', 'LFJ2', 'LFJ3', 'LFJ4', 'LFJ5',
@@ -86,6 +80,26 @@ class SrHealthReportCheck(object):
 
         self._raw_data_sensor_subscriber = rospy.Subscriber("/%s/debug_etherCAT_data" % (self._hand_prefix),
                                                             EthercatDebug, self._raw_data_sensor_callback)
+
+    def _init_dict_finger_joints(self):
+        fingers_to_joint_dict = OrderedDict()
+        for joint in self._joint_msg.name:
+            finger_name = joint[3:-2]
+            if finger_name not in fingers_to_joint_dict:
+                fingers_to_joint_dict[finger_name] = []
+            fingers_to_joint_dict[finger_name].append(joint[-2:])
+        return fingers_to_joint_dict
+
+    def _init_controller_joints(self):
+        controller_joints_names = []
+        for finger, joint in self._fingers_to_joint_dict.items():
+            for joint_index in joint:
+                if finger != "WR" and finger != "TH":
+                    if joint_index == "J1" or joint_index == "J2":
+                        joint_index = "J0"
+                full_joint_name = finger + joint_index
+                controller_joints_names.append(full_joint_name.lower())
+        return controller_joints_names
 
     def _init_finger_objects(self):
         fingers_to_check = []
@@ -96,16 +110,20 @@ class SrHealthReportCheck(object):
         return fingers_to_check
 
     def _raw_data_sensor_callback(self, ethercat_data):
-        for i in range(0, len(ethercat_data.sensors)-11):
+        for i in range(0, len(ethercat_data.sensors)- NUMBER_OF_IMU_FIELDS):
             joint_name = self._hand_prefix + "_" + self._raw_sensor_names_list[i]
             self._raw_sensor_data_dict[joint_name.lower()] = ethercat_data.sensors[i]
 
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
                 if joint.joint_name == self._hand_prefix + "_thj5":
-                    joint._raw_sensor_data = self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1']
+                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1'] + \
+                                      self._raw_sensor_data_dict[self._hand_prefix + '_thj5_2']) / 2
+                    joint._raw_sensor_data = sensor_average
                 elif joint.joint_name == self._hand_prefix + "_wrj1":
-                    joint._raw_sensor_data = self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_1']
+                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_1'] + \
+                                      self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_2']) / 2
+                    joint._raw_sensor_data = sensor_average
                 else:
                     joint._raw_sensor_data = self._raw_sensor_data_dict[joint.joint_name]
 

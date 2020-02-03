@@ -33,32 +33,30 @@ class MonotonicityCheck(SrHealthReportCheck):
 
         # execute check for each finger and wrist
         for finger in self.fingers_to_check:
-            if finger.finger_name == "FF":
-                for joint in finger.joints_dict.values():
-                    rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+            for joint in finger.joints_dict.values():
+                rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+                if joint.joint_index == "j4":
+                    self.drive_joint_to_position(finger.joints_dict["J3"], 1.57)   # move J3 to 90 degrees
 
-                    if joint.joint_index == "j4":
-                        self.drive_joint_to_position(finger.joints_dict["J3"], 1.57)   # move J3 to 90 degrees
+                self._is_joint_monotonous = True
+                time = rospy.Time.now() + self._check_duration
+                end_reached = False
 
-                    self._is_joint_monotonous = True
-                    time = rospy.Time.now() + self._check_duration
-                    end_reached = False
+                while (rospy.Time.now() < time):
+                    joint.move_joint(self._pwm_command, "effort")
+                    is_joint_monotonous = self.check_monotonicity(joint)
+                    if is_joint_monotonous == False:
+                        self._is_joint_monotonous = False
+                    self._publishing_rate.sleep()
+                    if (round(rospy.Time.now().to_sec(),2) == round(time.to_sec(),2)) and end_reached == False:
+                        time = rospy.Time.now() + self._test_duration
+                        self._pwm_command = - self._pwm_command
+                        end_reached = True
+                self._dict_of_monotonic_joints[joint.joint_name] = self._is_joint_monotonous
+                self.drive_joint_to_position(joint, 0.0)
 
-                    while (rospy.Time.now() < time):
-                        joint.move_joint(self._pwm_command, "effort")
-                        is_joint_monotonous = self.check_monotonicity(joint)
-                        if is_joint_monotonous == False:
-                            self._is_joint_monotonous = False
-                        self._publishing_rate.sleep()
-                        if (round(rospy.Time.now().to_sec(),2) == round(time.to_sec(),2)) and end_reached == False:
-                            time = rospy.Time.now() + self._test_duration
-                            self._pwm_command = - self._pwm_command
-                            end_reached = True
-                    self._dict_of_monotonic_joints[joint.joint_name] = self._is_joint_monotonous
-                    self.drive_joint_to_position(joint, 0.0)
-
-                    if joint.joint_index == "j4":
-                        self.drive_joint_to_position(finger.joints_dict["J3"], 0.0)
+                if joint.joint_index == "j4":
+                    self.drive_joint_to_position(finger.joints_dict["J3"], 0.0)
  
         result["monotonicity_check"].append(self._dict_of_monotonic_joints)
         return result
@@ -74,7 +72,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         else:
             if np.sign(difference_between_raw_data) != 0 and np.sign(self._previous_difference) != 0:
                 if np.sign(difference_between_raw_data) != np.sign(self._previous_difference):
-                    rospy.logwarn("derivative changed sign")
+                    rospy.logwarn("Unmonotonic behaviour detected")
                     return False
             self._previous_difference = difference_between_raw_data
         return True

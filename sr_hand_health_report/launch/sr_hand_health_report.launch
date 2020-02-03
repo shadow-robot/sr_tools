@@ -1,8 +1,5 @@
 <launch>
-  <!-- version of the test to be launched-->
-  <!-- <arg name="real_hand" default="true"/> -->
+  <arg name="hand_side" default="right"/>
 
-  <include file="$(find sr_hand_health_report)/launch/sr_hand_health_report.launch"/>
-    <!-- <param name="real_hand" value="$(arg real_hand)"/>
-  </include> -->
+  <node name="sr_hand_health_report_node" pkg="sr_hand_health_report" type="sr_hand_health_report_node_v0.0.1.py" args="-hs $(arg hand_side)" output="screen"/>
 </launch>

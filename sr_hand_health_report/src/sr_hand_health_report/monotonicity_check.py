@@ -12,8 +12,8 @@ import decimal
 SENSOR_NOISE = 3
 
 class MonotonicityCheck(SrHealthReportCheck):
-    def __init__(self):
-        super(MonotonicityCheck, self).__init__("lh")
+    def __init__(self, hand_side):
+        super(MonotonicityCheck, self).__init__(hand_side)
         self._is_joint_monotonous = True
         self._dict_of_monotonic_joints = {}
         self._count_time = 0

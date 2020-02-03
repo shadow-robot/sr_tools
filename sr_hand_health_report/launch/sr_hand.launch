@@ -5,7 +5,7 @@
   </include>
 
   <!-- Set to true to spawn trajectory controllers for the hands(the trajectory controller overwrites continuously the joint position command, preventing direct control via topics-->
-  <arg name="hand_trajectory" default="false"/>
+  <arg name="hand_trajectory" default="true"/>
 
   <!-- Set to true to spawn the position controllers for the hands-->
   <arg name="hand_ctrl" default="true"/>

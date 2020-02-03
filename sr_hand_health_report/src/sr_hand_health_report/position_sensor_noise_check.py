@@ -14,8 +14,8 @@ WARNING_NOISE_VALUE = 3
 ERROR_NOISE_VALUE = 4
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):
-    def __init__(self):
-        super(PositionSensorNoiseCheck, self).__init__("lh")
+    def __init__(self, hand_side):
+        super(PositionSensorNoiseCheck, self).__init__(hand_side)
         self._check_duration = rospy.Duration(7.0)
         self.manager = Manager()
         self._shared_dict = self.manager.dict()

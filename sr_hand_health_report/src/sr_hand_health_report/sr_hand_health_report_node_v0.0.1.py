@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import rospy
 import rospkg
 import time
@@ -17,7 +18,7 @@ class HealthReportScriptNode(object):
         self._results_path = "{}/sr_hand_health_reports/{}.yml".format(
             rospack.get_path('sr_hand_health_report'),
             time.strftime("%Y-%m-%d_%H-%M-%S"))
-    
+
     def _read_from_real_hand(self):
         """
         Execute checks by reading data from real hand
@@ -37,7 +38,7 @@ class HealthReportScriptNode(object):
         # monotonic_test_results = monotonicity_check.run_check()
         # self._results["checks"].append(monotonic_test_results)
 
-        position_sensor_noise_check = PositionSensorNoiseCheck()
+        position_sensor_noise_check = PositionSensorNoiseCheck(args.hand_side)
         position_sensor_noise_results = position_sensor_noise_check.run_check()
         self._results["checks"].append(position_sensor_noise_results)
         self.write_results_to_file()
@@ -46,9 +47,13 @@ class HealthReportScriptNode(object):
         if filename is None:
             filename = self._results_path
         with open(filename, 'w') as f:
-            yaml.dump(self._results, f)
+            yaml.dump(self._results, f, indent=5)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Run a checks for health report.')
+    parser.add_argument('-hs', '--hand_side', default="right", type=str, dest='hand_side',
+                        help='For which hand the checks have to be executed')
+    args, unknown_args = parser.parse_known_args()
     rospy.init_node('sr_hand_health_report_script')
     sr_hand_health_report_script = HealthReportScriptNode()
     sr_hand_health_report_script.run_checks()

@@ -6,12 +6,13 @@ import time
 import yaml
 from sr_hand_health_report_check import SrHealthReportCheck
 from monotonicity_check import MonotonicityCheck
+from position_sensor_noise_check import PositionSensorNoiseCheck
 
 
 class HealthReportScriptNode(object):
     def __init__(self):
         #self._check_state_publisher = rospy.Publisher("/check_state_status_publisher", )
-        self._results = {"tests": []}
+        self._results = {"checks": []}
         rospack = rospkg.RosPack()
         self._results_path = "{}/sr_hand_health_reports/{}.yml".format(
             rospack.get_path('sr_hand_health_report'),
@@ -31,10 +32,14 @@ class HealthReportScriptNode(object):
     
 
     def run_checks(self):
-        """ run all the necessary tests """
-        monotonicity_check = MonotonicityCheck()
-        monotonic_test_results = monotonicity_check.run_check()
-        self._results["tests"].append(monotonic_test_results)
+        """ run all the necessary checks """
+        # monotonicity_check = MonotonicityCheck()
+        # monotonic_test_results = monotonicity_check.run_check()
+        # self._results["checks"].append(monotonic_test_results)
+
+        position_sensor_noise_check = PositionSensorNoiseCheck()
+        position_sensor_noise_results = position_sensor_noise_check.run_check()
+        self._results["checks"].append(position_sensor_noise_results)
         self.write_results_to_file()
     
     def write_results_to_file(self, filename=None):

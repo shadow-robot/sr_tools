@@ -19,7 +19,7 @@ class Finger(object):
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
-        self.joints = []
+        self.joints_dict = {}
 
     def move_finger(self, command):
         for index, joint in enumerate(self.joints):
@@ -54,6 +54,7 @@ class Joint(object):
             self._pwm_command_publisher.publish(command)
         elif control_type is "position":
             self._position_command_publisher.publish(command)
+
 
 class SrHealthReportCheck(object):
     def __init__(self, hand_prefix):
@@ -91,7 +92,7 @@ class SrHealthReportCheck(object):
         for i, (finger, joints) in enumerate(self._fingers_to_joint_dict.items()):
             fingers_to_check.append(Finger(self._hand_prefix, finger))
             for joint_index in joints:
-                fingers_to_check[i].joints.append(Joint(self._hand_prefix, finger.lower(), joint_index.lower()))
+                fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(), joint_index.lower())
         return fingers_to_check
 
     def _raw_data_sensor_callback(self, ethercat_data):
@@ -100,7 +101,7 @@ class SrHealthReportCheck(object):
             self._raw_sensor_data_dict[joint_name.lower()] = ethercat_data.sensors[i]
 
         for finger in self.fingers_to_check:
-            for joint in finger.joints:
+            for joint in finger.joints_dict.values():
                 if joint.joint_name == self._hand_prefix + "_thj5":
                     joint._raw_sensor_data = self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1']
                 elif joint.joint_name == self._hand_prefix + "_wrj1":
@@ -113,7 +114,6 @@ class SrHealthReportCheck(object):
             rospy.loginfo("Changing trajectory controllers to RUN")
             self.ctrl_helper.change_trajectory_ctrl("run")
         elif control_type is "position" or control_type is "effort":
-            rospy.loginfo("Changing trajectory controllers to STOP")
             self.ctrl_helper.change_trajectory_ctrl("stop")
             change_type_msg = ChangeControlType()
             change_type_msg.control_type = ControlType.PWM
@@ -127,4 +127,13 @@ class SrHealthReportCheck(object):
         """
         rospy.loginfo("Sending robot to home position (open)")
         self.switch_controller_mode("trajectory")
-        self._hand_commander.move_to_named_target('open', wait = True)
+        try:
+            self._hand_commander._move_to_named_target('open', wait = True)
+        except:
+            rospy.logerr("Could not plan to open position")
+
+    def drive_joint_to_position(self, joint, command):
+        self.switch_controller_mode("position")
+        joint.move_joint(command, "position")
+        self.switch_controller_mode("effort")
+        self._count_time = 0

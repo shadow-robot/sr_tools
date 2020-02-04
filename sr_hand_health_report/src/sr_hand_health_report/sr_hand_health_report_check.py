@@ -16,6 +16,8 @@ from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
 
 NUMBER_OF_IMU_FIELDS = 11
+COUPLED_JOINTS = ["J1", "J2"]
+FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
 
 class Finger(object):
     def __init__(self, hand_prefix, finger_name):
@@ -36,7 +38,7 @@ class Joint(object):
         self.joint_name = self._hand_prefix + "_" + self._finger_name + self.joint_index
 
         # deal with different convention sensor/controllers due to coupled joints
-        if self._finger_name != "WR" and self._finger_name != "TH":
+        if self._finger_name not in FINGERS_WITHOUT_COUPLED_JOINTS:
             if self.joint_index == "j1" or self.joint_index == "j2":
                 self.joint_index_controller = "j0"
             else:
@@ -53,7 +55,11 @@ class Joint(object):
         self._raw_sensor_data = int()
 
     def move_joint(self, command, control_type):
+        print("send command: ", command)
+        print("control type: ", control_type)
         if control_type is "effort":
+            print("joint name: ", self.joint_name)
+            print("contr name: ", self.joint_name_controller)
             self._pwm_command_publisher.publish(command)
         elif control_type is "position":
             self._position_command_publisher.publish(command)
@@ -94,8 +100,8 @@ class SrHealthReportCheck(object):
         controller_joints_names = []
         for finger, joint in self._fingers_to_joint_dict.items():
             for joint_index in joint:
-                if finger != "WR" and finger != "TH":
-                    if joint_index == "J1" or joint_index == "J2":
+                if finger not in FINGERS_WITHOUT_COUPLED_JOINTS:
+                    if joint_index in COUPLED_JOINTS:
                         joint_index = "J0"
                 full_joint_name = finger + joint_index
                 controller_joints_names.append(full_joint_name.lower())
@@ -140,9 +146,6 @@ class SrHealthReportCheck(object):
             self.ctrl_helper.change_hand_ctrl(control_type)
 
     def reset_robot_to_home_position(self):
-        """
-        After a test send the robot to home position, to execute a new test
-        """
         rospy.loginfo("Sending robot to home position (open)")
         self.switch_controller_mode("trajectory")
         try:

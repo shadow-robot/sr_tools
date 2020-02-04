@@ -5,7 +5,7 @@
 
 import rospy
 from sr_hand_health_report_check import SrHealthReportCheck
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Queue
 import multiprocessing
 import copy_reg
 import types
@@ -16,7 +16,7 @@ ERROR_NOISE_VALUE = 4
 class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
         super(PositionSensorNoiseCheck, self).__init__(hand_side)
-        self._check_duration = rospy.Duration(7.0)
+        self._check_duration = rospy.Duration(3.0)
         self.manager = Manager()
         self._shared_dict = self.manager.dict()
         self._initial_joint_values = int()
@@ -31,31 +31,29 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
         for finger in self.fingers_to_check:
             rospy.loginfo("collecting and analyzing data for FINGER {}".format(finger.finger_name))
-
-            finger_process = []
             for joint in finger.joints_dict.values():
-                self._initial_joint_values = joint._raw_sensor_data
-                p = Process(target=self.check_joint_raw_sensor_value, args=(self._initial_joint_values, joint, self._shared_dict))
-                finger_process.append(p)
-                p.start()
-            for proc in finger_process:
-                proc.join()
-                
+                rospy.loginfo("collecting and analyzing data for JOINT {}".format(joint.joint_name))
+                self._initial_raw_value = joint._raw_sensor_data
+                self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
         result["position_sensor_noise_check"].append(dict(self._shared_dict))
+        rospy.loginfo("Position Sensor Noise Check finished, exporting results")
         return result
+
+    def update_joints_raw_values(self, data):
+        while not rospy.is_shutdown():
+            self._raw_sensor_data_queue.put(data)
 
     def check_joint_raw_sensor_value(self, initial_value, joint, dictionary):
         time = rospy.Time.now() + self._check_duration
-        status = "all is good"
+        status = "check passed"
         warning = False
-       
         while (rospy.Time.now() < time):
             difference = joint._raw_sensor_data - initial_value
             if difference == WARNING_NOISE_VALUE:
-                rospy.logwarn("Found value with 3 bits diff")
+                rospy.logwarn_throttle(1, "Found value with 3 bits diff")
                 status = "3 bits noise - WARNING"
             if difference >= ERROR_NOISE_VALUE:
-                rospy.logerr("Found value with 4 bits diff")
-                status = "{} bits noise - TEST FAILED".format(difference)
+                rospy.logerr_throttle(1, "Found value with 4 bits diff")
+                status = "{} bits noise - CHECK FAILED".format(difference)
         print("Finished loop for {}".format(joint.joint_name))
         dictionary[joint.joint_name] = status

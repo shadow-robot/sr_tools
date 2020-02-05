@@ -1,5 +1,6 @@
 <launch>
   <arg name="hand_side" default="right"/>
-
-  <node name="sr_hand_health_report_node" pkg="sr_hand_health_report" type="sr_hand_health_report_node_v0.0.1.py" args="-hs $(arg hand_side)" output="screen"/>
+ 
+  <node name="sr_hand_health_report_node" pkg="sr_hand_health_report" type="sr_hand_health_report_node_v0.0.1.py" args="-hs $(arg hand_side)" output="screen">
+  </node>
 </launch>

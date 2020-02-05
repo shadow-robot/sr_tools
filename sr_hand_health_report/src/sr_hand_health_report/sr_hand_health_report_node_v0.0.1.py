@@ -16,21 +16,30 @@ from collections import OrderedDict
 class HealthReportScriptNode(object):
     def __init__(self):
         self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher", CheckStatus, queue_size=1)
-        self._results = {"hand_info": {}, "health_report_script_version": "v0.01", "checks": []}
+        self._results = {"hand_info": {}, "checks": []}
+        self._fill_report_script_info()
         self._system_info = SystemInfo()
         self._system_info.collect()
         self._results["system_info"] = self._system_info.values
-        rospack = rospkg.RosPack()
+        self._rospack = rospkg.RosPack()
         self._hand_serial = self._get_hand_params()
-        self._hand_directory_path = "{}/sr_hand_health_reports/{}".format(
-                                    rospack.get_path('sr_hand_health_report'),
-                                    self._hand_serial)
-        if not os.path.exists(self._hand_directory_path):
-            os.makedirs(self._hand_directory_path)
+        self._create_checks_directory()
         self._results_path = "{}/sr_hand_health_reports/{}/{}.yml".format(
-            rospack.get_path('sr_hand_health_report'),
+            self._rospack.get_path('sr_hand_health_report'),
             self._hand_serial,
             time.strftime("health_report_results_%Y-%m-%d_%H-%M-%S"))
+
+    def _fill_report_script_info(self):
+        self._results["health_report_script_details"] = {"version": "0.01",
+            "path": "https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/src/sr_hand_health_report/",
+            "associated_bag_file_name": ""}
+
+    def _create_checks_directory(self):
+        check_directory_path = "{}/sr_hand_health_reports/{}".format(
+                                self._rospack.get_path('sr_hand_health_report'),
+                                self._hand_serial)
+        if not os.path.exists(check_directory_path):
+            os.makedirs(check_directory_path)
 
     def _get_hand_params(self):
         hand_params = rospy.get_param("hand")
@@ -53,26 +62,25 @@ class HealthReportScriptNode(object):
         """
         pass
     
-    def publish_check_status(self, check_name):
+    def _publish_check_status(self, check_name):
         check_status = CheckStatus()
         check_status.header.stamp = rospy.Time.now()
         check_status.check_name = check_name
         self._health_report_checks_status_publisher.publish(check_status)
 
-    def run_checks(self):
-        """ run all the necessary checks """
-        # check_name = "monotonicity_check"
-        # self.publish_check_status(check_name)
-        # monotonicity_check = MonotonicityCheck(args.hand_side)
-        # monotonic_test_results = monotonicity_check.run_check()
-        # self._results["checks"].append(monotonic_test_results)
+    def run_monotonicity_check(self):
+        check_name = "monotonicity_check"
+        self._publish_check_status(check_name)
+        monotonicity_check = MonotonicityCheck(args.hand_side)
+        monotonic_test_results = monotonicity_check.run_check()
+        return monotonic_test_results
 
-        # check_name = "position_sensor_noise_check"
-        # self.publish_check_status(check_name)
-        # position_sensor_noise_check = PositionSensorNoiseCheck(args.hand_side)
-        # position_sensor_noise_results = position_sensor_noise_check.run_check()
-        # self._results["checks"].append(position_sensor_noise_results)
-        self.write_results_to_file()
+    def run_position_sensor_noise_check(self):
+        check_name = "position_sensor_noise_check"
+        self._publish_check_status(check_name)
+        position_sensor_noise_check = PositionSensorNoiseCheck(args.hand_side)
+        position_sensor_noise_results = position_sensor_noise_check.run_check()
+        return position_sensor_noise_results
 
     def write_results_to_file(self, filename=None):
         if filename is None:
@@ -80,6 +88,16 @@ class HealthReportScriptNode(object):
         with open(filename, 'w') as yaml_file:
             yaml.dump(self._results, stream=yaml_file, default_flow_style=False)
         rospy.signal_shutdown("All checks completed!"); 
+
+    def run_checks(self):
+        """ run all the necessary checks """
+        # monotonic_test_results = self.run_monotonicity_check()
+        # self._results["checks"].append(monotonic_test_results)
+
+        # position_sensor_noise_results = self.run_position_sensor_noise_check()
+        # self._results["checks"].append(position_sensor_noise_results)
+
+        self.write_results_to_file()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run a checks for health report.')

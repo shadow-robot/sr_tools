@@ -51,7 +51,7 @@ class HealthReportScriptNode(object):
         position_sensor_noise_results = position_sensor_noise_check.run_check()
         self._results["checks"].append(position_sensor_noise_results)
         self.write_results_to_file()
-    
+
     def write_results_to_file(self, filename=None):
         if filename is None:
             filename = self._results_path

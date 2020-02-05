@@ -45,15 +45,21 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     def check_joint_raw_sensor_value(self, initial_value, joint, dictionary):
         time = rospy.Time.now() + self._check_duration
-        status = "check passed"
+        status = ""
         warning = False
-        while (rospy.Time.now() < time):
+        test_failed = False
+        while rospy.Time.now() < time and test_failed is not True:
             difference = joint._raw_sensor_data - initial_value
-            if difference == WARNING_NOISE_VALUE:
-                rospy.logwarn_throttle(1, "Found value with 3 bits diff")
-                status = "3 bits noise - WARNING"
-            if difference >= ERROR_NOISE_VALUE:
-                rospy.logerr_throttle(1, "Found value with 4 bits diff")
-                status = "{} bits noise - CHECK FAILED".format(difference)
+            if abs(difference) <= 1000:
+                if abs(difference) <= ERROR_NOISE_VALUE:
+                    status = "{} bits noise - CHECK PASSED".format(difference)
+                elif abs(difference) == WARNING_NOISE_VALUE:
+                    rospy.logwarn_throttle(1, "Found value with 3 bits diff")
+                    status = "3 bits noise - WARNING"
+                    test_failed = True
+                else:
+                    rospy.logerr_throttle(1, "Found value with {} bits diff".format(difference))
+                    status = "{} bits noise - CHECK FAILED".format(difference)
+                    test_failed = True
         print("Finished loop for {}".format(joint.joint_name))
         dictionary[joint.joint_name] = status

@@ -23,7 +23,7 @@ class Finger(object):
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
-        self.joints_dict = {}
+        self.joints_dict = OrderedDict()
 
     def move_finger(self, command):
         for index, joint in enumerate(self.joints):
@@ -39,7 +39,7 @@ class Joint(object):
 
         # deal with different convention sensor/controllers due to coupled joints
         if self._finger_name not in FINGERS_WITHOUT_COUPLED_JOINTS:
-            if self.joint_index == "j1" or self.joint_index == "j2":
+            if self.joint_index.upper() in COUPLED_JOINTS:
                 self.joint_index_controller = "j0"
             else:
                 self.joint_index_controller = self.joint_index
@@ -55,11 +55,7 @@ class Joint(object):
         self._raw_sensor_data = int()
 
     def move_joint(self, command, control_type):
-        print("send command: ", command)
-        print("control type: ", control_type)
         if control_type is "effort":
-            print("joint name: ", self.joint_name)
-            print("contr name: ", self.joint_name_controller)
             self._pwm_command_publisher.publish(command)
         elif control_type is "position":
             self._position_command_publisher.publish(command)

@@ -10,6 +10,7 @@ import numpy as np
 import decimal
 
 SENSOR_NOISE = 3
+SENSOR_CUTOUT_THRESHOLD = 1000
 
 class MonotonicityCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
@@ -18,8 +19,10 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._dict_of_monotonic_joints = {}
         self._count_time = 0
         self._publishing_rate = rospy.Rate(50)
-        self._older_raw_sensor_value = 0
-        self._previous_difference = 0
+        self._first_turn_older_raw_sensor_value = 0
+        self._first_turn_previous_difference = 0
+        self._second_turn_older_raw_sensor_value = 0
+        self._second_turn_previous_difference = 0
         self._pwm_command = 250
         self._check_duration = rospy.Duration(6.0)
 
@@ -31,10 +34,13 @@ class MonotonicityCheck(SrHealthReportCheck):
         rospy.loginfo("Running Monotonicity Check")
         self.switch_controller_mode("effort")
 
-        # execute check for each finger and wrist
         for finger in self.fingers_to_check:
             if finger.finger_name == "FF":
                 for joint in finger.joints_dict.values():
+                    self._first_turn_older_raw_sensor_value = 0
+                    self._first_turn_previous_difference = 0
+                    self._second_turn_older_raw_sensor_value = 0
+                    self._second_turn_previous_difference = 0
                     rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
 
                     # For joint 4 we want to move J3 to 90 degrees, in order to allow the full range of J4
@@ -45,14 +51,20 @@ class MonotonicityCheck(SrHealthReportCheck):
                     self._is_joint_monotonous = True
                     time = rospy.Time.now() + self._check_duration
                     end_reached = False
+                    is_joint_monotonous_second_turn = True
 
                     while (rospy.Time.now() < time):
                         joint.move_joint(self._pwm_command, "effort")
-                        is_joint_monotonous = self.check_monotonicity(joint)
-                        if is_joint_monotonous == False:
+                        if end_reached is False:
+                            is_joint_monotonous_first_turn = self.first_turn_check_monotonicity(joint)
+                        else:
+                            is_joint_monotonous_second_turn = self.second_turn_check_monotonicity(joint)
+                        if is_joint_monotonous_first_turn is False or is_joint_monotonous_second_turn is False:
+                            print("FIRST TURN MONOTONIC CHECK: ", is_joint_monotonous_first_turn)
+                            print("SECOND TURN MONOTONIC CHECK: ", is_joint_monotonous_second_turn)
                             self._is_joint_monotonous = False
                         self._publishing_rate.sleep()
-                        if (round(rospy.Time.now().to_sec(),1) == round(time.to_sec(),1)) and end_reached == False:
+                        if (round(rospy.Time.now().to_sec(),1) == round(time.to_sec(),1)) and end_reached is False:
                             time = rospy.Time.now() + self._check_duration
                             self._pwm_command = - self._pwm_command
                             end_reached = True
@@ -61,23 +73,39 @@ class MonotonicityCheck(SrHealthReportCheck):
 
                     if joint.joint_index == "j4":
                         self.drive_joint_to_position(finger.joints_dict["J3"], 0.0)
-    
+
         result["monotonicity_check"].append(self._dict_of_monotonic_joints)
         rospy.loginfo("Monotonicity Check finished, exporting results")
         return result
 
-    def check_monotonicity(self, joint):
-        if self._older_raw_sensor_value == 0:
-            self._older_raw_sensor_value = joint._raw_sensor_data
-         
-        difference_between_raw_data = joint._raw_sensor_data - self._older_raw_sensor_value
-        self._older_raw_sensor_value = joint._raw_sensor_data
-        if abs(difference_between_raw_data) <= SENSOR_NOISE:
-            self._previous_difference = difference_between_raw_data
-        else:
-            if np.sign(difference_between_raw_data) != 0 and np.sign(self._previous_difference) != 0:
-                if np.sign(difference_between_raw_data) != np.sign(self._previous_difference):
-                    rospy.logwarn("Unmonotonic behaviour detected")
-                    return False
-            self._previous_difference = difference_between_raw_data
+    def first_turn_check_monotonicity(self, joint):
+        if self._first_turn_older_raw_sensor_value == 0:
+            self._first_turn_older_raw_sensor_value = joint._raw_sensor_data
+
+        difference_between_raw_data = joint._raw_sensor_data - self._first_turn_older_raw_sensor_value
+        self._first_turn_older_raw_sensor_value = joint._raw_sensor_data
+        if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
+            if abs(difference_between_raw_data) >= SENSOR_NOISE:
+                if np.sign(difference_between_raw_data) != 0 and np.sign(self._first_turn_previous_difference) != 0:
+                    if np.sign(difference_between_raw_data) != np.sign(self._first_turn_previous_difference):
+                        rospy.logwarn("Unmonotonic behaviour detected")
+                        self._first_turn_previous_difference = difference_between_raw_data
+                        return False
+                self._first_turn_previous_difference = difference_between_raw_data
+        return True
+
+    def second_turn_check_monotonicity(self, joint):
+        if self._second_turn_older_raw_sensor_value == 0:
+            self._second_turn_older_raw_sensor_value = joint._raw_sensor_data
+
+        difference_between_raw_data = joint._raw_sensor_data - self._second_turn_older_raw_sensor_value
+        self._second_turn_older_raw_sensor_value = joint._raw_sensor_data
+        if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
+            if abs(difference_between_raw_data) >= SENSOR_NOISE:
+                if np.sign(difference_between_raw_data) != 0 and np.sign(self._second_turn_previous_difference) != 0:
+                    if np.sign(difference_between_raw_data) != np.sign(self._second_turn_previous_difference):
+                        rospy.logwarn("Unmonotonic behaviour detected")
+                        self._second_turn_previous_difference = difference_between_raw_data
+                        return False
+                self._second_turn_previous_difference = difference_between_raw_data
         return True

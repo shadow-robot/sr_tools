@@ -4,13 +4,11 @@
 # Unauthorized copying of the content in this file, via any medium is strictly prohibited.
 
 import rospy
-from sr_hand_health_report_check import SrHealthReportCheck
+from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
 from std_msgs.msg import Float64
 import numpy as np
 import decimal
 
-SENSOR_NOISE = 3
-SENSOR_CUTOUT_THRESHOLD = 1000
 
 class MonotonicityCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
@@ -18,7 +16,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._is_joint_monotonous = True
         self._dict_of_monotonic_joints = {}
         self._count_time = 0
-        self._publishing_rate = rospy.Rate(50)
+        self._publishing_rate = rospy.Rate(50) # 50 Hz
         self._first_turn_older_raw_sensor_value = 0
         self._first_turn_previous_difference = 0
         self._second_turn_older_raw_sensor_value = 0
@@ -60,8 +58,6 @@ class MonotonicityCheck(SrHealthReportCheck):
                         else:
                             is_joint_monotonous_second_turn = self.second_turn_check_monotonicity(joint)
                         if is_joint_monotonous_first_turn is False or is_joint_monotonous_second_turn is False:
-                            print("FIRST TURN MONOTONIC CHECK: ", is_joint_monotonous_first_turn)
-                            print("SECOND TURN MONOTONIC CHECK: ", is_joint_monotonous_second_turn)
                             self._is_joint_monotonous = False
                         self._publishing_rate.sleep()
                         if (round(rospy.Time.now().to_sec(),1) == round(time.to_sec(),1)) and end_reached is False:
@@ -85,7 +81,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         difference_between_raw_data = joint._raw_sensor_data - self._first_turn_older_raw_sensor_value
         self._first_turn_older_raw_sensor_value = joint._raw_sensor_data
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
-            if abs(difference_between_raw_data) >= SENSOR_NOISE:
+            if abs(difference_between_raw_data) >= NR_OF_BITS_NOISE_WARNING:
                 if np.sign(difference_between_raw_data) != 0 and np.sign(self._first_turn_previous_difference) != 0:
                     if np.sign(difference_between_raw_data) != np.sign(self._first_turn_previous_difference):
                         rospy.logwarn("Unmonotonic behaviour detected")
@@ -101,7 +97,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         difference_between_raw_data = joint._raw_sensor_data - self._second_turn_older_raw_sensor_value
         self._second_turn_older_raw_sensor_value = joint._raw_sensor_data
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
-            if abs(difference_between_raw_data) >= SENSOR_NOISE:
+            if abs(difference_between_raw_data) >= NR_OF_BITS_NOISE_WARNING:
                 if np.sign(difference_between_raw_data) != 0 and np.sign(self._second_turn_previous_difference) != 0:
                     if np.sign(difference_between_raw_data) != np.sign(self._second_turn_previous_difference):
                         rospy.logwarn("Unmonotonic behaviour detected")

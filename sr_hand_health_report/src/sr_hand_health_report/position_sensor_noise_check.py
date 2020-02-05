@@ -4,14 +4,12 @@
 # Unauthorized copying of the content in this file, via any medium is strictly prohibited.
 
 import rospy
-from sr_hand_health_report_check import SrHealthReportCheck
+from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
 from multiprocessing import Process, Manager, Queue
 import multiprocessing
 import copy_reg
 import types
 
-WARNING_NOISE_VALUE = 3
-ERROR_NOISE_VALUE = 4
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
@@ -39,10 +37,6 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
         return result
 
-    def update_joints_raw_values(self, data):
-        while not rospy.is_shutdown():
-            self._raw_sensor_data_queue.put(data)
-
     def check_joint_raw_sensor_value(self, initial_value, joint, dictionary):
         time = rospy.Time.now() + self._check_duration
         status = ""
@@ -50,10 +44,10 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         test_failed = False
         while rospy.Time.now() < time and test_failed is not True:
             difference = joint._raw_sensor_data - initial_value
-            if abs(difference) <= 1000:
-                if abs(difference) <= ERROR_NOISE_VALUE:
+            if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
+                if abs(difference) < NR_OF_BITS_NOISE_WARNING:
                     status = "{} bits noise - CHECK PASSED".format(difference)
-                elif abs(difference) == WARNING_NOISE_VALUE:
+                elif abs(difference) == NR_OF_BITS_NOISE_WARNING:
                     rospy.logwarn_throttle(1, "Found value with 3 bits diff")
                     status = "3 bits noise - WARNING"
                     test_failed = True

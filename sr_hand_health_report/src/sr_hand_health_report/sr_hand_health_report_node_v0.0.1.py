@@ -13,11 +13,18 @@ from sr_hand_health_report.msg import CheckStatus
 class HealthReportScriptNode(object):
     def __init__(self):
         self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher", CheckStatus, queue_size=1)
-        self._results = {"checks": []}
+        self._results = {"hand_info": {}, "checks": []}
         rospack = rospkg.RosPack()
         self._results_path = "{}/sr_hand_health_reports/{}.yml".format(
             rospack.get_path('sr_hand_health_report'),
             time.strftime("%Y-%m-%d_%H-%M-%S"))
+        self._get_hand_params()
+
+    def _get_hand_params(self):
+        hand_params = rospy.get_param("hand")
+        data = hand_params.get("mapping", "")
+        hand_serial =  data.keys()[0]
+        self._results["hand_info"] = {"hand_serial": hand_serial}
 
     def _read_from_real_hand(self):
         """

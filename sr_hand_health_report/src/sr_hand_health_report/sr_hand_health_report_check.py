@@ -18,16 +18,14 @@ from sr_robot_msgs.srv import ChangeControlType
 NUMBER_OF_IMU_FIELDS = 11
 COUPLED_JOINTS = ["J1", "J2"]
 FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
+SENSOR_CUTOUT_THRESHOLD = 1000
+NR_OF_BITS_NOISE_WARNING = 3
 
 class Finger(object):
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
         self.joints_dict = OrderedDict()
-
-    def move_finger(self, command):
-        for index, joint in enumerate(self.joints):
-            joint.move_joint(command[index])
 
 class Joint(object): 
     def __init__(self, hand_prefix, finger_name, joint_index):
@@ -76,9 +74,7 @@ class SrHealthReportCheck(object):
         self.fingers_to_check = self._init_finger_objects()
 
         self._raw_sensor_data_dict = {}
-        self._raw_sensor_names_list = ['FFJ1', 'FFJ2', 'FFJ3', 'FFJ4', 'MFJ1', 'MFJ2', 'MFJ3', 'MFJ4',
-                                       'RFJ1', 'RFJ2', 'RFJ3', 'RFJ4', 'LFJ1', 'LFJ2', 'LFJ3', 'LFJ4', 'LFJ5',
-                                       'THJ1', 'THJ2', 'THJ3', 'THJ4', 'THJ5_1', 'THJ5_2', 'WRJ1_1', 'WRJ1_2', 'WRJ2']
+        self._raw_sensor_names_list = self._init_raw_sensor_data_list()
 
         self._raw_data_sensor_subscriber = rospy.Subscriber("/%s/debug_etherCAT_data" % (self._hand_prefix),
                                                             EthercatDebug, self._raw_data_sensor_callback)
@@ -96,6 +92,7 @@ class SrHealthReportCheck(object):
         controller_joints_names = []
         for finger, joint in self._fingers_to_joint_dict.items():
             for joint_index in joint:
+                # deal with different convention sensor/controllers due to coupled joints
                 if finger not in FINGERS_WITHOUT_COUPLED_JOINTS:
                     if joint_index in COUPLED_JOINTS:
                         joint_index = "J0"
@@ -108,23 +105,38 @@ class SrHealthReportCheck(object):
         for i, (finger, joints) in enumerate(self._fingers_to_joint_dict.items()):
             fingers_to_check.append(Finger(self._hand_prefix, finger))
             for joint_index in joints:
-                fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(), joint_index.lower())
+                fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(),
+                                                                     joint_index.lower())
         return fingers_to_check
+
+    def _init_raw_sensor_data_list(self):
+        raw_sensor_names_list = []
+        for joint_name in self._joint_msg.name:
+            if joint_name == (self._hand_prefix + "_THJ5"):
+                for s in range(0, 2):
+                    name = joint_name + "_{}".format(s)
+                    raw_sensor_names_list.append(name.lower())
+            elif joint_name == (self._hand_prefix + "_WRJ1"):
+                for s in range(0, 2):
+                    name = joint_name + "_{}".format(s)
+                    raw_sensor_names_list.append(name.lower())
+            else:
+                raw_sensor_names_list.append(joint_name.lower())
+        return raw_sensor_names_list
 
     def _raw_data_sensor_callback(self, ethercat_data):
         for i in range(0, len(ethercat_data.sensors)- NUMBER_OF_IMU_FIELDS):
-            joint_name = self._hand_prefix + "_" + self._raw_sensor_names_list[i]
-            self._raw_sensor_data_dict[joint_name.lower()] = ethercat_data.sensors[i]
+            self._raw_sensor_data_dict[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
 
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
                 if joint.joint_name == self._hand_prefix + "_thj5":
-                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1'] + \
-                                      self._raw_sensor_data_dict[self._hand_prefix + '_thj5_2']) / 2
+                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_thj5_0'] + \
+                                      self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1']) / 2
                     joint._raw_sensor_data = sensor_average
                 elif joint.joint_name == self._hand_prefix + "_wrj1":
-                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_1'] + \
-                                      self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_2']) / 2
+                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_0'] + \
+                                      self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_1']) / 2
                     joint._raw_sensor_data = sensor_average
                 else:
                     joint._raw_sensor_data = self._raw_sensor_data_dict[joint.joint_name]

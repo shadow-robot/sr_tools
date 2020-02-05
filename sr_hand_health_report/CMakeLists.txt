@@ -7,7 +7,12 @@ project(sr_hand_health_report)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED rospy message_generation std_msgs)
+find_package(catkin REQUIRED
+  rospy
+  message_generation
+  std_msgs
+  sr_system_info
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

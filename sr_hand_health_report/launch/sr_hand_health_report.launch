@@ -1,6 +1,7 @@
 <launch>
   <arg name="hand_side" default="right"/>
- 
+  <arg name="checks_to_run" default="[monotonicity_check, position_sensor_noise_check]"/>
   <node name="sr_hand_health_report_node" pkg="sr_hand_health_report" type="sr_hand_health_report_node_v0.0.1.py" args="-hs $(arg hand_side)" output="screen">
+    <rosparam param="checks_to_run" subst_value="True">$(arg checks_to_run)</rosparam>
   </node>
 </launch>

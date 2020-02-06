@@ -35,12 +35,14 @@ class Joint(object):
         self.joint_index = joint_index
         self._hand_prefix = hand_prefix
         self.joint_name = self._hand_prefix + "_" + self._finger_name + self.joint_index
+        self.joint_index_controller = ""
 
         # deal with different convention sensor/controllers due to coupled joints
-        if self._finger_name not in FINGERS_WITHOUT_COUPLED_JOINTS:
+        if self._finger_name.upper() not in FINGERS_WITHOUT_COUPLED_JOINTS:
             if self.joint_index.upper() in COUPLED_JOINTS:
                 self.joint_index_controller = "j0"
-        self.joint_index_controller = self.joint_index
+        else:
+            self.joint_index_controller = self.joint_index
 
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 

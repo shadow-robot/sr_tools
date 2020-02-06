@@ -20,7 +20,6 @@ class HealthReportScriptNode(object):
     def __init__(self):
         self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher", CheckStatus, queue_size=1)
         self._results = {"hand_info": {}, "checks": []}
-        self._fill_report_script_info()
         self._system_info = SystemInfo()
         self._system_info.collect()
         self._results["system_info"] = self._system_info.values
@@ -31,11 +30,7 @@ class HealthReportScriptNode(object):
             self._rospack.get_path('sr_hand_health_report'),
             self._hand_serial,
             time.strftime("health_report_results_%Y-%m-%d_%H-%M-%S"))
-
-    def _fill_report_script_info(self):
-        self._results["health_report_script_details"] = {"version": "0.01",
-            "path": "https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/src/sr_hand_health_report/",
-            "associated_bag_file_name": ""}
+        self._checks_list = rospy.get_param("~checks_to_run")
 
     def _create_checks_directory(self):
         check_directory_path = "{}/sr_hand_health_reports/{}".format(
@@ -64,7 +59,7 @@ class HealthReportScriptNode(object):
         Execute checks by reading data from bag_file
         """
         pass
-    
+
     def _publish_check_status(self, check_name):
         check_status = CheckStatus()
         check_status.header.stamp = rospy.Time.now()
@@ -94,12 +89,15 @@ class HealthReportScriptNode(object):
 
     def run_checks(self):
         """ run all the necessary checks """
-        monotonic_test_results = self.run_monotonicity_check()
-        self._results["checks"].append(monotonic_test_results)
-
-        position_sensor_noise_results = self.run_position_sensor_noise_check()
-        self._results["checks"].append(position_sensor_noise_results)
-
+        for check in self._checks_list:
+            if check == "monotonicity_check":
+                monotonic_test_results = self.run_monotonicity_check()
+                self._results["checks"].append(monotonic_test_results)
+            if check == "position_sensor_noise_check":
+                position_sensor_noise_results = self.run_position_sensor_noise_check()
+                self._results["checks"].append(position_sensor_noise_results)
+            else:
+                rospy.logwarn("{} not FOUND".format(check))
         self.write_results_to_file()
 
 if __name__ == "__main__":
@@ -110,5 +108,5 @@ if __name__ == "__main__":
     rospy.init_node('sr_hand_health_report_script')
     sr_hand_health_report_script = HealthReportScriptNode()
     sr_hand_health_report_script.run_checks()
-    
+
     rospy.spin()

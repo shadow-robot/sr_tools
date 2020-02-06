@@ -11,7 +11,8 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
         super(PositionSensorNoiseCheck, self).__init__(hand_side)
         self._check_duration = rospy.Duration(3.0)
-        self._shared_dict = self.manager.dict()
+        self._shared_dict = dict()
+        self._publishing_rate = rospy.Rate(200)
 
     def run_check(self):
         self.reset_robot_to_home_position()
@@ -38,14 +39,15 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
             difference = joint._raw_sensor_data - initial_value
             if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
                 if abs(difference) < NR_OF_BITS_NOISE_WARNING:
-                    status = "{} bits noise - CHECK PASSED".format(difference)
+                    status = "{} bits noise - CHECK PASSED".format(abs(difference) + 1)
                 elif abs(difference) == NR_OF_BITS_NOISE_WARNING:
                     rospy.logwarn_throttle(1, "Found value with 3 bits diff")
                     status = "3 bits noise - WARNING"
                     test_failed = True
                 else:
-                    rospy.logerr_throttle(1, "Found value with {} bits diff".format(difference))
-                    status = "{} bits noise - CHECK FAILED".format(difference)
+                    rospy.logerr_throttle(1, "Found value with {} bits diff".format(abs(difference) + 1))
+                    status = "{} bits noise - CHECK FAILED".format(abs(difference) + 1)
                     test_failed = True
+            self._publishing_rate.sleep()
         print("Finished loop for {}".format(joint.joint_name))
         dictionary[joint.joint_name] = status

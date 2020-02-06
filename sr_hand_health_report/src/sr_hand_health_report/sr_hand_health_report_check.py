@@ -15,10 +15,9 @@ from sr_controllers_tools.sr_controller_helper import ControllerHelper
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
 
-NUMBER_OF_IMU_FIELDS = 11
 COUPLED_JOINTS = ["J1", "J2"]
 FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
-SENSOR_CUTOUT_THRESHOLD = 1000
+SENSOR_CUTOUT_THRESHOLD = 300
 NR_OF_BITS_NOISE_WARNING = 3
 
 class Finger(object):
@@ -32,15 +31,13 @@ class Joint(object):
         self._finger_name = finger_name
         self.joint_index = joint_index
         self._hand_prefix = hand_prefix
-        self._previous_current_position = float()
         self.joint_name = self._hand_prefix + "_" + self._finger_name + self.joint_index
 
         # deal with different convention sensor/controllers due to coupled joints
         if self._finger_name not in FINGERS_WITHOUT_COUPLED_JOINTS:
             if self.joint_index.upper() in COUPLED_JOINTS:
                 self.joint_index_controller = "j0"
-            else:
-                self.joint_index_controller = self.joint_index
+        self.joint_index_controller = self.joint_index
 
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 
@@ -49,8 +46,8 @@ class Joint(object):
         
         self._position_command_publisher = rospy.Publisher("/sh_%s_position_controller/command" %
                                                           (self.joint_name_controller), Float64, queue_size=2)
-        self._end_stop_value = float()
         self._raw_sensor_data = int()
+        self._current_position = float()
 
     def move_joint(self, command, control_type):
         if control_type is "effort":
@@ -78,6 +75,9 @@ class SrHealthReportCheck(object):
 
         self._raw_data_sensor_subscriber = rospy.Subscriber("/%s/debug_etherCAT_data" % (self._hand_prefix),
                                                             EthercatDebug, self._raw_data_sensor_callback)
+        
+        self._joint_states_subscriber = rospy.Subscriber("/joint_states", JointState,
+                                                         self._joint_states_callback)
 
     def _init_dict_finger_joints(self):
         fingers_to_joint_dict = OrderedDict()
@@ -124,8 +124,17 @@ class SrHealthReportCheck(object):
                 raw_sensor_names_list.append(joint_name.lower())
         return raw_sensor_names_list
 
+    def _joint_states_callback(self, sensor_msg):
+        count = 0
+
+        for finger in self.fingers_to_check:
+            for joint in finger.joints_dict.values():
+                if joint.joint_name == sensor_msg.name[count].lower():
+                    joint._current_position = sensor_msg.position[count]
+                count += 1
+
     def _raw_data_sensor_callback(self, ethercat_data):
-        for i in range(0, len(ethercat_data.sensors)- NUMBER_OF_IMU_FIELDS):
+        for i in range(0, len(self._raw_sensor_names_list)):
             self._raw_sensor_data_dict[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
 
         for finger in self.fingers_to_check:

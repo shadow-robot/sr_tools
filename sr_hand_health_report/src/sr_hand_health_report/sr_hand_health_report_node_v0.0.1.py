@@ -91,8 +91,8 @@ class HealthReportScriptNode(object):
 
     def run_checks(self):
         """ run all the necessary checks """
-        # monotonic_test_results = self.run_monotonicity_check()
-        # self._results["checks"].append(monotonic_test_results)
+        monotonic_test_results = self.run_monotonicity_check()
+        self._results["checks"].append(monotonic_test_results)
 
         # position_sensor_noise_results = self.run_position_sensor_noise_check()
         # self._results["checks"].append(position_sensor_noise_results)

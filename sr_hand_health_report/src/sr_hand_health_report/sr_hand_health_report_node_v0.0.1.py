@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2019 Shadow Robot Company Ltd - All Rights Reserved. Proprietary and Confidential.
+# Unauthorized copying of the content in this file, via any medium is strictly prohibited.
+
 import argparse
 import rospy
 import rospkg
@@ -94,8 +97,8 @@ class HealthReportScriptNode(object):
         monotonic_test_results = self.run_monotonicity_check()
         self._results["checks"].append(monotonic_test_results)
 
-        # position_sensor_noise_results = self.run_position_sensor_noise_check()
-        # self._results["checks"].append(position_sensor_noise_results)
+        position_sensor_noise_results = self.run_position_sensor_noise_check()
+        self._results["checks"].append(position_sensor_noise_results)
 
         self.write_results_to_file()
 

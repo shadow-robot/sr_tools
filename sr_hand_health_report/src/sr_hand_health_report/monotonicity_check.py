@@ -23,7 +23,6 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._second_turn_previous_difference = 0
         self._pwm_command = 250
         self._check_duration = rospy.Duration(5.0)
-        self._dict_of_sensor_ranges = {}
 
     def run_check(self):
         self.reset_robot_to_home_position()
@@ -122,6 +121,11 @@ class MonotonicityCheck(SrHealthReportCheck):
         return True
 
     def _check_sensor_range(self, first_sensor_value, second_sensor_value):
+        """
+        This function records the minimum and maximum range hit by the joint
+        during the monotonicity check, this is collected to sanity check the
+        sensor range
+        """
         if first_sensor_value > second_sensor_value:
             higher_value = first_sensor_value
             lower_value = second_sensor_value

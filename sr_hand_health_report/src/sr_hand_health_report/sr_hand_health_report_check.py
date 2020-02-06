@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2019 Shadow Robot Company Ltd - All Rights Reserved. Proprietary and Confidential.
+# Unauthorized copying of the content in this file, via any medium is strictly prohibited.
+
 import rospy
 import os
 from controller_manager_msgs.srv import ListControllers
@@ -17,7 +20,7 @@ from sr_robot_msgs.srv import ChangeControlType
 
 COUPLED_JOINTS = ["J1", "J2"]
 FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
-SENSOR_CUTOUT_THRESHOLD = 300
+SENSOR_CUTOUT_THRESHOLD = 200
 NR_OF_BITS_NOISE_WARNING = 3
 
 class Finger(object):
@@ -54,7 +57,6 @@ class Joint(object):
             self._pwm_command_publisher.publish(command)
         elif control_type is "position":
             self._position_command_publisher.publish(command)
-
 
 class SrHealthReportCheck(object):
     def __init__(self, hand_side):
@@ -126,7 +128,6 @@ class SrHealthReportCheck(object):
 
     def _joint_states_callback(self, sensor_msg):
         count = 0
-
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
                 if joint.joint_name == sensor_msg.name[count].lower():

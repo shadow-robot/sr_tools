@@ -5,21 +5,13 @@
 
 import rospy
 from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
-from multiprocessing import Process, Manager, Queue
-import multiprocessing
-import copy_reg
-import types
 
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
         super(PositionSensorNoiseCheck, self).__init__(hand_side)
         self._check_duration = rospy.Duration(3.0)
-        self.manager = Manager()
         self._shared_dict = self.manager.dict()
-        self._initial_joint_values = int()
-        self._noise_result = True
-        self._processes = []
 
     def run_check(self):
         self.reset_robot_to_home_position()

@@ -1,0 +1,13 @@
+<launch>
+  <arg name="download" default="true"/>
+  <arg name="updload" default="false"/>
+  <arg name="hand_serial" default="2346"/>
+  <arg name="file_path" default="/home/user/projects/shadow_robot/base/src/sr_tools/sr_hand_health_report/sr_hand_health_reports/$(arg hand_serial)/"/>
+  <arg name="file_name" default="health_report_results_2020-02-07_12-08-23.yml"/>
+
+  <node name="aws_manager_node" pkg="sr_hand_health_report" type="aws_manager.py" output="screen">
+    <rosparam param="download" subst_value="True">$(arg download)</rosparam>
+    <rosparam param="upload" subst_value="True">$(arg upload)</rosparam>
+    <rosparam param="file_name" subst_value="True">$(arg file_path)/$(arg file_name)</rosparam>
+  </node>
+</launch>

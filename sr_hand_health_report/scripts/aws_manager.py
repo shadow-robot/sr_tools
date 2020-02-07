@@ -34,14 +34,18 @@ from botocore.exceptions import ClientError
 if __name__ == "__main__":
     rospy.init_node("aws_manager_node")
 
-    download_param = rospy.get_params("~download")
-    upload_param = rospy.get_params("~upload")
-    file_name = rospy.get_params("~file_name")
+    download_param = rospy.get_param("~download")
+    upload_param = rospy.get_param("~upload")
+    file_name = rospy.get_param("~file_name")
 
     s3 = boto3.client('s3')
+    #bucket = s3.Bucket("shadowrobot.healthreport.results")
 
     if upload_param is True:
         with open(file_name, "rb") as upload_filename:
-            s3.upload_fileobj(upload_filename, shadowrobot.healthreport.results, upload_filename)
-    with open(file_name, 'wb') as download_filename:
-            s3.download_fileobj(shadowrobot.healthreport.results, download_filename, download_filename)
+            print(upload_filename)
+            print(type(upload_filename))
+            s3.upload_fileobj(upload_filename, "shadowrobot.healthreport.results", "{}".format("2346"))
+    if download_param is True:
+        with open(file_name, 'wb') as download_filename:
+            s3.download_file("shadowrobot.healthreport.results", "health_report_results_test.yml", "health_report_results_test.yml")

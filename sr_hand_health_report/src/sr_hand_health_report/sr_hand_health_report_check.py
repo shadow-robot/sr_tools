@@ -41,8 +41,8 @@ class Joint(object):
         if self._finger_name.upper() not in FINGERS_WITHOUT_COUPLED_JOINTS:
             if self.joint_index.upper() in COUPLED_JOINTS:
                 self.joint_index_controller = "j0"
-        else:
-            self.joint_index_controller = self.joint_index
+            else:
+                self.joint_index_controller = self.joint_index
 
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 

@@ -15,8 +15,6 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         self._publishing_rate = rospy.Rate(200)
 
     def run_check(self):
-        self.reset_robot_to_home_position()
-        rospy.sleep(1.0)
         result = {"position_sensor_noise_check" : []}
         rospy.loginfo("Running Position Sensor Noise Check")
 

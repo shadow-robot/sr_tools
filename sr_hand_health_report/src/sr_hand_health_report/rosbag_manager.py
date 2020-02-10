@@ -41,6 +41,19 @@ class RosbagManager(object):
             rospy.logerr("Could not start rosbag record")
             self._rosbag_proc.kill()
 
+    def play_bag(self, log_test_directory, bag_name):
+        """
+        Start playing a rosbg in a given folder
+        """
+        rospy.loginfo("Playing rosbag {}/{}".format(log_test_directory, bag_name))
+
+        try:
+            self._rosbag_proc = subprocess.Popen(['rosbag play -q {}/{} \
+                --clock'.format(log_test_directory, bag_name)], shell=True)
+        except OSError as e:
+            rospy.logerr("Could not play rosbag")
+            self._rosbag_proc.kill()
+
     def stop_bag(self):
         """
         Stops the currently running rosbag process.

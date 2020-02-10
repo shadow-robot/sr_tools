@@ -1,7 +1,18 @@
 <launch>
   <arg name="hand_side" default="right"/>
   <arg name="checks_to_run" default="[monotonicity_check, position_sensor_noise_check]"/>
+  
+  <arg name="hand_serial" default="2346"/>
+
+  <arg name="real_hand" default="true"/>
+  <arg name="rosbag_path" default="/home/user/projects/shadow_robot/base/src/sr_tools/sr_hand_health_report/sr_hand_health_reports/2346/health_report_results_2020-02-10_14-44-41"/>
+  <arg name="rosbag_name" default="2020-02-10_14-44-41_health_report_bag_file.bag"/>
+
   <node name="sr_hand_health_report_node" pkg="sr_hand_health_report" type="sr_hand_health_report_node_v0.0.1.py" args="-hs $(arg hand_side)" output="screen">
     <rosparam param="checks_to_run" subst_value="True">$(arg checks_to_run)</rosparam>
+    <rosparam param="real_hand" subst_value="True">$(arg real_hand)</rosparam>
+    <rosparam param="rosbag_path" subst_value="True">$(arg rosbag_path)</rosparam>
+    <rosparam param="rosbag_name" subst_value="True">$(arg rosbag_name)</rosparam>
+    <rosparam param="hand_serial" subst_value="True">$(arg hand_serial)</rosparam>
   </node>
 </launch>

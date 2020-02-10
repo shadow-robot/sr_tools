@@ -64,7 +64,7 @@ class SrHealthReportCheck(object):
     def __init__(self, hand_side):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
-        self._hand_commander = SrHandCommander(name=self._hand_name)
+        # self._hand_commander = SrHandCommander(name=self._hand_name)
         self._joint_states_dict = {}
 
         self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
@@ -165,13 +165,13 @@ class SrHealthReportCheck(object):
             rospy.loginfo("Changing controllers to: %s", control_type)
             self.ctrl_helper.change_hand_ctrl(control_type)
 
-    def reset_robot_to_home_position(self):
-        rospy.loginfo("Sending robot to home position (open)")
-        self.switch_controller_mode("trajectory")
-        try:
-            self._hand_commander._move_to_named_target('open', wait = True)
-        except:
-            rospy.logerr("Could not plan to open position")
+    # def reset_robot_to_home_position(self):
+    #     rospy.loginfo("Sending robot to home position (open)")
+    #     self.switch_controller_mode("trajectory")
+    #     try:
+    #         self._hand_commander._move_to_named_target('open', wait = True)
+    #     except:
+    #         rospy.logerr("Could not plan to open position")
 
     def drive_joint_to_position(self, joint, command):
         self.switch_controller_mode("position")

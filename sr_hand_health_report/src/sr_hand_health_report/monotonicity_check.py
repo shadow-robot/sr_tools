@@ -25,8 +25,8 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._check_duration = rospy.Duration(5.0)
 
     def run_check(self):
-        self.reset_robot_to_home_position()
-        rospy.sleep(1.0)
+        # self.reset_robot_to_home_position()
+        # rospy.sleep(1.0)
 
         result = {"monotonicity_check" : []}
         rospy.loginfo("Running Monotonicity Check")
@@ -95,7 +95,7 @@ class MonotonicityCheck(SrHealthReportCheck):
     def _first_turn_check_monotonicity(self, joint):
         if self._first_turn_older_raw_sensor_value == 0:
             self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
-        
+
         difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - self._first_turn_older_raw_sensor_value
         self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:

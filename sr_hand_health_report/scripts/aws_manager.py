@@ -6,6 +6,7 @@ import rospy
 import logging
 import boto3
 from botocore.exceptions import ClientError
+
 if __name__ == "__main__":
     rospy.init_node("aws_manager_node")
     download_param = rospy.get_param("~download")

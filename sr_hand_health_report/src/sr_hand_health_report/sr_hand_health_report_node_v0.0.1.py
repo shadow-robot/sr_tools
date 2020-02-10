@@ -15,6 +15,8 @@ from position_sensor_noise_check import PositionSensorNoiseCheck
 from sr_hand_health_report.msg import CheckStatus
 from sr_system_info.system_info import SystemInfo
 from collections import OrderedDict 
+from rosbag_manager import RosbagManager
+
 
 class HealthReportScriptNode(object):
     def __init__(self):
@@ -25,19 +27,26 @@ class HealthReportScriptNode(object):
         self._results["system_info"] = self._system_info.values
         self._rospack = rospkg.RosPack()
         self._hand_serial = self._get_hand_params()
-        self._create_checks_directory()
-        self._results_path = "{}/sr_hand_health_reports/{}/{}.yml".format(
-            self._rospack.get_path('sr_hand_health_report'),
-            self._hand_serial,
-            time.strftime("health_report_results_%Y-%m-%d_%H-%M-%S"))
+        self._check_dir_path = self._create_checks_directory()
+        self._results_path = "{}/{}.yml".format(
+            self._check_dir_path,
+            time.strftime("health_report_file_%Y-%m-%d_%H-%M-%S"))
         self._checks_list = rospy.get_param("~checks_to_run")
+        self.bag_logging_obj = RosbagManager(self._check_dir_path)
+
+    def _start_rosbag_logging(self, path):
+        self.bag_logging_obj.start_log()
+        self.bag_logging_obj.record_bag(path, "health_report_bag_file")
 
     def _create_checks_directory(self):
-        check_directory_path = "{}/sr_hand_health_reports/{}".format(
+        check_directory_path = "{}/sr_hand_health_reports/{}/{}".format(
                                 self._rospack.get_path('sr_hand_health_report'),
-                                self._hand_serial)
+                                self._hand_serial,
+                                time.strftime("health_report_results_%Y-%m-%d")
+                                )
         if not os.path.exists(check_directory_path):
             os.makedirs(check_directory_path)
+        return check_directory_path
 
     def _get_hand_params(self):
         hand_params = rospy.get_param("hand")
@@ -47,18 +56,6 @@ class HealthReportScriptNode(object):
         self._results["hand_info"]["hand_serial"] = hand_serial
         self._results["hand_info"]["hand_prefix"] = hand_prefix
         return hand_serial
-
-    def _read_from_real_hand(self):
-        """
-        Execute checks by reading data from real hand
-        """
-        pass
-
-    def _read_from_bag_file(self):
-        """
-        Execute checks by reading data from bag_file
-        """
-        pass
 
     def _publish_check_status(self, check_name):
         check_status = CheckStatus()
@@ -89,6 +86,7 @@ class HealthReportScriptNode(object):
 
     def run_checks(self):
         """ run all the necessary checks """
+        self._start_rosbag_logging(self._check_dir_path)
         for check in self._checks_list:
             if check == "monotonicity_check":
                 monotonic_test_results = self.run_monotonicity_check()
@@ -99,6 +97,7 @@ class HealthReportScriptNode(object):
             else:
                 rospy.logwarn("{} not FOUND".format(check))
         self.write_results_to_file()
+        self.bag_logging_obj.stop_bag()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run a checks for health report.')

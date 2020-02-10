@@ -51,7 +51,7 @@ class Joint(object):
         
         self._position_command_publisher = rospy.Publisher("/sh_%s_position_controller/command" %
                                                           (self.joint_name_controller), Float64, queue_size=2)
-        self._raw_sensor_data = int()
+        self._raw_sensor_data = []
         self._current_position = float()
 
     def move_joint(self, command, control_type):
@@ -142,16 +142,16 @@ class SrHealthReportCheck(object):
 
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
+                raw_sensor_data_list = []
                 if joint.joint_name == self._hand_prefix + "_thj5":
-                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_thj5_0'] + \
-                                      self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1']) / 2
-                    joint._raw_sensor_data = sensor_average
+                    raw_sensor_data_list.append(self._raw_sensor_data_dict[self._hand_prefix + '_thj5_0'])
+                    raw_sensor_data_list.append(self._raw_sensor_data_dict[self._hand_prefix + '_thj5_1'])
                 elif joint.joint_name == self._hand_prefix + "_wrj1":
-                    sensor_average = (self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_0'] + \
-                                      self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_1']) / 2
-                    joint._raw_sensor_data = sensor_average
+                    raw_sensor_data_list.append(self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_0'])
+                    raw_sensor_data_list.append(self._raw_sensor_data_dict[self._hand_prefix + '_wrj1_1'])
                 else:
-                    joint._raw_sensor_data = self._raw_sensor_data_dict[joint.joint_name]
+                    raw_sensor_data_list.insert(0, self._raw_sensor_data_dict[joint.joint_name])
+                joint._raw_sensor_data = raw_sensor_data_list
 
     def switch_controller_mode(self, control_type):
         if control_type is "trajectory":

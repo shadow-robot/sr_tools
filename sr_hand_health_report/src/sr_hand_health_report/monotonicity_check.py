@@ -54,6 +54,7 @@ class MonotonicityCheck(SrHealthReportCheck):
 
                     time = rospy.Time.now() + self._check_duration
                     while (rospy.Time.now() < time):
+                        print("joint raw data: ", joint._raw_sensor_data)
                         if joint.joint_name[3:] in SW_LIMITS_FOR_JOINTS.keys():
                             joint_limit_reached = self._check_joint_limit(joint)
                         if joint_limit_reached is False:
@@ -69,9 +70,9 @@ class MonotonicityCheck(SrHealthReportCheck):
                             time = rospy.Time.now() + self._check_duration
                             self._pwm_command = - self._pwm_command
                             end_reached = True
-                            self._first_end_stop_sensor_value = joint._raw_sensor_data
+                            self._first_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
                             joint_limit_reached = False
-                    self._second_end_stop_sensor_value = joint._raw_sensor_data
+                    self._second_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
                     higher_value, lower_value = self._check_sensor_range(self._first_end_stop_sensor_value, self._second_end_stop_sensor_value)
                     self._dict_of_monotonic_joints[joint.joint_name] = {}
@@ -88,16 +89,15 @@ class MonotonicityCheck(SrHealthReportCheck):
         rospy.loginfo("Monotonicity Check finished, exporting results")
         return result
 
+    def _get_raw_sensor_value(self, data):
+        return sum(data) / len(data)
+
     def _first_turn_check_monotonicity(self, joint):
         if self._first_turn_older_raw_sensor_value == 0:
-            self._first_turn_older_raw_sensor_value = joint._raw_sensor_data
+            self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         
-        print("FIRST TURN CURRENT DATA: ", joint._raw_sensor_data)
-        print("FIRST TURN OLD DATA: ", self._first_turn_older_raw_sensor_value)
-        difference_between_raw_data = joint._raw_sensor_data - self._first_turn_older_raw_sensor_value
-        print("FIRST TURN DIFFERENCE: ", difference_between_raw_data)
-        print("FIRST TURN PREVIOUS DIFFERENCE: ", self._first_turn_previous_difference)
-        self._first_turn_older_raw_sensor_value = joint._raw_sensor_data
+        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - self._first_turn_older_raw_sensor_value
+        self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:
                 if np.sign(difference_between_raw_data) != 0 and np.sign(self._first_turn_previous_difference) != 0:
@@ -106,20 +106,14 @@ class MonotonicityCheck(SrHealthReportCheck):
                         self._first_turn_previous_difference = difference_between_raw_data
                         return False
         self._first_turn_previous_difference = difference_between_raw_data
-        # else:
-        #     self._first_turn_previous_difference = 0
         return True
 
     def _second_turn_check_monotonicity(self, joint):
         if self._second_turn_older_raw_sensor_value == 0:
-            self._second_turn_older_raw_sensor_value = joint._raw_sensor_data
+            self._second_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
-        print("SECOND TURN CURRENT DATA: ", joint._raw_sensor_data)
-        print("SECOND TURN OLD DATA: ", self._second_turn_older_raw_sensor_value)
-        difference_between_raw_data = joint._raw_sensor_data - self._second_turn_older_raw_sensor_value
-        print("SECOND TURN DIFFERENCE: ", difference_between_raw_data)
-        print("SECOND TURN PREVIOUS DIFFERENCE: ", self._second_turn_previous_difference)
-        self._second_turn_older_raw_sensor_value = joint._raw_sensor_data
+        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - self._second_turn_older_raw_sensor_value
+        self._second_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:
                 if np.sign(difference_between_raw_data) != 0 and np.sign(self._second_turn_previous_difference) != 0:
@@ -128,8 +122,6 @@ class MonotonicityCheck(SrHealthReportCheck):
                         self._second_turn_previous_difference = difference_between_raw_data
                         return False
         self._second_turn_previous_difference = difference_between_raw_data
-        # else:
-        #     self._second_turn_previous_difference = 0
         return True
 
     def _check_sensor_range(self, first_sensor_value, second_sensor_value):

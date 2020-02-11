@@ -29,8 +29,6 @@ class RosbagManager(object):
         """
         rospy.loginfo("Loggin data in {} in {} bag file".format(log_test_directory, bag_name))
 
-        bag_name = datetime.datetime.now().strftime("%Y-%m-%d") + "_" + \
-            datetime.datetime.now().strftime("%H-%M-%S") + "_" + bag_name
         os.system("killall rosbag")
         os.system("killall rostopic")
         try:

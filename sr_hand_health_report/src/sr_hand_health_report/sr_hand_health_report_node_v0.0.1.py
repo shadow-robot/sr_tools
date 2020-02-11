@@ -31,7 +31,7 @@ class HealthReportScriptNode(object):
         self._check_dir_path = self._create_checks_directory()
         self._results_path = "{}/{}.yml".format(
             self._check_dir_path,
-            time.strftime("health_report_file_%Y-%m-%d_%H-%M-%S"))
+            time.strftime("health_report_file"))
         self._checks_list = rospy.get_param("~checks_to_run")
         self.bag_logging_obj = RosbagManager(self._check_dir_path)
         self.bag_logging_obj.start_log()

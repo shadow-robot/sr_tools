@@ -54,7 +54,6 @@ class MonotonicityCheck(SrHealthReportCheck):
 
                     time = rospy.Time.now() + self._check_duration
                     while (rospy.Time.now() < time):
-                        print("joint raw data: ", joint._raw_sensor_data)
                         if joint.joint_name[3:] in SW_LIMITS_FOR_JOINTS.keys():
                             joint_limit_reached = self._check_joint_limit(joint)
                         if joint_limit_reached is False:

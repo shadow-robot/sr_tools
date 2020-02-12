@@ -28,6 +28,10 @@ class Finger(object):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
         self.joints_dict = OrderedDict()
+    
+    def move_finger(self, command, control_type):
+        for j in self.joints_dict.values():
+            j.move_joint(command, control_type)
 
 class Joint(object): 
     def __init__(self, hand_prefix, finger_name, joint_index):
@@ -38,11 +42,10 @@ class Joint(object):
         self.joint_index_controller = ""
 
         # deal with different convention sensor/controllers due to coupled joints
+        self.joint_index_controller = self.joint_index
         if self._finger_name.upper() not in FINGERS_WITHOUT_COUPLED_JOINTS:
             if self.joint_index.upper() in COUPLED_JOINTS:
                 self.joint_index_controller = "j0"
-            else:
-                self.joint_index_controller = self.joint_index
 
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 
@@ -64,7 +67,6 @@ class SrHealthReportCheck(object):
     def __init__(self, hand_side):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
-        # self._hand_commander = SrHandCommander(name=self._hand_name)
         self._joint_states_dict = {}
 
         self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
@@ -74,8 +76,8 @@ class SrHealthReportCheck(object):
         self.ctrl_helper = ControllerHelper([self._hand_prefix], [self._hand_prefix + "_"], self._controller_joints_names)
         self.fingers_to_check = self._init_finger_objects()
 
-        self._raw_sensor_data_dict = {}
-        self._raw_sensor_names_list = self._init_raw_sensor_data_list()
+        self._raw_sensor_data_dict = OrderedDict()
+        self._raw_sensor_names_list = self._init_raw_sensor_data_list_2()
 
         self._raw_data_sensor_subscriber = rospy.Subscriber("/%s/debug_etherCAT_data" % (self._hand_prefix),
                                                             EthercatDebug, self._raw_data_sensor_callback)
@@ -113,6 +115,44 @@ class SrHealthReportCheck(object):
                                                                      joint_index.lower())
         return fingers_to_check
 
+    def _init_raw_sensor_data_list_2(self):
+        raw_sensor_names_list = []
+        if "FF" in self._fingers_to_joint_dict:
+            for joint_index in self._fingers_to_joint_dict["FF"]:
+                name_to_append = self._hand_prefix + "_FF" + joint_index
+                raw_sensor_names_list.append(name_to_append.lower())
+        if "MF" in self._fingers_to_joint_dict:
+            for joint_index in self._fingers_to_joint_dict["MF"]:
+                name_to_append = self._hand_prefix + "_MF" + joint_index
+                raw_sensor_names_list.append(name_to_append.lower())
+        if "RF" in self._fingers_to_joint_dict:
+            for joint_index in self._fingers_to_joint_dict["RF"]:
+                name_to_append = self._hand_prefix + "_RF" + joint_index
+                raw_sensor_names_list.append(name_to_append.lower())
+        if "LF" in self._fingers_to_joint_dict:
+            for joint_index in self._fingers_to_joint_dict["LF"]:
+                name_to_append = self._hand_prefix + "_LF" + joint_index
+                raw_sensor_names_list.append(name_to_append.lower())
+        if "TH" in self._fingers_to_joint_dict:
+            for joint_index in self._fingers_to_joint_dict["TH"]:
+                if joint_index == "J5":
+                    for s in range(0, 2):
+                        name_to_append = self._hand_prefix + "_TH" + joint_index + "_{}".format(s)
+                        raw_sensor_names_list.append(name_to_append.lower())
+                else:
+                    name_to_append = self._hand_prefix + "_TH" + joint_index
+                    raw_sensor_names_list.append(name_to_append.lower())
+        if "WR" in self._fingers_to_joint_dict:
+            for joint_index in self._fingers_to_joint_dict["WR"]:
+                if joint_index == "J1":
+                    for s in range(0, 2):
+                        name_to_append = self._hand_prefix + "_WR" + joint_index + "_{}".format(s)
+                        raw_sensor_names_list.append(name_to_append.lower())
+                else:
+                    name_to_append = self._hand_prefix + "_WR" + joint_index
+                    raw_sensor_names_list.append(name_to_append.lower())
+        return raw_sensor_names_list
+
     def _init_raw_sensor_data_list(self):
         raw_sensor_names_list = []
         for joint_name in self._joint_msg.name:
@@ -139,7 +179,7 @@ class SrHealthReportCheck(object):
     def _raw_data_sensor_callback(self, ethercat_data):
         for i in range(0, len(self._raw_sensor_names_list)):
             self._raw_sensor_data_dict[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
-
+        
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
                 raw_sensor_data_list = []
@@ -153,6 +193,7 @@ class SrHealthReportCheck(object):
                     raw_sensor_data_list.insert(0, self._raw_sensor_data_dict[joint.joint_name])
                 joint._raw_sensor_data = raw_sensor_data_list
 
+
     def switch_controller_mode(self, control_type):
         if control_type is "trajectory":
             rospy.loginfo("Changing trajectory controllers to RUN")
@@ -164,14 +205,6 @@ class SrHealthReportCheck(object):
             self.ctrl_helper.change_force_ctrl_type(change_type_msg)
             rospy.loginfo("Changing controllers to: %s", control_type)
             self.ctrl_helper.change_hand_ctrl(control_type)
-
-    # def reset_robot_to_home_position(self):
-    #     rospy.loginfo("Sending robot to home position (open)")
-    #     self.switch_controller_mode("trajectory")
-    #     try:
-    #         self._hand_commander._move_to_named_target('open', wait = True)
-    #     except:
-    #         rospy.logerr("Could not plan to open position")
 
     def drive_joint_to_position(self, joint, command):
         self.switch_controller_mode("position")

@@ -50,5 +50,9 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                         status = "{} bits noise - CHECK FAILED".format(abs(difference) + 1)
                         test_failed = True
                 self._publishing_rate.sleep()
-        print("Finished loop for {}".format(joint.joint_name))
-        dictionary[joint.joint_name] = status
+            print("Finished loop for {}".format(joint.joint_name))
+            if joint.joint_name not in dictionary:
+                dictionary[joint.joint_name] = status
+            else:
+                name = joint.joint_name + "_1"
+                dictionary[name] = status

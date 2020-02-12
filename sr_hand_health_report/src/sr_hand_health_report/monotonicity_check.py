@@ -25,16 +25,18 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._check_duration = rospy.Duration(5.0)
 
     def run_check(self):
-        # self.reset_robot_to_home_position()
-        # rospy.sleep(1.0)
+        self.switch_controller_mode("position")
+        for finger in self.fingers_to_check:
+            finger.move_finger(0, "position")
 
         result = {"monotonicity_check" : []}
         rospy.loginfo("Running Monotonicity Check")
         self.switch_controller_mode("effort")
 
         for finger in self.fingers_to_check:
-            if finger.finger_name == "FF":
+            if finger.finger_name == "LF":
                 for joint in finger.joints_dict.values():
+
                     self._first_turn_older_raw_sensor_value = 0
                     self._first_turn_previous_difference = 0
                     self._second_turn_older_raw_sensor_value = 0
@@ -80,7 +82,7 @@ class MonotonicityCheck(SrHealthReportCheck):
                     self._dict_of_monotonic_joints[joint.joint_name]["lower_raw_sensor_value"] = lower_value
 
                     self.drive_joint_to_position(joint, 0.0)
-
+                    self.drive_joint_to_position(finger.joints_dict["J4"], 0.0)
                     if joint.joint_index == "j4":
                         self.drive_joint_to_position(finger.joints_dict["J3"], 0.0)
 
@@ -96,6 +98,7 @@ class MonotonicityCheck(SrHealthReportCheck):
             self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
         difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - self._first_turn_older_raw_sensor_value
+
         self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:
@@ -104,6 +107,7 @@ class MonotonicityCheck(SrHealthReportCheck):
                         rospy.logwarn("Unmonotonic behaviour detected")
                         self._first_turn_previous_difference = difference_between_raw_data
                         return False
+                self._first_turn_previous_difference = difference_between_raw_data
         self._first_turn_previous_difference = difference_between_raw_data
         return True
 
@@ -120,6 +124,7 @@ class MonotonicityCheck(SrHealthReportCheck):
                         rospy.logwarn("Unmonotonic behaviour detected")
                         self._second_turn_previous_difference = difference_between_raw_data
                         return False
+                self._second_turn_previous_difference = difference_between_raw_data
         self._second_turn_previous_difference = difference_between_raw_data
         return True
 

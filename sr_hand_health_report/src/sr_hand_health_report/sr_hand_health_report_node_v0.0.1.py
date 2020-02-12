@@ -19,15 +19,19 @@ from rosbag_manager import RosbagManager
 
 
 class HealthReportScriptNode(object):
-    def __init__(self):
+    def __init__(self, real_hand):
+        self._real_hand = real_hand
         self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher", CheckStatus, queue_size=1)
         self._results = {"hand_info": {}, "checks": []}
         self._system_info = SystemInfo()
         self._system_info.collect()
         self._results["system_info"] = self._system_info.values
         self._rospack = rospkg.RosPack()
-        self._hand_serial = rospy.get_param("~hand_serial") #self._get_hand_params()
-        self._results["hand_info"]["hand_serial"] = self._hand_serial
+        if self._real_hand:
+            self._hand_serial = self._get_hand_params()
+        else:
+            self._hand_serial = rospy.get_param("~hand_serial")
+            self._results["hand_info"]["hand_serial"] = self._hand_serial
         self._check_dir_path = self._create_checks_directory()
         self._results_path = "{}/{}.yml".format(
             self._check_dir_path,
@@ -46,14 +50,14 @@ class HealthReportScriptNode(object):
             os.makedirs(check_directory_path)
         return check_directory_path
 
-    # def _get_hand_params(self):
-    #     hand_params = rospy.get_param("hand")
-    #     data = hand_params.get("mapping", "")
-    #     hand_serial =  data.keys()[0]
-    #     hand_prefix = data.values()[0]
-    #     self._results["hand_info"]["hand_serial"] = hand_serial
-    #     self._results["hand_info"]["hand_prefix"] = hand_prefix
-    #     return hand_serial
+    def _get_hand_params(self):
+        hand_params = rospy.get_param("hand")
+        data = hand_params.get("mapping", "")
+        hand_serial =  data.keys()[0]
+        hand_prefix = data.values()[0]
+        self._results["hand_info"]["hand_serial"] = hand_serial
+        self._results["hand_info"]["hand_prefix"] = hand_prefix
+        return hand_serial
 
     def _publish_check_status(self, check_name):
         check_status = CheckStatus()
@@ -120,9 +124,11 @@ if __name__ == "__main__":
                         help='For which hand the checks have to be executed')
     args, unknown_args = parser.parse_known_args()
     rospy.init_node('sr_hand_health_report_script')
-    sr_hand_health_report_script = HealthReportScriptNode()
 
     real_hand = rospy.get_param("~real_hand")
+
+    sr_hand_health_report_script = HealthReportScriptNode(real_hand)
+
     if real_hand is True:
         sr_hand_health_report_script.run_checks_real_hand()
     else:

@@ -32,6 +32,10 @@ if __name__ == "__main__":
     aws_bag_path = "{}/{}".format(folder_path, rosbag_file_name)
     aws_yaml_dump_path = "{}/{}".format(folder_path, param_dump_file_name)
 
+    with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
+        customer_key = customer_key_file.read()
+        print("customer key: ", customer_key)
+
     headers = {
         'x-api-key': 'miZSxsc8ud32F9sLlDBS7Co5eRQIeZ18B0bezvTf',
     }

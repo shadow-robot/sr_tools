@@ -1,6 +1,6 @@
 <launch>
   <arg name="hand_side" default="right"/>
-  <arg name="checks_to_run" default="[monotonicity_check, position_sensor_noise_check]"/>
+  <arg name="checks_to_run" default="[position_sensor_noise_check, monotonicity_check]"/>
   
   <arg name="hand_serial" default="2346"/>
 

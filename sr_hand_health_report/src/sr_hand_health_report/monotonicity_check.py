@@ -25,18 +25,20 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._check_duration = rospy.Duration(5.0)
 
     def run_check(self):
-        self.switch_controller_mode("position")
-        for finger in self.fingers_to_check:
-            finger.move_finger(0, "position")
+        # self.switch_controller_mode("position")
+        # for finger in self.fingers_to_check:
+        #     finger.move_finger(0, "position")
 
         result = {"monotonicity_check" : []}
         rospy.loginfo("Running Monotonicity Check")
         self.switch_controller_mode("effort")
 
         for finger in self.fingers_to_check:
-            if finger.finger_name == "LF":
+            if finger.finger_name == "lf":
                 for joint in finger.joints_dict.values():
+                    joint_name = finger.finger_name + joint.joint_index
 
+                    self._pwm_command = self.command_sign_dict[joint_name]*self._pwm_command
                     self._first_turn_older_raw_sensor_value = 0
                     self._first_turn_previous_difference = 0
                     self._second_turn_older_raw_sensor_value = 0
@@ -51,15 +53,13 @@ class MonotonicityCheck(SrHealthReportCheck):
 
                     # For joint 4 we want to move J3 to 90 degrees, in order to allow the full range of J4
                     # without hitting other fingers
-                    if joint.joint_index == "j4":
-                        self.drive_joint_to_position(finger.joints_dict["J3"], 1.57)
+                    # if joint.joint_index == "j4":
+                    #     self.drive_joint_with_pwm(finger.joints_dict["J3"],
+                    #         self.command_sign_dict[finger.finger_name + "j3"] * self._pwm_command)
 
                     time = rospy.Time.now() + self._check_duration
                     while (rospy.Time.now() < time):
-                        if joint.joint_name[3:] in SW_LIMITS_FOR_JOINTS.keys():
-                            joint_limit_reached = self._check_joint_limit(joint)
-                        if joint_limit_reached is False:
-                            joint.move_joint(self._pwm_command, "effort")
+                        joint.move_joint(self._pwm_command, "effort")
                         if end_reached is False:
                             is_joint_monotonous_first_turn = self._first_turn_check_monotonicity(joint)
                         else:
@@ -75,16 +75,32 @@ class MonotonicityCheck(SrHealthReportCheck):
                             joint_limit_reached = False
                     self._second_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
-                    higher_value, lower_value = self._check_sensor_range(self._first_end_stop_sensor_value, self._second_end_stop_sensor_value)
+                    higher_value, lower_value = self._check_sensor_range(self._first_end_stop_sensor_value,
+                                                                            self._second_end_stop_sensor_value)
                     self._dict_of_monotonic_joints[joint.joint_name] = {}
                     self._dict_of_monotonic_joints[joint.joint_name]["is_monotonic"] = self._is_joint_monotonous
                     self._dict_of_monotonic_joints[joint.joint_name]["higher_raw_sensor_value"] = higher_value
                     self._dict_of_monotonic_joints[joint.joint_name]["lower_raw_sensor_value"] = lower_value
+                        
+                    now = rospy.Time.now()
+                    if joint.joint_index != "j3" and joint.joint_index != "j4":
+                        while (rospy.Time.now() < now + rospy.Duration(5.0)):
+                            self.drive_joint_with_pwm(joint, -self._pwm_command)
+                            self._publishing_rate.sleep()
 
-                    self.drive_joint_to_position(joint, 0.0)
-                    self.drive_joint_to_position(finger.joints_dict["J4"], 0.0)
-                    if joint.joint_index == "j4":
-                        self.drive_joint_to_position(finger.joints_dict["J3"], 0.0)
+                    now = rospy.Time.now()
+                    if joint.joint_index == "j5":
+                        while (rospy.Time.now() < now + rospy.Duration(5.0)):
+                            self.drive_joint_with_pwm(finger.joints_dict["J3"],
+                                -self.command_sign_dict[finger.finger_name + "j3"] * 250)
+                            self._publishing_rate.sleep()
+            
+            # move J3 back
+            now = rospy.Time.now()
+            while (rospy.Time.now() < now + rospy.Duration(5.0)):
+                self.drive_joint_with_pwm(finger.joints_dict["J3"],
+                    self.command_sign_dict[finger.finger_name + "j3"] * 250)
+                self._publishing_rate.sleep()
 
         result["monotonicity_check"].append(self._dict_of_monotonic_joints)
         rospy.loginfo("Monotonicity Check finished, exporting results")
@@ -97,7 +113,8 @@ class MonotonicityCheck(SrHealthReportCheck):
         if self._first_turn_older_raw_sensor_value == 0:
             self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
-        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - self._first_turn_older_raw_sensor_value
+        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - \
+                                      self._first_turn_older_raw_sensor_value
 
         self._first_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
@@ -115,7 +132,8 @@ class MonotonicityCheck(SrHealthReportCheck):
         if self._second_turn_older_raw_sensor_value == 0:
             self._second_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
-        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - self._second_turn_older_raw_sensor_value
+        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - \
+                                      self._second_turn_older_raw_sensor_value
         self._second_turn_older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:

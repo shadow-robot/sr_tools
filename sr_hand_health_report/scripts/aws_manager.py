@@ -65,4 +65,4 @@ if __name__ == "__main__":
         client.upload_file(full_bag_path, bucket_name, aws_bag_path)
         client.upload_file(full_yaml_dump_path, bucket_name, aws_yaml_dump_path)
     if download_param is True:
-        s3_resource.Object(bucket_name, file_name).download_file("/tmp/{}".format(file_name))
+        client.Object(bucket_name, file_name).download_file("/{}".format(file_name))

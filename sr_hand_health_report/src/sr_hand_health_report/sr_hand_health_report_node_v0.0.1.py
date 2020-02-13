@@ -39,6 +39,7 @@ class HealthReportScriptNode(object):
         self._checks_list = rospy.get_param("~checks_to_run")
         self.bag_logging_obj = RosbagManager(self._check_dir_path)
         self.bag_logging_obj.start_log()
+        self._fingers_to_test = rospy.get_param("~fingers_to_test")
 
     def _create_checks_directory(self, home_folder_path):
         check_directory_path = "{}/sr_hand_health_reports/{}/{}".format(
@@ -69,7 +70,7 @@ class HealthReportScriptNode(object):
         check_name = "monotonicity_check"
         if publish_state:
             self._publish_check_status(check_name)
-        monotonicity_check = MonotonicityCheck(args.hand_side)
+        monotonicity_check = MonotonicityCheck(args.hand_side, self._fingers_to_test)
         monotonic_test_results = monotonicity_check.run_check()
         return monotonic_test_results
 
@@ -77,7 +78,7 @@ class HealthReportScriptNode(object):
         check_name = "position_sensor_noise_check"
         if publish_state:
             self._publish_check_status(check_name)
-        position_sensor_noise_check = PositionSensorNoiseCheck(args.hand_side)
+        position_sensor_noise_check = PositionSensorNoiseCheck(args.hand_side, self._fingers_to_test)
         position_sensor_noise_results = position_sensor_noise_check.run_check()
         return position_sensor_noise_results
 
@@ -86,7 +87,7 @@ class HealthReportScriptNode(object):
             filename = self._results_path
         with open(filename, 'w') as yaml_file:
             yaml.dump(self._results, stream=yaml_file, default_flow_style=False)
-        rospy.signal_shutdown("All checks completed!"); 
+        rospy.signal_shutdown("All checks completed!")
 
     def run_checks_real_hand(self):
         """ run all the necessary checks """

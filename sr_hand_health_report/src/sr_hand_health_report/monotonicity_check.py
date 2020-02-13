@@ -12,8 +12,8 @@ import decimal
 SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
 
 class MonotonicityCheck(SrHealthReportCheck):
-    def __init__(self, hand_side):
-        super(MonotonicityCheck, self).__init__(hand_side)
+    def __init__(self, hand_side, fingers_to_test):
+        super(MonotonicityCheck, self).__init__(hand_side, fingers_to_test)
         self._is_joint_monotonous = True
         self._dict_of_monotonic_joints = {}
         self._publishing_rate = rospy.Rate(50) # 50 Hz
@@ -28,103 +28,82 @@ class MonotonicityCheck(SrHealthReportCheck):
         self.switch_controller_mode("effort")
 
         for finger in self.fingers_to_check:
-            for joint in finger.joints_dict.values():
-
-                joint_name = finger.finger_name + joint.joint_index
-
-                if finger.finger_name == "wr":
-                    if joint.joint_index == "j2":
-                        self._pwm_command = 350
-                self._extend_command = self.command_sign_dict[joint_name]*self._pwm_command
-                self._flex_command = -self._extend_command
-
-                # need higher pwm for WRIST J1
-                if finger.finger_name == "wr":
-                    if joint.joint_index == "j1":
-                        self._extend_command = -self.command_sign_dict[joint_name]*600
-                        self._flex_command = self._extend_command - 750
-
-                self._older_raw_sensor_value = 0
-                self._previous_difference = 0
-
-                rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
-
-                self._is_joint_monotonous = True
-                end_reached = False
-                is_joint_monotonous = True
-                joint_limit_reached = False
-
-                time = rospy.Time.now() + self._check_duration
-                while (rospy.Time.now() < time):
-                    if end_reached is False:
-                        joint.move_joint(self._extend_command, "effort")
-                    else:
-                        joint.move_joint(self._flex_command, "effort")
-                        is_joint_monotonous = self._check_monotonicity(joint)
-                    if is_joint_monotonous is False:
-                        self._is_joint_monotonous = False
-                    self._publishing_rate.sleep()
-                    if (round(rospy.Time.now().to_sec(),1) == round(time.to_sec(),1)) and end_reached is False:
-                        time = rospy.Time.now() + self._check_duration
-                        end_reached = True
-                        self._first_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
-                        joint_limit_reached = False
-                self._second_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
-
-                higher_value, lower_value = self._check_sensor_range(self._first_end_stop_sensor_value,
-                                                                    self._second_end_stop_sensor_value)
-                self._dict_of_monotonic_joints[joint.joint_name] = {}
-                self._dict_of_monotonic_joints[joint.joint_name]["is_monotonic"] = self._is_joint_monotonous
-                self._dict_of_monotonic_joints[joint.joint_name]["higher_raw_sensor_value"] = higher_value
-                self._dict_of_monotonic_joints[joint.joint_name]["lower_raw_sensor_value"] = lower_value
-
-                if finger.finger_name == "th":
-                    if joint.joint_index == "j1" or joint.joint_index == "j5":
-                        now = rospy.Time.now()
-                        while (rospy.Time.now() < now + rospy.Duration(2.0)):
-                            self.drive_joint_with_pwm(joint, self._flex_command)
-                            self._publishing_rate.sleep()
-                        self.drive_joint_with_pwm(joint, 0)
-                    else:
-                        now = rospy.Time.now()
-                        while (rospy.Time.now() < now + rospy.Duration(2.0)):
-                            self.drive_joint_with_pwm(joint, self._extend_command)
-                            self._publishing_rate.sleep()
-                        self.drive_joint_with_pwm(joint, 0)
-                elif finger.finger_name == "wr":
-                    if joint.joint_index == "j1":
-                        now = rospy.Time.now()
-                        while (rospy.Time.now() < now + rospy.Duration(1.0)):
-                            self.drive_joint_with_pwm(joint, self._extend_command)
-                            self._publishing_rate.sleep()
-                        self.drive_joint_with_pwm(joint, 0)
-                    else:
-                        now = rospy.Time.now()
-                        while (rospy.Time.now() < now + rospy.Duration(2.0)):
-                            self.drive_joint_with_pwm(joint, self._extend_command)
-                            self._publishing_rate.sleep()
-                        self.drive_joint_with_pwm(joint, 0)
-                else:
-                    if joint.joint_index != "j3" and joint.joint_index != "j4":
-                        now = rospy.Time.now()
-                        while (rospy.Time.now() < now + rospy.Duration(5.0)):
-                            self.drive_joint_with_pwm(joint, self._extend_command)
-                            self._publishing_rate.sleep()
-                    if joint.joint_index == "j4":
-                        now = rospy.Time.now()
-                        while (rospy.Time.now() < now + rospy.Duration(1.2)):
-                            self.drive_joint_with_pwm(joint, self._extend_command)
-                            self._publishing_rate.sleep()
-                        self.drive_joint_with_pwm(joint, 0)
-                        new_now = rospy.Time.now()
-                        while (rospy.Time.now() < new_now + rospy.Duration(3.0)):
-                            self.drive_joint_with_pwm(finger.joints_dict["J3"],
-                                self.command_sign_dict[finger.finger_name + "j3"] * 250)
-                            self._publishing_rate.sleep()
+            self._run_check_per_finger(finger)
 
         result["monotonicity_check"].append(self._dict_of_monotonic_joints)
         rospy.loginfo("Monotonicity Check finished, exporting results")
         return result
+
+    def _run_check_per_finger(self, finger):
+        for joint in finger.joints_dict.values():
+            if finger.finger_name == "wr":
+                command = 350
+            else:
+                command = 250
+            self._run_check_per_joint(joint, command, finger)
+
+    def _run_check_per_joint(self, joint, command, finger):
+        rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+        joint_name = finger.finger_name + joint.joint_index
+        extend_command = self.command_sign_map[joint_name]*command
+        flex_command = -extend_command
+
+        if finger.finger_name == "wr":
+            if joint.joint_index == "j1":
+                extend_command = -self.command_sign_map[joint_name]*600
+                flex_command = extend_command - 750
+
+        self._older_raw_sensor_value = 0
+        self._previous_difference = 0
+        self._is_joint_monotonous = True
+        end_reached = False
+        is_joint_monotonous = True
+        joint_limit_reached = False
+
+        time = rospy.Time.now() + self._check_duration
+        while (rospy.Time.now() < time):
+            if end_reached is False:
+                joint.move_joint(extend_command, "effort")
+            else:
+                joint.move_joint(flex_command, "effort")
+                is_joint_monotonous = self._check_monotonicity(joint)
+            if is_joint_monotonous is False:
+                self._is_joint_monotonous = False
+            self._publishing_rate.sleep()
+            if (round(rospy.Time.now().to_sec(),1) == round(time.to_sec(),1)) and end_reached is False:
+                time = rospy.Time.now() + self._check_duration
+                end_reached = True
+                self._first_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
+                joint_limit_reached = False
+        self._second_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
+
+        higher_value, lower_value = self._check_sensor_range(self._first_end_stop_sensor_value,
+                                                            self._second_end_stop_sensor_value)
+        
+        self._add_result_to_dict(joint.joint_name, self._is_joint_monotonous, higher_value, lower_value)
+        self._reset_joint_to_position(finger, joint, extend_command, flex_command)
+
+    def _reset_joint_to_position(self, finger, joint, extend_command, flex_command):
+        if finger.finger_name == "th":
+            if joint.joint_index == "j1" or joint.joint_index == "j5":
+                self.drive_joint_with_pwm(joint, flex_command, 2.0, self._publishing_rate)
+            else:
+                self.drive_joint_with_pwm(joint, extend_command, 2.0, self._publishing_rate)
+        elif finger.finger_name == "wr":
+            self.drive_joint_with_pwm(joint, extend_command, 1.0, self._publishing_rate)
+        else:
+            if joint.joint_index != "j3" and joint.joint_index != "j4":
+                self.drive_joint_with_pwm(joint, extend_command, 5.0, self._publishing_rate)
+            if joint.joint_index == "j4":
+                self.drive_joint_with_pwm(joint, extend_command, 1.2, self._publishing_rate)
+                self.drive_joint_with_pwm(finger.joints_dict["J3"],
+                    self.command_sign_map[finger.finger_name + "j3"] * 250, 3.0, self._publishing_rate)
+
+    def _add_result_to_dict(self, joint_name, is_joint_monotonous, higher_value, lower_value):
+        self._dict_of_monotonic_joints[joint_name] = {}
+        self._dict_of_monotonic_joints[joint_name]["is_monotonic"] = self._is_joint_monotonous
+        self._dict_of_monotonic_joints[joint_name]["higher_raw_sensor_value"] = higher_value
+        self._dict_of_monotonic_joints[joint_name]["lower_raw_sensor_value"] = lower_value
 
     def _get_raw_sensor_value(self, data):
         return sum(data) / len(data)
@@ -140,8 +119,6 @@ class MonotonicityCheck(SrHealthReportCheck):
             if (abs(difference_between_raw_data) and abs(self._previous_difference)) > NR_OF_BITS_NOISE_WARNING:
                 if np.sign(difference_between_raw_data) != 0 and np.sign(self._previous_difference) != 0:
                     if np.sign(difference_between_raw_data) != np.sign(self._previous_difference):
-                        print("SECOND TURN DIFFERENCE: ", difference_between_raw_data)
-                        print("SECOND TURN PREVIOUS DIFFERENCE: ", self._previous_difference)
                         rospy.logwarn("Unmonotonic behaviour detected")
                         self._previous_difference = difference_between_raw_data
                         return False

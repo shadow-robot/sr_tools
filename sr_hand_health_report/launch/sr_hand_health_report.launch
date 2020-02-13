@@ -1,7 +1,8 @@
 <launch>
   <arg name="hand_side" default="right"/>
   <arg name="checks_to_run" default="[position_sensor_noise_check, monotonicity_check]"/>
-
+  
+  <arg name="fingers_to_test" default="[FF, MF, RF, LF, TH, WR]"/>
   <arg name="results_path" default="/home/user/"/>
   
   <arg name="hand_serial" default="2346"/>
@@ -12,6 +13,7 @@
 
   <node name="sr_hand_health_report_node" pkg="sr_hand_health_report" type="sr_hand_health_report_node_v0.0.1.py" args="-hs $(arg hand_side)" output="screen">
     <rosparam param="checks_to_run" subst_value="True">$(arg checks_to_run)</rosparam>
+    <rosparam param="fingers_to_test" subst_value="True">$(arg fingers_to_test)</rosparam>
     <rosparam param="results_path" subst_value="True">$(arg results_path)</rosparam>
     <rosparam param="real_hand" subst_value="True">$(arg real_hand)</rosparam>
     <rosparam param="rosbag_path" subst_value="True">$(arg rosbag_path)</rosparam>

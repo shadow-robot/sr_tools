@@ -10,7 +10,7 @@ import subprocess
 import requests
 import re
 import json
-
+import os
 
 if __name__ == "__main__":
     rospy.init_node("aws_manager_node")
@@ -32,15 +32,21 @@ if __name__ == "__main__":
     aws_bag_path = "{}/{}".format(folder_path, rosbag_file_name)
     aws_yaml_dump_path = "{}/{}".format(folder_path, param_dump_file_name)
 
-    with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
-        customer_key = customer_key_file.read()
-        print("customer key: ", customer_key)
+    try:
+        with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
+            customer_key = customer_key_file.read()
+    except:
+        rospy.logerr("Could not find customer key, ask software team for help!")
 
     headers = {
         'x-api-key': 'miZSxsc8ud32F9sLlDBS7Co5eRQIeZ18B0bezvTf',
     }
-    response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-    
+
+    try:
+        response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
+    except:
+        rospy.logerr("Could request secret AWS access key, ask software team for help!")
+
     result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
     aws_access_key_id = result.group(1)
 
@@ -61,8 +67,32 @@ if __name__ == "__main__":
     #s3_resource = boto3.resource('s3')
     bucket_name = "shadowrobot.healthreport.results"
     if upload_param is True:
+        rospy.loginfo("Uploading report yaml file..")
         client.upload_file(full_report_path, bucket_name, aws_report_path)
+        rospy.loginfo("Upload download of report yaml file!")
+
+        rospy.loginfo("Uploading bag file..")
         client.upload_file(full_bag_path, bucket_name, aws_bag_path)
+        rospy.loginfo("Completed Upload of bag file!")
+
+        rospy.loginfo("Uploading param dump yaml file..")
         client.upload_file(full_yaml_dump_path, bucket_name, aws_yaml_dump_path)
+        rospy.loginfo("Completed Upload of param dump yaml file!")
+
     if download_param is True:
-        client.Object(bucket_name, file_name).download_file("/{}".format(file_name))
+        directory = "{}/{}".format(file_path, folder_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        rospy.loginfo("Downloading report yaml file..")
+        client.download_file(bucket_name, aws_report_path, "{}/{}/{}".format(file_path, folder_path, report_file_name))
+        rospy.loginfo("Completed download of report yaml file!")
+
+        rospy.loginfo("Downloading bag file..")
+        client.download_file(bucket_name, aws_bag_path, "{}/{}/{}".format(file_path, folder_path, rosbag_file_name))
+        rospy.loginfo("Completed download of bag file!")
+
+        rospy.loginfo("Downloading param dump yaml file..")
+        client.download_file(bucket_name, aws_yaml_dump_path, "{}/{}/{}".format(file_path, folder_path, param_dump_file_name))
+        rospy.loginfo("Completed download of param dump yaml file!")
+
+    rospy.signal_shutdown("")

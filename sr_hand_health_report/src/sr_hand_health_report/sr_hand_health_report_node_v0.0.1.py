@@ -19,7 +19,7 @@ from rosbag_manager import RosbagManager
 
 
 class HealthReportScriptNode(object):
-    def __init__(self, real_hand):
+    def __init__(self, real_hand, home_folder_path):
         self._real_hand = real_hand
         self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher", CheckStatus, queue_size=1)
         self._results = {"hand_info": {}, "checks": []}
@@ -32,7 +32,7 @@ class HealthReportScriptNode(object):
         else:
             self._hand_serial = rospy.get_param("~hand_serial")
             self._results["hand_info"]["hand_serial"] = self._hand_serial
-        self._check_dir_path = self._create_checks_directory()
+        self._check_dir_path = self._create_checks_directory(home_folder_path)
         self._results_path = "{}/{}.yml".format(
             self._check_dir_path,
             time.strftime("health_report_file"))
@@ -40,9 +40,9 @@ class HealthReportScriptNode(object):
         self.bag_logging_obj = RosbagManager(self._check_dir_path)
         self.bag_logging_obj.start_log()
 
-    def _create_checks_directory(self):
+    def _create_checks_directory(self, home_folder_path):
         check_directory_path = "{}/sr_hand_health_reports/{}/{}".format(
-                                self._rospack.get_path('sr_hand_health_report'),
+                                home_folder_path,
                                 self._hand_serial,
                                 time.strftime("health_report_results_%Y-%m-%d_%H-%M-%S")
                                 )
@@ -126,8 +126,8 @@ if __name__ == "__main__":
     rospy.init_node('sr_hand_health_report_script')
 
     real_hand = rospy.get_param("~real_hand")
-
-    sr_hand_health_report_script = HealthReportScriptNode(real_hand)
+    home_folder_path = rospy.get_param("~results_path")
+    sr_hand_health_report_script = HealthReportScriptNode(real_hand, home_folder_path)
 
     if real_hand is True:
         sr_hand_health_report_script.run_checks_real_hand()

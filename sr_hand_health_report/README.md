@@ -29,11 +29,22 @@ The available tests are:
 By default all the test are performed, but if, for instance, you only want to run the position_sensor_noise_check you can run the following command:
 
 ```
-roslaunch sr_hand_health_report sr_hand_health_report.launch hand_side:=<hand_side> checks_to_run:=[position_sensor_noise_check]
+roslaunch sr_hand_health_report sr_hand_health_report.launch hand_side:=<hand_side> checks_to_run:="[position_sensor_noise_check]" fingers_to_test="[FF, MF]"
 ```
 
 # Get AWS Access Key
 
+To get the AWS Access Key you need to install your container by following the instructions for running a container here.
+The option aws needs to be set equal to True.
+The script will ask you for an access key during installation. This key can be retrieved for here.
+
+If you already have a container, retrieve one of the keys and within your container run the following command:
+
+```
+cat /customer.key
+```
+
+If you have doubts about this process contact the software team.
 
 # Data visualization and Upload
 

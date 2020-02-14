@@ -11,7 +11,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>message_runtime</depend>
   <depend>std_msgs</depend>
-  <depend>numpy</depend>
+  <depend>python-numpy</depend>
   <depend>rospy</depend>
   <exec_depend>sr_system_info</exec_depend>
   <exec_depend>sr_controllers_tools</exec_depend>

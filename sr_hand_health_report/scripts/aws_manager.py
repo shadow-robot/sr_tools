@@ -58,13 +58,11 @@ if __name__ == "__main__":
 
     client = boto3.client(
         's3',
-        # Hard coded strings as credentials, not recommended.
         aws_access_key_id=aws_access_key_id,
         aws_secret_access_key=aws_secret_access_key,
         aws_session_token=aws_session_token
     )
 
-    #s3_resource = boto3.resource('s3')
     bucket_name = "shadowrobot.healthreport.results"
     if upload_param is True:
         rospy.loginfo("Uploading report yaml file..")
@@ -92,7 +90,8 @@ if __name__ == "__main__":
         rospy.loginfo("Completed download of bag file!")
 
         rospy.loginfo("Downloading param dump yaml file..")
-        client.download_file(bucket_name, aws_yaml_dump_path, "{}/{}/{}".format(file_path, folder_path, param_dump_file_name))
+        client.download_file(bucket_name, aws_yaml_dump_path, "{}/{}/{}".format(file_path, folder_path,
+                                                                                param_dump_file_name))
         rospy.loginfo("Completed download of param dump yaml file!")
 
     rospy.signal_shutdown("")

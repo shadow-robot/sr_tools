@@ -15,7 +15,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         self._publishing_rate = rospy.Rate(200)
 
     def run_check(self):
-        result = {"position_sensor_noise_check" : []}
+        result = {"position_sensor_noise_check": []}
         rospy.loginfo("Running Position Sensor Noise Check")
 
         for finger in self.fingers_to_check:

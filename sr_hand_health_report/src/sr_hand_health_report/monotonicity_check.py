@@ -11,19 +11,20 @@ import decimal
 
 SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
 
+
 class MonotonicityCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super(MonotonicityCheck, self).__init__(hand_side, fingers_to_test)
         self._is_joint_monotonous = True
         self._dict_of_monotonic_joints = {}
-        self._publishing_rate = rospy.Rate(50) # 50 Hz
+        self._publishing_rate = rospy.Rate(50)  # 50 Hz
         self._older_raw_sensor_value = 0
         self._previous_difference = 0
         self._pwm_command = 250
         self._check_duration = rospy.Duration(7.0)
 
     def run_check(self):
-        result = {"monotonicity_check" : []}
+        result = {"monotonicity_check": []}
         rospy.loginfo("Running Monotonicity Check")
         self.switch_controller_mode("effort")
 
@@ -70,7 +71,7 @@ class MonotonicityCheck(SrHealthReportCheck):
             if is_joint_monotonous is False:
                 self._is_joint_monotonous = False
             self._publishing_rate.sleep()
-            if (round(rospy.Time.now().to_sec(),1) == round(time.to_sec(),1)) and end_reached is False:
+            if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)) and end_reached is False:
                 time = rospy.Time.now() + self._check_duration
                 end_reached = True
                 self._first_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
@@ -78,8 +79,8 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._second_end_stop_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
         higher_value, lower_value = self._check_sensor_range(self._first_end_stop_sensor_value,
-                                                            self._second_end_stop_sensor_value)
-        
+                                                             self._second_end_stop_sensor_value)
+
         self._add_result_to_dict(joint.joint_name, self._is_joint_monotonous, higher_value, lower_value)
         self._reset_joint_to_position(finger, joint, extend_command, flex_command)
 
@@ -97,7 +98,8 @@ class MonotonicityCheck(SrHealthReportCheck):
             if joint.joint_index == "j4":
                 self.drive_joint_with_pwm(joint, extend_command, 1.2, self._publishing_rate)
                 self.drive_joint_with_pwm(finger.joints_dict["J3"],
-                    self.command_sign_map[finger.finger_name + "j3"] * 250, 3.0, self._publishing_rate)
+                                          self.command_sign_map[finger.finger_name + "j3"] * 250, 3.0,
+                                          self._publishing_rate)
 
     def _add_result_to_dict(self, joint_name, is_joint_monotonous, higher_value, lower_value):
         self._dict_of_monotonic_joints[joint_name] = {}

@@ -14,14 +14,15 @@ from monotonicity_check import MonotonicityCheck
 from position_sensor_noise_check import PositionSensorNoiseCheck
 from sr_hand_health_report.msg import CheckStatus
 from sr_system_info.system_info import SystemInfo
-from collections import OrderedDict 
+from collections import OrderedDict
 from rosbag_manager import RosbagManager
 
 
 class HealthReportScriptNode(object):
     def __init__(self, real_hand, home_folder_path):
         self._real_hand = real_hand
-        self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher", CheckStatus, queue_size=1)
+        self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher",
+                                                                      CheckStatus, queue_size=1)
         self._results = {"hand_info": {}, "checks": []}
         self._system_info = SystemInfo()
         self._system_info.collect()
@@ -55,7 +56,7 @@ class HealthReportScriptNode(object):
     def _get_hand_params(self):
         hand_params = rospy.get_param("hand")
         data = hand_params.get("mapping", "")
-        hand_serial =  data.keys()[0]
+        hand_serial = data.keys()[0]
         hand_prefix = data.values()[0]
         self._results["hand_info"]["hand_serial"] = hand_serial
         self._results["hand_info"]["hand_prefix"] = hand_prefix

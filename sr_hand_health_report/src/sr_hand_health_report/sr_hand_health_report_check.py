@@ -11,8 +11,7 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 from std_srvs.srv import SetBool
-from collections import OrderedDict 
-from multiprocessing import Process
+from collections import OrderedDict
 from sr_robot_msgs.msg import EthercatDebug
 from sr_controllers_tools.sr_controller_helper import ControllerHelper
 from sr_robot_msgs.msg import ControlType
@@ -23,15 +22,17 @@ FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
 SENSOR_CUTOUT_THRESHOLD = 200
 NR_OF_BITS_NOISE_WARNING = 3
 
+
 class Finger(object):
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
         self.joints_dict = OrderedDict()
-    
+
     def move_finger(self, command, control_type):
         for j in self.joints_dict.values():
             j.move_joint(command, control_type)
+
 
 class Joint(object):
     def __init__(self, hand_prefix, finger_name, joint_index):
@@ -50,10 +51,10 @@ class Joint(object):
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 
         self._pwm_command_publisher = rospy.Publisher("/sh_%s_effort_controller/command" %
-                                                     (self.joint_name_controller), Float64, queue_size=2)
+                                                      (self.joint_name_controller), Float64, queue_size=2)
         
         self._position_command_publisher = rospy.Publisher("/sh_%s_position_controller/command" %
-                                                          (self.joint_name_controller), Float64, queue_size=2)
+                                                           (self.joint_name_controller), Float64, queue_size=2)
         self._raw_sensor_data = []
         self._current_position = float()
 
@@ -62,6 +63,7 @@ class Joint(object):
             self._pwm_command_publisher.publish(command)
         elif control_type is "position":
             self._position_command_publisher.publish(command)
+
 
 class SrHealthReportCheck(object):
     def __init__(self, hand_side, fingers_to_test):
@@ -88,18 +90,19 @@ class SrHealthReportCheck(object):
 
         if self._hand_prefix == "lh":
             self.command_sign_map = {"ffj1": -1, "ffj2": -1, "ffj3": 1, "ffj4": -1,
-                                      "mfj1": -1, "mfj2": -1, "mfj3": 1, "mfj4": -1,
-                                      "rfj1": -1, "rfj2": -1, "rfj3": 1, "rfj4": -1,
-                                      "lfj1": 1, "lfj2": 1, "lfj3": -1, "lfj4": 1, "lfj5": 1,
-                                      "thj1": 1, "thj2": 1, "thj3": -1, "thj4": 1, "thj5": 1,
-                                      "wrj1": -1, "wrj2": -1}
+                                     "mfj1": -1, "mfj2": -1, "mfj3": 1, "mfj4": -1,
+                                     "rfj1": -1, "rfj2": -1, "rfj3": 1, "rfj4": -1,
+                                     "lfj1": 1, "lfj2": 1, "lfj3": -1, "lfj4": 1, "lfj5": 1,
+                                     "thj1": 1, "thj2": 1, "thj3": -1, "thj4": 1, "thj5": 1,
+                                     "wrj1": -1, "wrj2": -1}
         elif self._hand_prefix == "rh":
             self.command_sign_map = {"ffj1": 1, "ffj2": 1, "ffj3": -1, "ffj4": 1,
-                                      "mfj1": 1, "mfj2": 1, "mfj3": -1, "mfj4": 1,
-                                      "rfj1": 1, "rfj2": -1, "rfj3": -1, "rfj4": 1,
-                                      "lfj1": -1, "lfj2": -1, "lfj3": 1, "lfj4": -1, "lfj5": -1,
-                                      "thj1": -1, "thj2": -1, "thj3": 1, "thj4": -1, "thj5": -1,
-                                      "wrj1": -1, "wrj2": 1}
+                                     "mfj1": 1, "mfj2": 1, "mfj3": -1, "mfj4": 1,
+                                     "rfj1": 1, "rfj2": -1, "rfj3": -1, "rfj4": 1,
+                                     "lfj1": -1, "lfj2": -1, "lfj3": 1, "lfj4": -1, "lfj5": -1,
+                                     "thj1": -1, "thj2": -1, "thj3": 1, "thj4": -1, "thj5": -1,
+                                     "wrj1": -1, "wrj2": 1}
+
     def _init_map_finger_joints(self):
         fingers_to_joint_map = OrderedDict()
         for joint in self._joint_msg.name:
@@ -180,7 +183,7 @@ class SrHealthReportCheck(object):
     def _raw_data_sensor_callback(self, ethercat_data):
         for i in range(0, len(self._raw_sensor_names_list)):
             self._raw_sensor_data_map[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
-        
+
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
                 raw_sensor_data_list = []

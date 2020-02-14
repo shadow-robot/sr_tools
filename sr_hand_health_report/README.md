@@ -20,7 +20,7 @@ During installation you will be prompted for a AWS customer key. This key can be
 If you already have a container installed which does not contain an AWS key, retrieve one of the keys from the link above and within your container run the following command:
 
 ```
-cat /customer.key
+echo "your_aws_customer_key" | sudo tee /usr/local/bin/customer_key.key
 ```
 
 If you have doubts about this process contact the software team.
@@ -38,7 +38,7 @@ This launch file will run the driver and load the required PWM controllers.
 
 Before starting the test make sure the hand is in a position similar to the one showed in the picture below:
 
-![Hand Pose](https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/images/health_report_hand.jpg =300x300)
+![Hand Pose](https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/images/health_report_hand.png)
 In order to move the hand in the wanted position you can run it in Teach Mode by following the instructions here:
 
 In the terminal execute the following command:

@@ -52,7 +52,7 @@ class Joint(object):
 
         self._pwm_command_publisher = rospy.Publisher("/sh_%s_effort_controller/command" %
                                                       (self.joint_name_controller), Float64, queue_size=2)
-        
+
         self._position_command_publisher = rospy.Publisher("/sh_%s_position_controller/command" %
                                                            (self.joint_name_controller), Float64, queue_size=2)
         self._raw_sensor_data = []
@@ -131,7 +131,7 @@ class SrHealthReportCheck(object):
                 fingers_to_check.append(Finger(self._hand_prefix, finger.lower()))
                 for joint_index in self._fingers_to_joint_map[finger]:
                     fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(),
-                                                                        joint_index.lower())
+                                                                         joint_index.lower())
         return fingers_to_check
 
     def _init_raw_sensor_data_list(self):
@@ -213,7 +213,7 @@ class SrHealthReportCheck(object):
         self.switch_controller_mode("position")
         joint.move_joint(command, "position")
         self.switch_controller_mode("effort")
-    
+
     def drive_joint_with_pwm(self, joint, command, duration, rate):
         now = rospy.Time.now()
         while (rospy.Time.now() < now + rospy.Duration(duration)):

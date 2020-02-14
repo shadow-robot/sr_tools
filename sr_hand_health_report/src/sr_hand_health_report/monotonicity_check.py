@@ -114,8 +114,8 @@ class MonotonicityCheck(SrHealthReportCheck):
         if self._older_raw_sensor_value == 0:
             self._older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
 
-        difference_between_raw_data = self._get_raw_sensor_value(joint._raw_sensor_data) - \
-                                      self._older_raw_sensor_value
+        difference_between_raw_data = (self._get_raw_sensor_value(joint._raw_sensor_data) -
+                                       self._older_raw_sensor_value)
         self._older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if (abs(difference_between_raw_data) and abs(self._previous_difference)) > NR_OF_BITS_NOISE_WARNING:

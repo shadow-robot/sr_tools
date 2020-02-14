@@ -32,6 +32,7 @@ class HealthReportScriptNode(object):
         else:
             self._hand_serial = rospy.get_param("~hand_serial")
             self._results["hand_info"]["hand_serial"] = self._hand_serial
+            self._results["hand_info"]["real_hand"] = self._real_hand
         self._check_dir_path = self._create_checks_directory(home_folder_path)
         self._results_path = "{}/{}.yml".format(
             self._check_dir_path,

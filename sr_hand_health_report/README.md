@@ -38,7 +38,7 @@ This launch file will run the driver and load the required PWM controllers.
 
 Before starting the test make sure the hand is in a position similar to the one showed in the picture below:
 
-![Hand Pose](url)
+![Hand Pose](https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/images/health_report_hand.jpg =300x300)
 In order to move the hand in the wanted position you can run it in Teach Mode by following the instructions here:
 
 In the terminal execute the following command:
@@ -50,7 +50,7 @@ rqt
 On the top-left bar select **Plugins->ShadowRobot->ChangeControllers**.
 In the window that will show up select **Teach Mode** for the hand under test as shown in the picture below.
 
-![Teach Mode Image](url)
+![Teach Mode Image](https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/images/teach_mode_image.png)
 
 #### Health report launch file
 

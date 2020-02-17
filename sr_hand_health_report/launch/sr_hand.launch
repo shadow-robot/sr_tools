@@ -1,19 +1,21 @@
 <launch>
+  <arg name="eth_port" default="enp5s0"/>
+  <arg name="hand_serial" default="2346"/>
+  <arg name="hand_id" default="lh" />
 
   <include file="$(find sr_logging_common)/launch/sr_rosbag_log.launch">
-    <arg name="log_bag_prefix" value="sr_lhand"/>
+    <arg name="log_bag_prefix" value="sr_($arg hand_id)and"/>
   </include>
 
   <!-- Set to true to spawn trajectory controllers for the hands(the trajectory controller overwrites continuously the joint position command, preventing direct control via topics-->
   <arg name="hand_trajectory" default="false"/>
 
   <!-- Set to true to spawn the position controllers for the hands-->
-  <arg name="hand_ctrl" default="true"/>
+  <arg name="hand_ctrl" default="false"/>
 
   <!-- The control mode PWM (true) or torque (false) -->
   <!-- Set to true by default for now as torque control is not available yet -->
-  <arg name="pwm_control" default="true"/>
-  <arg name="hand_id" value="lh" />
+  <arg name="pwm_control" default="false"/>
 
   <rosparam if="$(arg pwm_control)" command="load" file="$(find sr_ethercat_hand_config)/controls/host/$(arg hand_id)/sr_edc_effort_controllers_PWM.yaml" />
 
@@ -28,9 +30,9 @@
   </node>
 
   <include file="$(find sr_robot_launch)/launch/srhand.launch">
-    <arg name="eth_port" value="enp5s0" />
-    <arg name="hand_serial" value="2346" />
-    <arg name="hand_id" value="lh" />
+    <arg name="eth_port" value="($arg eth_port)"/>
+    <arg name="hand_serial" value="($arg hand_serial)"/>
+    <arg name="hand_id" value="($arg hand_id)" />
     <arg name="hand_trajectory" value="$(arg hand_trajectory)" />
     <arg name="hand_ctrl" value="$(arg hand_ctrl)" />
     <arg name="pwm_control" default="$(arg pwm_control)"/>

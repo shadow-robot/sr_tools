@@ -10,12 +10,17 @@ The purpose of the script will be to collect information on the health of the ha
 
 This step is necessary in order to be able to upload and download results to AWS.
 
-To get the AWS Access Key you need to install your container by running the following command:
+To get the AWS Access Key you need to install your container by running the following command: 
+**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
 ```
 bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=enp5s0 config_branch=demohand_D nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
 ```
 
+
+
 During installation you will be prompted for a AWS customer key. This key can be retrieved from [here](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs), copy and paste one from the Table of Customer Keys.
+
+If you can't open the link contact the software team at software@shadowrobot.com.
 
 If you already have a container installed which does not contain an AWS key, retrieve one of the keys from the link above and within your container run the following command:
 
@@ -23,7 +28,7 @@ If you already have a container installed which does not contain an AWS key, ret
 echo "your_aws_customer_key" | sudo tee /usr/local/bin/customer_key.key
 ```
 
-If you have doubts about this process contact the software team.
+If you have doubts about this process, contact the software team at software@shadowrobot.com.
 
 
 #### Run the hand
@@ -38,7 +43,7 @@ This launch file will run the driver and load the required PWM controllers.
 
 Before starting the test make sure the hand is in a position similar to the one showed in the picture below:
 
-![Hand Pose](https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/images/health_report_image.png)
+![Hand Pose](https://github.com/shadow-robot/sr_tools/tree/melodic-devel/sr_hand_health_report/images/health_report_image.png)
 In order to move the hand in the wanted position you can run it in Teach Mode by following the instructions here:
 
 In the terminal execute the following command:
@@ -50,11 +55,11 @@ rqt
 On the top-left bar select **Plugins->ShadowRobot->ChangeControllers**.
 In the window that will show up select **Teach Mode** for the hand under test as shown in the picture below.
 
-![Teach Mode Image](https://github.com/shadow-robot/sr_tools/blob/F%23SRC-3740_health_report_script/sr_hand_health_report/images/teach_mode_image.png)
+![Teach Mode Image](https://github.com/shadow-robot/sr_tools/tree/melodic-devel/sr_hand_health_report/images/teach_mode_image.png)
 
 #### Health report launch file
 
-The launch file to run the health report checks and generate the report is called [sr_hand_health_report.launch](https://github.com/shadow-robot/sr_tools/tree/F%23SRC-3740_health_report_script/sr_hand_health_report/launch).
+The launch file to run the health report checks and generate the report is called [sr_hand_health_report.launch](https://github.com/shadow-robot/sr_tools/tree/melodic-devel/sr_hand_health_report/launch).
 
 
 The launch file allows you to specify which side of the hand is under test (left or right), which checks you want to execute and for which finger.

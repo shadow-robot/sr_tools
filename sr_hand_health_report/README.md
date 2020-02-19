@@ -36,7 +36,7 @@ If you have doubts about this process, contact the software team at software@sha
 In order to run the script, first run the hand with the following command:
 
 ```
-roslaunch sr_hand_health_report sr_hand.launch
+roslaunch sr_ethercat_hand_hand_health_report sr_hand.launch eth_port:=<eth_port> hand_serial:=<hand_serial>
 ```
 
 This launch file will run the driver and load the required PWM controllers.

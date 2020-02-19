@@ -22,13 +22,14 @@ from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRES
 class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super(PositionSensorNoiseCheck, self).__init__(hand_side, fingers_to_test)
-        self._check_duration = rospy.Duration(3.0)
+        self._check_duration = rospy.Duration(5.0)
         self._shared_dict = dict()
         self._publishing_rate = rospy.Rate(200)
 
     def run_check(self):
         result = {"position_sensor_noise_check": []}
         rospy.loginfo("Running Position Sensor Noise Check")
+        rospy.sleep(3.0)
 
         for finger in self.fingers_to_check:
             rospy.loginfo("collecting and analyzing data for FINGER {}".format(finger.finger_name))

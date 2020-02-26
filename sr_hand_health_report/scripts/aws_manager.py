@@ -59,7 +59,6 @@ if __name__ == "__main__":
     except:
         rospy.logerr("Could request secret AWS access key, ask software team for help!")
 
-    print("Response: ", response.text)
     result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
     aws_access_key_id = result.group(1)
 

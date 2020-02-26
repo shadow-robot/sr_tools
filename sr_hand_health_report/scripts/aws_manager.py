@@ -51,7 +51,7 @@ if __name__ == "__main__":
         rospy.logerr("Could not find customer key, ask software team for help!")
 
     headers = {
-        'x-api-key': 'miZSxsc8ud32F9sLlDBS7Co5eRQIeZ18B0bezvTf',
+        'x-api-key': '{}'.format(customer_key[:-1]),
     }
 
     try:
@@ -59,6 +59,7 @@ if __name__ == "__main__":
     except:
         rospy.logerr("Could request secret AWS access key, ask software team for help!")
 
+    print("Response: ", response.text)
     result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
     aws_access_key_id = result.group(1)
 

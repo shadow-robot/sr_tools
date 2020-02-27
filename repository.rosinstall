@@ -7,3 +7,8 @@
     local-name: sr_interface
     uri: https://github.com/shadow-robot/sr_interface.git
     version: melodic-devel
+
+- git:
+    local-name: sr_utils
+    uri: https://github.com/shadow-robot/sr_utils.git
+    version: melodic-devel

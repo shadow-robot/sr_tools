@@ -13,10 +13,12 @@ This step is necessary in order to be able to upload and download results to AWS
 To get the AWS Access Key you need to install your container by running the following command: 
 **N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
 ```
-bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=enp5s0 config_branch=demohand_D nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
+bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
 ```
 
-
+Where:
+- <ethercat_port> is the port to which the hand is connected, e.g. enp5s0.
+- <demohand_serial> is the configuration branch of the hand, e.g. demohand_D
 
 During installation you will be prompted for a AWS customer key. This key can be retrieved from [here](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs), copy and paste one from the Table of Customer Keys.
 
@@ -36,7 +38,7 @@ If you have doubts about this process, contact the software team at software@sha
 In order to run the script, first run the hand with the following command:
 
 ```
-roslaunch sr_ethercat_hand_hand_health_report sr_hand.launch eth_port:=<eth_port> hand_serial:=<hand_serial>
+roslaunch sr_ethercat_hand_hand_health_report sr_hand.launch
 ```
 
 This launch file will run the driver and load the required PWM controllers.

@@ -110,7 +110,7 @@ class SrHealthReportCheck(object):
         elif self._hand_prefix == "rh":
             self.command_sign_map = {"ffj1": 1, "ffj2": 1, "ffj3": -1, "ffj4": 1,
                                      "mfj1": 1, "mfj2": 1, "mfj3": -1, "mfj4": 1,
-                                     "rfj1": 1, "rfj2": -1, "rfj3": -1, "rfj4": 1,
+                                     "rfj1": 1, "rfj2": 1, "rfj3": -1, "rfj4": 1,
                                      "lfj1": -1, "lfj2": -1, "lfj3": 1, "lfj4": -1, "lfj5": -1,
                                      "thj1": -1, "thj2": -1, "thj3": 1, "thj4": -1, "thj5": -1,
                                      "wrj1": -1, "wrj2": 1}

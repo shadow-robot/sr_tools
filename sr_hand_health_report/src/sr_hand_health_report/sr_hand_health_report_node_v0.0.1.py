@@ -110,7 +110,7 @@ class HealthReportScriptNode(object):
             if check == "monotonicity_check":
                 monotonic_test_results = self.run_monotonicity_check()
                 self._results["checks"].append(monotonic_test_results)
-            if check == "position_sensor_noise_check":
+            elif check == "position_sensor_noise_check":
                 position_sensor_noise_results = self.run_position_sensor_noise_check()
                 self._results["checks"].append(position_sensor_noise_results)
             else:

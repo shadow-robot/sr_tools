@@ -63,7 +63,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         if finger.finger_name == "wr":
             if joint.joint_index == "j1":
                 extend_command = -self.command_sign_map[joint_name]*600
-                flex_command = extend_command - 750
+                flex_command = extend_command - 900
 
         self._older_raw_sensor_value = 0
         self._previous_difference = 0
@@ -129,13 +129,14 @@ class MonotonicityCheck(SrHealthReportCheck):
                                        self._older_raw_sensor_value)
         self._older_raw_sensor_value = self._get_raw_sensor_value(joint._raw_sensor_data)
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
-            if (abs(difference_between_raw_data) and abs(self._previous_difference)) > NR_OF_BITS_NOISE_WARNING:
-                if np.sign(difference_between_raw_data) != 0 and np.sign(self._previous_difference) != 0:
-                    if np.sign(difference_between_raw_data) != np.sign(self._previous_difference):
-                        rospy.logwarn("Unmonotonic behaviour detected")
-                        self._previous_difference = difference_between_raw_data
-                        return False
-                self._previous_difference = difference_between_raw_data
+            if (abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING):
+                if (abs(self._previous_difference) > NR_OF_BITS_NOISE_WARNING):
+                    if np.sign(difference_between_raw_data) != 0 and np.sign(self._previous_difference) != 0:
+                        if np.sign(difference_between_raw_data) != np.sign(self._previous_difference):
+                            rospy.logwarn("Unmonotonic behaviour detected")
+                            self._previous_difference = difference_between_raw_data
+                            return False
+                    self._previous_difference = difference_between_raw_data
         self._previous_difference = difference_between_raw_data
         return True
 

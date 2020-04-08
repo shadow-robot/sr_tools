@@ -45,7 +45,7 @@ This launch file will run the driver and load the required PWM controllers.
 
 Before starting the test make sure the hand is in a position similar to the one showed in the picture below:
 
-![Hand Pose]( https://raw.githubusercontent.com/shadow-robot/sr_tools/tree/melodic-devel/sr_hand_health_report/images/health_report_image.png)
+![Hand Pose](https://raw.githubusercontent.com/shadow-robot/sr_tools/melodic-devel/sr_hand_health_report/images/health_report_image.png)
 In order to move the hand in the wanted position you can run it in Teach Mode by following the instructions here:
 
 In the terminal execute the following command:
@@ -57,7 +57,7 @@ rqt
 On the top-left bar select **Plugins->ShadowRobot->ChangeControllers**.
 In the window that will show up select **Teach Mode** for the hand under test as shown in the picture below.
 
-![Teach Mode Image](https://raw.githubusercontent.com/shadow-robot/sr_tools/tree/melodic-devel/sr_hand_health_report/images/teach_mode_image.png)
+![Teach Mode Image](https://raw.githubusercontent.com/shadow-robot/sr_tools/melodic-devel/sr_hand_health_report/images/teach_mode_image.png)
 
 #### Health report launch file
 

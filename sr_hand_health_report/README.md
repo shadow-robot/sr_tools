@@ -27,7 +27,7 @@ To get the AWS Access Key in your container remember to set the following lines 
 --read-secure customer_key use_aws=true
 ```
 
-During installation you will be prompted for a AWS customer key. Retrieve it from the link of Shadow Wiki given above.
+During installation you will be prompted for a AWS customer key. Retrieve it from the link of [Shadow Wiki link](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs)given above.
 
 If you can't open the link or if you have any doubts about this process, contact the software team at software@shadowrobot.com.
 

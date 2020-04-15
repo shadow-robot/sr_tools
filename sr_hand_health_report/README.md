@@ -11,7 +11,7 @@ The purpose of the script will be to collect information on the health of the ha
 This step is necessary in order to be able to upload and download results to AWS.
 
 To get the AWS Access Key you need to install your container by running the following command: 
-**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
+**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the container_name tag to this command. E.g. container_name=my_new_container**:
 ```
 bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
 ```

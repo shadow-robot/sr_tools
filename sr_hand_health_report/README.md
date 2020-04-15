@@ -20,6 +20,8 @@ echo "your_aws_customer_key" | sudo tee /usr/local/bin/customer_key.key
 
 If you need to set-up a new container, do so by following the instruction in the [Docker One liner Confluence page](https://shadowrobot.atlassian.net/wiki/spaces/HANDEG/pages/153157633/How+to+use+the+Docker+One-liner).
 
+**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
+
 To get the AWS Access Key in your container remember to set the following lines in your docker creation command:
 ```
 --read-secure customer_key use_aws=true

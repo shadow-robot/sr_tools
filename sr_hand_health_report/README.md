@@ -10,19 +10,7 @@ The purpose of the script will be to collect information on the health of the ha
 
 This step is necessary in order to be able to upload and download results to AWS.
 
-To get the AWS Access Key you need to install your container by running the following command: 
-**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the container_name tag to this command. E.g. container_name=my_new_container**:
-```
-bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
-```
-
-Where:
-- <ethercat_port> is the port to which the hand is connected, e.g. enp5s0.
-- <demohand_serial> is the configuration branch of the hand, e.g. demohand_D
-
-During installation you will be prompted for a AWS customer key. This key can be retrieved from [here](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs), copy and paste one from the Table of Customer Keys.
-
-If you can't open the link contact the software team at software@shadowrobot.com.
+The AWS keys can be retrieved from [here](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs), copy and paste one from the Table of Customer Keys.
 
 If you already have a container installed which does not contain an AWS key, retrieve one of the keys from the link above and within your container run the following command:
 
@@ -30,7 +18,18 @@ If you already have a container installed which does not contain an AWS key, ret
 echo "your_aws_customer_key" | sudo tee /usr/local/bin/customer_key.key
 ```
 
-If you have doubts about this process, contact the software team at software@shadowrobot.com.
+If you need to set-up a new container, do so by following the instruction in the [Docker One liner Confluence page](https://shadowrobot.atlassian.net/wiki/spaces/HANDEG/pages/153157633/How+to+use+the+Docker+One-liner).
+
+**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the container_name tag to this command. E.g. container_name=my_new_container**:
+
+To get the AWS Access Key in your container remember to set the following lines in your docker creation command:
+```
+--read-secure customer_key use_aws=true
+```
+
+During installation you will be prompted for a AWS customer key. Retrieve it from the link of [Shadow Wiki link](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs)given above.
+
+If you can't open the link or if you have any doubts about this process, contact the software team at software@shadowrobot.com.
 
 
 #### Run the hand

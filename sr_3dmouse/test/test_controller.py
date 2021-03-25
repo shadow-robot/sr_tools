@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 3
 
 # Copyright 2019 Shadow Robot Company Ltd.
 #

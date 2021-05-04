@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import, division
-from builtins import round
+from builtins import round, input
 import os
 import rospy
 import numpy

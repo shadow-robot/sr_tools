@@ -17,7 +17,7 @@
 '''
 3d mouse tester module
 '''
-from __future__ import division
+from __future__ import absolute_import, division
 import unittest
 import actionlib
 import rospy
@@ -130,6 +130,7 @@ class MouseTester(unittest.TestCase):
         checks the output of the controller
         '''
         self.target_pose = data
+
 
 if __name__ == '__main__':
     import rostest

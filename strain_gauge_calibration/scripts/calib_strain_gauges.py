@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+
+from builtins import round
 import os
 import rospy
 import numpy
@@ -49,7 +51,7 @@ class Calib_gauges():
                 fields[i, s.key] = s.value
 
             # iterate over dictionary elements to search the wanted motor_id and the relative strain_gauge value
-            for index, motor_id in fields.items():
+            for index, motor_id in list(fields.items()):
 
                 if fields.get((index[0], 'Motor ID')) == "%s" % self.motor_id:
                     if self.strain_gauges_id == 0:
@@ -61,7 +63,7 @@ class Calib_gauges():
 
     def run_test(self):
 
-        self.motor_id = raw_input("insert motor id: ")
+        self.motor_id = input("insert motor id: ")
 
         for self.strain_gauges_id in range(0, 2):
 
@@ -71,8 +73,8 @@ class Calib_gauges():
 
                 self.initial_weight += self.incremental_weight
 
-                print("Apply %s g to strain_gauges %s" % (self.initial_weight, self.strain_gauges_id))
-                raw_input("Press enter when you are done...")
+                print(("Apply %s g to strain_gauges %s" % (self.initial_weight, self.strain_gauges_id)))
+                input("Press enter when you are done...")
 
                 # Subscribe diagnostic topic to collect data
                 self.sub = rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.data_callback)
@@ -92,7 +94,7 @@ class Calib_gauges():
                                     lineterminator='\n')
             self.headline_0.append(self.initial_weight)
             csv_output.writerow(self.headline_0)   # write headline row with weight values
-            measurement = map(int, measurement)  # cast values to int
+            measurement = list(map(int, measurement))  # cast values to int
             self.temp_0.append(round(numpy.average(measurement)))  # compute values average
             csv_output.writerow(self.temp_0)  # write measurements
 
@@ -102,7 +104,7 @@ class Calib_gauges():
                                     lineterminator='\n')
             self.headline_1.append(self.initial_weight)
             csv_output.writerow(self.headline_1)  # write headline row with weight values
-            measurement = map(int, measurement)
+            measurement = list(map(int, measurement))
             self.temp_1.append(round(numpy.average(measurement)))
             csv_output.writerow(self.temp_1)  # write measurements
 

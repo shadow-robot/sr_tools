@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import, division
 import numpy
 from copy import deepcopy
 
@@ -147,7 +148,7 @@ class SrFastGrasp:
         try:
             open_state = self.__get_state(name + "_open", "").state
             closed_state = self.__get_state(name + "_closed", "").state
-        except:
+        except Exception:
             rospy.logfatal("Couldn't get grasp pose from db.")
             return Grasp()
 
@@ -156,7 +157,7 @@ class SrFastGrasp:
             pre_pose = self.__group.plan(open_state.joint_state)
             self.__group.set_start_state(open_state)
             pose = self.__group.plan(closed_state.joint_state)
-        except:
+        except Exception:
             rospy.logfatal("Couldn't plan grasp trajectories.")
             return Grasp()
 

@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
 import argparse
 import rospy
 import rospkg
@@ -132,6 +133,7 @@ class HealthReportScriptNode(object):
                 rospy.logwarn("{} not FOUND".format(check))
         self.write_results_to_file()
         self.bag_logging_obj.stop_bag()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run a checks for health report.')

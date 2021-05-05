@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 "3D Mouse controller"
+from __future__ import absolute_import, division
 from copy import deepcopy
 import rospy
 import tf
@@ -113,10 +114,11 @@ class MouseCommand():
                                                              wait=False)
         self.pub.publish(new_pose)
 
+
 if __name__ == '__main__':
     rospy.init_node("mouse_tele_op", anonymous=True)
     client = actionlib.SimpleActionClient('move_group', MoveGroupAction)
-    print "Waiting for action server"
+    print("Waiting for action server")
     client.wait_for_server()
     rospy.sleep(15.)
     MouseSim = MouseCommand()

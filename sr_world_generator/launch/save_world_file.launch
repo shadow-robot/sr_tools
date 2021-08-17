@@ -1,0 +1,9 @@
+<launch>
+    <arg name="gazebo_generated_world_file_path"/>
+    <arg name="output_world_file_name" default='new_world'/>
+
+    <node name="save_world_file" pkg="sr_world_generator" type="save_world_file.py" output="screen">
+        <param name="gazebo_generated_world_file_path" value="$(arg gazebo_generated_world_file_path)"/>
+        <param name="output_world_file_name" value="$(arg output_world_file_name)"/>
+    </node>
+</launch>

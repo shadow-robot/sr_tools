@@ -9,6 +9,5 @@
   <license>GPL</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <export>
-  </export>
+  <run_depend>sr_robot_launch</run_depend>
 </package>

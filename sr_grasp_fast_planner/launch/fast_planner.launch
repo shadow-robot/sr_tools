@@ -1,5 +1,5 @@
 <launch>
-  <include file="$(find right_sr_ur10_moveit_config)/launch/demo.launch">
+  <include file="$(find sr_multi_moveit_config)/launch/demo.launch">
     <arg name='limited' value='true'/>
     <arg db="true"/>
   </include>

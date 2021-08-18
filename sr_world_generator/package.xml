@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sr_world_generator</name>
+  <version>0.0.0</version>
+  <description>The sr_world_generator package</description>
+
+  <maintainer email="software@shadowrobot.com">user</maintainer>
+
+  <license>GPL</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

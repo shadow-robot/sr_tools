@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="sr_world_generator" type="world_generator_gui.py" name="sr_world_generator_gui" output="screen"/>
+</launch>

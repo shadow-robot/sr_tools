@@ -1,6 +1,4 @@
 <launch>
-  <arg name="eth_port" default="enp5s0"/>
-  <arg name="hand_serial" default="2346"/>
   <arg name="hand_id" default="lh" />
 
   <include file="$(find sr_logging_common)/launch/sr_rosbag_log.launch">
@@ -17,8 +15,6 @@
   <!-- Set to true by default for now as torque control is not available yet -->
   <arg name="pwm_control" default="true"/>
 
-  <rosparam if="$(arg pwm_control)" command="load" file="$(find sr_ethercat_hand_config)/controls/host/$(arg hand_id)/sr_edc_effort_controllers_PWM.yaml" />
-
   <node name="spawn_hand_pwm_controller"
        pkg="controller_manager" type="spawner" respawn="false" output="screen"
        args="--shutdown-timeout=1.0 sh_$(arg hand_id)_ffj0_effort_controller sh_$(arg hand_id)_ffj3_effort_controller sh_$(arg hand_id)_ffj4_effort_controller
@@ -30,14 +26,9 @@
   </node>
 
   <include file="$(find sr_robot_launch)/launch/srhand.launch">
-    <arg name="eth_port" value="$(arg eth_port)"/>
-    <arg name="hand_serial" value="$(arg hand_serial)"/>
-    <arg name="hand_id" value="$(arg hand_id)"/>
     <arg name="hand_trajectory" value="$(arg hand_trajectory)" />
     <arg name="hand_ctrl" value="$(arg hand_ctrl)" />
     <arg name="pwm_control" default="$(arg pwm_control)"/>
-    <arg name="robot_description" value="$(find sr_description)/robots/shadowhand_left_motor_plus.urdf.xacro"/>
-    <arg name="mapping_path" value="$(find sr_edc_launch)/mappings/default_mappings/lh_E_v3.yaml"/>
     <arg name="use_moveit" value="true"/>
     <arg name="sim" value="false"/>
   </include>

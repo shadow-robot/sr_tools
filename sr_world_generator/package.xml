@@ -9,4 +9,5 @@
   <license>GPL</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>sr_description_common</exec_depend>
 </package>

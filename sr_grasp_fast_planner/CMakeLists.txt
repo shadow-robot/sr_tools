@@ -4,17 +4,7 @@ project(sr_grasp_fast_planner)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  moveit_msgs
-  moveit_ros_warehouse
-  roscpp
-  rospy
-  std_msgs
-  shape_msgs
-  visualization_msgs
-  sensor_msgs
-)
+find_package(catkin REQUIRED COMPONENTS)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -88,7 +78,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sr_fast_grasp
-#  CATKIN_DEPENDS geometry_msgs moveit_msgs moveit_ros roscpp rospy std_msgs
+#  CATKIN_DEPENDS roscpp geometry_msgs moveit_msgs sensor_msgs shape_msgs std_msgs visualization_msgs
 #  DEPENDS system_lib
 )
 

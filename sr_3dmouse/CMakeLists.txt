@@ -7,11 +7,7 @@ project(sr_3dmouse)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-)
+find_package(catkin REQUIRED COMPONENTS)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -105,7 +101,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sr_3dmouse
-  CATKIN_DEPENDS rospy std_msgs
+#  CATKIN_DEPENDS rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -197,7 +193,7 @@ install(PROGRAMS
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-# tests disabled as its taking too long on jenkins 
+# tests disabled as its taking too long on jenkins
 # if (CATKIN_ENABLE_TESTING)
 #   find_package(rostest REQUIRED)
 #   add_rostest(test/test_controller.test)

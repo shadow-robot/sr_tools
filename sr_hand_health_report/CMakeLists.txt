@@ -8,7 +8,6 @@ project(sr_hand_health_report)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
-  rospy
   message_generation
   std_msgs
 )
@@ -93,7 +92,6 @@ catkin_package(
 #  LIBRARIES sr_hand_health_report
    CATKIN_DEPENDS
      message_runtime
-     rospy
      std_msgs
 )
 

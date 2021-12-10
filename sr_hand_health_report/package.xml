@@ -8,12 +8,20 @@
   <license>Private</license>
   <url type="repository">https://github.com/sr_tools/</url>
   <url type="bugtracker">https://github.com/sr_tools/issues</url>
+
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>message_runtime</depend>
+
+  <build_depend>message_generation</build_depend>
   <depend>std_msgs</depend>
-  <depend>python-numpy</depend>
-  <depend>rospy</depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>rospy</exec_depend>
   <exec_depend>sr_system_info</exec_depend>
   <exec_depend>sr_controllers_tools</exec_depend>
+  <exec_depend>sr_logging_common</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>sr_description</exec_depend>
+  <exec_depend>sr_edc_launch</exec_depend>
+  <exec_depend>sr_ethercat_hand_config</exec_depend>
 
 </package>

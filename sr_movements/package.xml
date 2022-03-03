@@ -23,7 +23,6 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>sr_utilities</build_depend>
   <build_depend>roscpp</build_depend>
-  <build_depend>sr_hand</build_depend>
   <build_depend>rostest</build_depend>
   <build_depend>libmagick</build_depend>
 
@@ -34,7 +33,6 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>sr_utilities</run_depend>
   <run_depend>roscpp</run_depend>
-  <run_depend>sr_hand</run_depend>
   <run_depend>libmagick</run_depend>
 
   <test_depend>sr_description</test_depend>

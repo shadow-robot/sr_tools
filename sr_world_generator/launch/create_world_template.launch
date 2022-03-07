@@ -12,7 +12,7 @@
     <env name="GAZEBO_MODEL_DATABASE_URI" value="" />
     <env name="MESH_WORKSPACE_PATH" value="$(find sr_description_common)/models/" />
 
-    <include  file="$(find sr_robot_launch)/launch/sr_ur_arm_box.launch">
+    <include  file="$(find sr_robot_launch)/launch/sr_ur_arm.launch">
         <arg name="gui" value="$(arg gui)"/>
         <arg name="sim" value="$(arg sim)"/>
         <arg name="initial_z" value="$(arg initial_z)"/>

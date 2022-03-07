@@ -74,7 +74,7 @@ class GazeboWorldSaver(object):
 
     def _extract_model_data_from_msg(self):
         for model_name, pose in zip(self.gazebo_model_states_msg.name, self.gazebo_model_states_msg.pose):
-            if 'ursrbox' == model_name:
+            if 'ursr' == model_name:
                 continue
             position_as_list = [pose.position.x, pose.position.y, pose.position.z]
             orientation_as_list = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]

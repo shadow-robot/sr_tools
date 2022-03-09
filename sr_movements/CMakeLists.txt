@@ -21,9 +21,9 @@ target_link_libraries(sr_movements ${ImageMagick_LIBRARIES} ${catkin_LIBRARIES})
 add_library(sr_movement src/movement_from_image.cpp src/partial_movement.cpp src/movement_publisher.cpp)
 add_dependencies(sr_movement ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sr_movement ${ImageMagick_LIBRARIES} ${catkin_LIBRARIES})
-
-add_rostest(test/test_movements.test)
-
+if(CATKIN_ENABLE_TESTING)
+  add_rostest(test/test_movements.test)
+endif()
 
 install(TARGETS sr_movement sr_movements
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

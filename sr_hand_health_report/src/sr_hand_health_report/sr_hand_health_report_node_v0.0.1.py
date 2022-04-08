@@ -1,6 +1,6 @@
-#!/usr/bin/env python 3
+#!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020-2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -69,8 +69,8 @@ class HealthReportScriptNode(object):
     def _get_hand_params(self):
         hand_params = rospy.get_param("hand")
         data = hand_params.get("mapping", "")
-        hand_serial = data.keys()[0]
-        hand_prefix = data.values()[0]
+        hand_serial = list(data.keys())[0]
+        hand_prefix = list(data.values())[0]
         self._results["hand_info"]["hand_serial"] = hand_serial
         self._results["hand_info"]["hand_prefix"] = hand_prefix
         return hand_serial
@@ -101,7 +101,7 @@ class HealthReportScriptNode(object):
         if filename is None:
             filename = self._results_path
         with open(filename, 'w') as yaml_file:
-            yaml.dump(self._results, stream=yaml_file, default_flow_style=False)
+            yaml.safe_dump(self._results, stream=yaml_file, default_flow_style=False)
         rospy.signal_shutdown("All checks completed!")
 
     def run_checks_real_hand(self):

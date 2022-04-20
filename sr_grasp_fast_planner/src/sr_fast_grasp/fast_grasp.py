@@ -15,8 +15,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from copy import deepcopy
-import numpy
 import math
+import numpy
 import rospy
 from shape_msgs.msg import SolidPrimitive
 from visualization_msgs.msg import Marker

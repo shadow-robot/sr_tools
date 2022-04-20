@@ -72,7 +72,7 @@ class GazeboWorldSaver:
 
     def _extract_model_data_from_msg(self):
         for model_name, pose in zip(self.gazebo_model_states_msg.name,
-                                    self.gazebo_model_states_msg.pose): # pylint: disable=E1101
+                                    self.gazebo_model_states_msg.pose):  # pylint: disable=E1101
             if model_name == 'ursr':
                 continue
             position_as_list = [pose.position.x, pose.position.y, pose.position.z]

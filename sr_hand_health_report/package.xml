@@ -16,6 +16,7 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>python-numpy</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>sr_utilities_common</exec_depend>
   <exec_depend>sr_system_info</exec_depend>
   <exec_depend>sr_controllers_tools</exec_depend>
   <exec_depend>sr_logging_common</exec_depend>

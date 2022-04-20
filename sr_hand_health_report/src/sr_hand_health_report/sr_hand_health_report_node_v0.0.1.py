@@ -13,25 +13,20 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import absolute_import
 import argparse
+import time
+import os
+import yaml
 import rospy
 import rospkg
-import time
-import yaml
-import os
-from sr_hand_health_report_check import SrHealthReportCheck
 from monotonicity_check import MonotonicityCheck
 from position_sensor_noise_check import PositionSensorNoiseCheck
-from sr_hand_health_report.msg import CheckStatus
-from sr_system_info.system_info import SystemInfo
-from collections import OrderedDict
 from rosbag_manager import RosbagManager
+from sr_system_info.system_info import SystemInfo
+from sr_hand_health_report.msg import CheckStatus
 
 
-class HealthReportScriptNode(object):
+class HealthReportScriptNode:
     def __init__(self, real_hand, home_folder_path):
         self._real_hand = real_hand
         self._health_report_checks_status_publisher = rospy.Publisher("/health_report_checks_status_publisher",
@@ -142,14 +137,14 @@ if __name__ == "__main__":
     args, unknown_args = parser.parse_known_args()
     rospy.init_node('sr_hand_health_report_script')
 
-    real_hand = rospy.get_param("~real_hand")
-    home_folder_path = rospy.get_param("~results_path")
-    sr_hand_health_report_script = HealthReportScriptNode(real_hand, home_folder_path)
+    real_hand_param = rospy.get_param("~real_hand")
+    home_folder_path_param = rospy.get_param("~results_path")
+    sr_hand_health_report_script = HealthReportScriptNode(real_hand_param, home_folder_path_param)
 
-    if real_hand is True:
+    if real_hand_param is True:
         sr_hand_health_report_script.run_checks_real_hand()
     else:
-        rosbag_path = rospy.get_param("~rosbag_path")
-        rosbag_name = rospy.get_param("~rosbag_name")
-        sr_hand_health_report_script.run_checks_bag_file(rosbag_path, rosbag_name)
+        rosbag_path_param = rospy.get_param("~rosbag_path")
+        rosbag_name_param = rospy.get_param("~rosbag_name")
+        sr_hand_health_report_script.run_checks_bag_file(rosbag_path_param, rosbag_name_param)
     rospy.spin()

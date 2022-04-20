@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019,2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,22 +14,19 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import re
 import os
-import rospy
-import rospkg
 import subprocess
+import rospy
 import rospkg
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
 
-class GazeboWorldSaver(object):
+class GazeboWorldSaver:
     def __init__(self, gazebo_generated_world_file_path=None, output_world_file_path=None):
 
         self.model_and_pose = {}
-
         if gazebo_generated_world_file_path is None:
             self.gazebo_generated_world_file_path = rospy.get_param('~gazebo_generated_world_file_path')
         else:
@@ -60,6 +57,7 @@ class GazeboWorldSaver(object):
             raise IOError("Gazebo generated world file does not exist!")
 
     def _start_gazebo_with_newly_created_world(self):
+        # pylint: disable=R1732
         self.process = subprocess.Popen(['xterm -e roslaunch sr_world_generator \
                                         create_world_template.launch gui:=false \
                                         scene:=true world:={}'.format(self.gazebo_generated_world_file_path)],
@@ -73,8 +71,8 @@ class GazeboWorldSaver(object):
         self.gazebo_model_states_msg = rospy.wait_for_message('/gazebo/model_states', ModelStates)
 
     def _extract_model_data_from_msg(self):
-        for model_name, pose in zip(self.gazebo_model_states_msg.name, self.gazebo_model_states_msg.pose):
-            if 'ursr' == model_name:
+        for model_name, pose in zip(self.gazebo_model_states_msg.name, self.gazebo_model_states_msg.pose): # pylint: disable=E1101
+            if model_name == 'ursr':
                 continue
             position_as_list = [pose.position.x, pose.position.y, pose.position.z]
             orientation_as_list = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]

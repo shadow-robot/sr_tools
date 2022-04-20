@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019,2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -13,31 +13,22 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
+import os
 import sys
-from python_qt_binding.QtGui import *
-from python_qt_binding.QtCore import *
-from qt_gui.plugin import Plugin
-from python_qt_binding import loadUi
-
-try:
-    from python_qt_binding.QtWidgets import *
-except ImportError:
-    pass
-
-from sr_world_generator.save_world_file import GazeboWorldSaver
-
+import subprocess
 import signal
 import rospy
-import os
 import rospkg
-import subprocess
+from qt_gui.plugin import Plugin
+from python_qt_binding.QtGui import QWidget, QPushButton, QRadioButton, QLineEdit, \
+                                    QGroupBox, QFileDialog, QMessageBox, QApplication
+from python_qt_binding import loadUi
+from sr_world_generator.save_world_file import GazeboWorldSaver
 
 
 class SrWorldGeneratorGui(Plugin):
     def __init__(self, context):
-        super(SrWorldGeneratorGui, self).__init__(context)
+        super().__init__(context)
         self.setObjectName("SrWorldGeneratorGui")
         self._widget = QWidget()
 
@@ -59,6 +50,7 @@ class SrWorldGeneratorGui(Plugin):
 
         self.empty_world_yes_radio.clicked.connect(self.disable_world_path)
         self.empty_world_no_radio.clicked.connect(self.enable_world_path)
+        self.process = None
 
     def init_widget_children(self):
         self.open_gazebo_button = self._widget.findChild(QPushButton, "open_gazebo_button")
@@ -95,7 +87,7 @@ class SrWorldGeneratorGui(Plugin):
         if not is_starting_with_empty_world:
             world_file_path = self.world_line_edit.displayText()
             if not os.path.isfile(world_file_path):
-                self.throw_warning_dialog("File does not exist!")
+                throw_warning_dialog("File does not exist!")
                 return
             gazebo_start_command += ' world:={}'.format(world_file_path)
 
@@ -103,8 +95,7 @@ class SrWorldGeneratorGui(Plugin):
         self.close_gazebo_button.setEnabled(True)
         self.transform_file_group_box.setEnabled(False)
 
-        self.process = subprocess.Popen([gazebo_start_command],
-                                        shell=True)
+        self.process = subprocess.Popen([gazebo_start_command], shell=True)  # pylint: disable=R1732
 
     def stop_gazebo_process(self):
         self.process.kill()
@@ -120,9 +111,9 @@ class SrWorldGeneratorGui(Plugin):
                                                        'World Files (*.world)')
         gazebo_generated_world_file_path = self.gazebo_generated_world_path_line_edit.displayText()
         if not os.path.isfile(gazebo_generated_world_file_path):
-            self.throw_warning_dialog("File chosen to be transformed does not exist!")
+            throw_warning_dialog("File chosen to be transformed does not exist!")
             return
-        gws = GazeboWorldSaver(gazebo_generated_world_file_path, output_file_path[0])
+        GazeboWorldSaver(gazebo_generated_world_file_path, output_file_path[0])
 
     def enable_world_path(self):
         self.world_line_edit.setEnabled(True)
@@ -146,19 +137,19 @@ class SrWorldGeneratorGui(Plugin):
         chosen_path = QFileDialog.getOpenFileName(self._widget, 'Open file', "")
         return chosen_path[0]
 
-    def throw_warning_dialog(self, message):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
-        msg.setText(message)
-        msg.setWindowTitle("Warning!")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
+def throw_warning_dialog(message):
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Warning)
+    msg.setText(message)
+    msg.setWindowTitle("Warning!")
+    msg.setStandardButtons(QMessageBox.Ok)
+    msg.exec_()
 
 
 if __name__ == "__main__":
     rospy.init_node("sr_gazebo_world_generator")
     app = QApplication(sys.argv)
     planner_benchmarking_gui = SrWorldGeneratorGui(None)
-    planner_benchmarking_gui._widget.show()
+    planner_benchmarking_gui._widget.show()  # pylint: disable=W0212
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sys.exit(app.exec_())

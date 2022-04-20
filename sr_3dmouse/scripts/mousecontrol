@@ -1,6 +1,6 @@
-#!/usr/bin/env python 3
+#!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -15,7 +15,6 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 "3D Mouse controller"
-from __future__ import absolute_import, division
 from copy import deepcopy
 import rospy
 import tf
@@ -37,7 +36,7 @@ class MouseCommand():
                         "angularX": 3,
                         "angularY": 4,
                         "angularZ": 5}
-        self.toggleT = False
+        self.toggle_t = False
         self.data = Joy()
         self.start_pose = Pose()
         # subscribe to mouse topic
@@ -58,11 +57,11 @@ class MouseCommand():
             if self.data.axes:
                 if self.data.buttons[1]:
                     # toggle teach switch
-                    self.toggleT = not self.toggleT
-                    self._arm_commander.set_teach_mode(self.toggleT)
-                    rospy.loginfo("Teaching toggle is:" + str(self.toggleT))
+                    self.toggle_t = not self.toggle_t
+                    self._arm_commander.set_teach_mode(self.toggle_t)
+                    rospy.loginfo("Teaching toggle is:" + str(self.toggle_t))
                     rospy.sleep(1)
-                if self.toggleT is False:
+                if self.toggle_t is False:
                     self.compute_joy_pose(self.start_pose)
             else:
                 rospy.logwarn("no data from spacenav_node. Is it running?")

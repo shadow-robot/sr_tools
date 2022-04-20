@@ -88,7 +88,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._second_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
 
         higher_value, lower_value = check_sensor_range(self._first_end_stop_sensor_value,
-                                                             self._second_end_stop_sensor_value)
+                                                       self._second_end_stop_sensor_value)
 
         self._add_result_to_dict(joint.joint_name, higher_value, lower_value)
         self._reset_joint_to_position(finger, joint, extend_command, flex_command)
@@ -163,6 +163,7 @@ def check_sensor_range(first_sensor_value, second_sensor_value):
         higher_value = second_sensor_value
         lower_value = first_sensor_value
     return higher_value, lower_value
+
 
 def get_raw_sensor_value(data):
     return sum(data) / len(data)

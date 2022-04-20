@@ -16,6 +16,7 @@
 
 from copy import deepcopy
 import numpy
+import math
 import rospy
 from shape_msgs.msg import SolidPrimitive
 from visualization_msgs.msg import Marker
@@ -60,9 +61,9 @@ def quaternion_from_matrix(input_matrix, isprecise=False):
         m22 = matrix[2, 2]
         # symmetric matrix
         sym_matrix = numpy.array([[m00-m11-m22, 0.0,         0.0,         0.0],
-                         [m01+m10,     m11-m00-m22, 0.0,         0.0],
-                         [m02+m20,     m12+m21,     m22-m00-m11, 0.0],
-                         [m21-m12,     m02-m20,     m10-m01,     m00+m11+m22]])
+                                  [m01+m10,     m11-m00-m22, 0.0,         0.0],
+                                  [m02+m20,     m12+m21,     m22-m00-m11, 0.0],
+                                  [m21-m12,     m02-m20,     m10-m01,     m00+m11+m22]])
         sym_matrix /= 3.0
         # quaternion is eigenvector of sym_matrix that corresponds to largest eigenvalue
         eigh_val, eigh_matrix = numpy.linalg.eigh(sym_matrix)
@@ -99,8 +100,8 @@ class SrFastGrasp:
         """
 
         val1 = numpy.array([pose.pose.position.x,
-                          pose.pose.position.y,
-                          pose.pose.position.z])
+                            pose.pose.position.y,
+                            pose.pose.position.z])
         val1_length = numpy.linalg.norm(val1)
 
         val1 = val1/val1_length

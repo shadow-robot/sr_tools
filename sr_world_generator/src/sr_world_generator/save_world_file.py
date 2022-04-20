@@ -71,7 +71,8 @@ class GazeboWorldSaver:
         self.gazebo_model_states_msg = rospy.wait_for_message('/gazebo/model_states', ModelStates)
 
     def _extract_model_data_from_msg(self):
-        for model_name, pose in zip(self.gazebo_model_states_msg.name, self.gazebo_model_states_msg.pose): # pylint: disable=E1101
+        for model_name, pose in zip(self.gazebo_model_states_msg.name,
+                                    self.gazebo_model_states_msg.pose): # pylint: disable=E1101
             if model_name == 'ursr':
                 continue
             position_as_list = [pose.position.x, pose.position.y, pose.position.z]
@@ -92,13 +93,13 @@ class GazeboWorldSaver:
         self._save_to_world_file(all_objects_string)
 
     def _save_lighting_config_to_world_file(self):
-        with open(self.config_path + '/gazebo_light_string', 'r') as myfile:
+        with open(self.config_path + '/gazebo_light_string', 'r', encoding="ASCII") as myfile:
             data = myfile.readlines()
         data = ''.join(data) + '\n'
         self._save_to_world_file(data)
 
     def _save_physics_config_to_world_file(self):
-        with open(self.config_path + '/gazebo_physics_string', 'r') as myfile:
+        with open(self.config_path + '/gazebo_physics_string', 'r', encoding="ASCII") as myfile:
             data = myfile.readlines()
         data = ''.join(data) + '\n'
         self._save_to_world_file(data)
@@ -113,7 +114,7 @@ class GazeboWorldSaver:
         self._save_to_world_file(trailing_string)
 
     def _save_to_world_file(self, string):
-        with open(self.output_world_file_path, 'a') as myfile:
+        with open(self.output_world_file_path, 'a', encoding="ASCII") as myfile:
             myfile.write(string)
 
     def _remove_output_file_if_exists(self):

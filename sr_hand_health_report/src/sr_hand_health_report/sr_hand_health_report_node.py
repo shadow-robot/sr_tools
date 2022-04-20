@@ -95,7 +95,7 @@ class HealthReportScriptNode:
     def write_results_to_file(self, filename=None):
         if filename is None:
             filename = self._results_path
-        with open(filename, 'w') as yaml_file:
+        with open(filename, 'w', encoding="ASCII") as yaml_file:
             yaml.safe_dump(self._results, stream=yaml_file, default_flow_style=False)
         rospy.signal_shutdown("All checks completed!")
 

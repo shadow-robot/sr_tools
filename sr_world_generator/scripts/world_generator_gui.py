@@ -137,6 +137,7 @@ class SrWorldGeneratorGui(Plugin):
         chosen_path = QFileDialog.getOpenFileName(self._widget, 'Open file', "")
         return chosen_path[0]
 
+
 def throw_warning_dialog(message):
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Warning)

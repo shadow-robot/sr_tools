@@ -23,7 +23,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._check_duration = rospy.Duration(5.0)
-        self._shared_dict = dict()
+        self._shared_dict = {}
         self._publishing_rate = rospy.Rate(200)
         self._initial_raw_value = None
 

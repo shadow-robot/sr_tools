@@ -1,7 +1,9 @@
 <launch>
+    <arg name="samples" default="10000"/>
+    <arg name="frequency" default="1000"/>
 
-    <arg name="robot_state_pub_frequency" default="10"/>
-    <arg name="joint_state_pub_frequency" default="10"/>
+    <arg name="robot_state_pub_frequency" default="$(arg frequency)"/>
+    <arg name="joint_state_pub_frequency" default="$(arg frequency)"/>
 
     <arg name="gui" default="true" />
     <arg name="rvizconfig" default="$(find sr_antropomorphic)/rviz/hand_randomizer.rviz" />
@@ -53,9 +55,11 @@
         <param name="tf_prefix" type="string" value="" />
     </node>
 
-    <node name="joint_state_randomizer" pkg="sr_antropomorphic" type="joint_state_randomizer.py" />
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" >
+    <node name="joint_state_randomizer" pkg="sr_antropomorphic" type="joint_state_randomizer.py">
         <param name="rate" type="double" value="$(arg joint_state_pub_frequency)"/>
+        <param name="samples" type="int" value="$(arg samples)"/>
     </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
 </launch>

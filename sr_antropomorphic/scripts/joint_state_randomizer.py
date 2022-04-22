@@ -17,12 +17,14 @@ class JointStateRandomiser(JointStatePublisher):
 
     def loop(self):
         hz = get_param("rate", 10)  # 10hz
+        total_samples = get_param("samples", 100)
         r = rospy.Rate(hz)
 
         delta = get_param("delta", 0.0)
 
         # Publish Joint States
-        while not rospy.is_shutdown():
+        samples = 0
+        while not rospy.is_shutdown() and samples < total_samples:
             msg = sensor_msgs.msg.JointState()
             msg.header.stamp = rospy.Time.now()
 
@@ -95,6 +97,8 @@ class JointStateRandomiser(JointStatePublisher):
                 r.sleep()
             except rospy.exceptions.ROSTimeMovedBackwardsException:
                 pass
+        
+            samples = samples + 1
         
 
 if __name__ == '__main__':

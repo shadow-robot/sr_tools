@@ -4,6 +4,8 @@ project(sr_antropomorphic)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
+set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl/")
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -13,7 +15,9 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning_interface
   moveit_ros_robot_interaction
+  tf2_ros
   bio_ik
+  PCL REQUIRED
 )
 
 ## System dependencies are found with CMake's conventions
@@ -120,7 +124,12 @@ catkin_package(
 include_directories(
 include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
+
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -136,6 +145,7 @@ include
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/sr_antropomorphic_node.cpp)
+add_executable(sr_data_collector src/sr_data_collector.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -150,6 +160,11 @@ add_executable(${PROJECT_NAME}_node src/sr_antropomorphic_node.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(sr_data_collector
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
 #############

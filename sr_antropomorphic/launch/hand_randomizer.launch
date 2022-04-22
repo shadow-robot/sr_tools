@@ -1,0 +1,61 @@
+<launch>
+
+    <arg name="robot_state_pub_frequency" default="10"/>
+    <arg name="joint_state_pub_frequency" default="10"/>
+
+    <arg name="gui" default="true" />
+    <arg name="rvizconfig" default="$(find sr_antropomorphic)/rviz/hand_randomizer.rviz" />
+
+    <!-- ROBOT CONFIGS -->
+    <arg name="side" default="right"/>
+    <arg name="side_letter" value="$(eval side[0])"/>
+    <arg name="hand" default="true"/>
+    <!-- Set to true if you want the robot to start in the "home" positions -->
+    <arg name="start_home" default="false"/>
+    <!-- home_angles must be input at the launch -->
+    <arg name="home_angles" default=""/>
+
+    <!-- HAND SPECIFIC CONFIG-->
+    <arg name="hand_id" value="$(arg side_letter)h"/>
+    <arg name="hand_type" default="hand_e"/>
+    <arg name="hand_version" default="E3M5"/>
+    <arg name="fingers" default="th,ff,mf,rf,lf"/>
+    <arg name="tip_sensors" default="th=pst,ff=pst,mf=pst,rf=pst,lf=pst"/>
+    <arg name="mid_sensors" default="none"/>
+    <arg name="prox_sensors" default="none"/>
+    <arg name="palm_sensor" default="none"/>
+
+    <arg name="initial_y" default="0.0"/>
+    <arg name="initial_z" default="0.0"/>
+    <arg name="initial_yaw" default="0.0"/>
+
+    <!-- LOADING ROBOT DESCRIPTION--> 
+    <include file="$(find sr_robot_launch)/launch/load_robot_description.launch">
+        <arg name="sim" default="true"/>
+        <arg name="side" default="$(arg side)"/>
+        <arg name="arm" default="false"/>
+        <arg name="hand" value="$(arg hand)"/>
+        <arg name="hand_type" value="$(arg hand_type)"/>
+        <arg name="hand_version" value="$(arg hand_version)"/>
+        <arg name="fingers" value="$(arg fingers)"/>
+        <arg name="tip_sensors" value="$(arg tip_sensors)"/>
+        <arg name="mid_sensors" value="$(arg mid_sensors)"/>
+        <arg name="prox_sensors" value="$(arg prox_sensors)"/>
+        <arg name="palm_sensor" value="$(arg palm_sensor)"/>
+        <arg name="initial_z" value="$(arg initial_z)"/>
+        <arg name="initial_y" value="$(arg initial_y)"/>
+        <arg name="initial_yaw" value="$(arg initial_yaw)"/>
+    </include>
+
+    <!-- Robot state publisher -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="$(arg robot_state_pub_frequency)"/>
+        <param name="tf_prefix" type="string" value="" />
+    </node>
+
+    <node name="joint_state_randomizer" pkg="sr_antropomorphic" type="joint_state_randomizer.py" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" >
+        <param name="rate" type="double" value="$(arg joint_state_pub_frequency)"/>
+    </node>
+
+</launch>

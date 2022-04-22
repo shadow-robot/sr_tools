@@ -3,8 +3,7 @@
 
 SrAntropomorphicIndex::SrAntropomorphicIndex(){};
 
-bool SrAntropomorphicIndex::init(){
-    
+bool SrAntropomorphicIndex::init(){    
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
     ROS_INFO("Initializing kinematic models");
@@ -16,7 +15,6 @@ bool SrAntropomorphicIndex::init(){
         ROS_ERROR("No robot description found");
         return false;
     }
-
     if (private_nh.getParam("move_group_list", move_group_list_)){
         ROS_INFO("Got move_group_list param");
     }else{
@@ -39,25 +37,26 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
     }
 
     double position_weight = 1.0;
-    double orientation_weight = 0.1;
+    double orientation_weight = 0.05;
     double regularisation_weight = 1.0;
     double ik_timeout_  = 0.007;
 
     bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
-    moveit::core::GroupStateValidityCallbackFn constraint_;
-    
+    moveit::core::GroupStateValidityCallbackFn constraint_;    
 
     bool found_ik = false;
     int nb_ik_solutions_found = 0;
     std_msgs::Float64MultiArray current_pos;
     std_msgs::Float64MultiArray ik_pos;
-    
+
     for (auto model : robots_joint_model_){
 
         kinematic_options_.goals.clear();
 
         auto* position_goal = new bio_ik::PositionGoal();
         position_goal->setLinkName((model->getJointModels()).back()->getName());
+        //position_goal->setLinkName((model->getJointModels()).back()->getParentLinkModel()->getName());
+        //position_goal->setLinkName("non existing link test");
         position_goal->setWeight(position_weight);
         position_goal->setPosition(tf2::Vector3(position_target));
         kinematic_options_.goals.emplace_back(position_goal);
@@ -70,22 +69,32 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
         regularization_goal->setWeight(regularisation_weight);
         kinematic_options_.goals.emplace_back(regularization_goal);       
 
-
-
+        kinematic_options_.replace = true;
+        kinematic_options_.return_approximate_solution = false;
+        
+        // get initial joint state
         kinematic_state_->copyJointGroupPositions(model, current_pos.data);
-        found_ik = kinematic_state_->setFromIK(model, EigenSTL::vector_Isometry3d(),
-                                                std::vector<std::string>(), ik_timeout_, constraint_,
-                                                kinematic_options_);
+
+        found_ik = kinematic_state_->setFromIK(model, 
+                                               EigenSTL::vector_Isometry3d(),
+                                               std::vector<std::string>(), 
+                                               ik_timeout_,
+                                               moveit::core::GroupStateValidityCallbackFn(),
+                                               kinematic_options_);
+
+        // get final joint state
         kinematic_state_->copyJointGroupPositions(model, ik_pos.data);
 
-
-        //std::cout << "----- For " << model->getName() << " found IK - " << ((int)found_ik) << std::endl;
+        std::cout << "----- For " << model->getName() << " found IK - " << ((int)found_ik) << std::endl;
         std::cout << current_pos << std::endl;
         std::cout << ik_pos << std::endl;
         //model -> printGroupInfo(std::cout);
+        //kinematic_state_ -> printStateInfo(std::cout);
+        //kinematic_model_ -> printModelInfo(std::cout);
         if (found_ik){
             nb_ik_solutions_found++;
         }
+        break; // just stop after first group - this is only for now to test 
     }  
     
     if (nb_ik_solutions_found == robots_joint_model_.size()){
@@ -100,8 +109,18 @@ int main(int argc, char **argv){
     SrAntropomorphicIndex ai = SrAntropomorphicIndex();
     ai.init();
 
-    tf2::Vector3 pos_goal = tf2::Vector3(0, 1, 1);    
-    tf2::Quaternion orient_goal = tf2::Quaternion(0, 0, 0, 1);
+        
+    /* rh_fftip
+    # at top (finger open)
+        position - 0.0330, 0.0000, -0.4380
+        orietnation - 0,0,0,1
+    # bent (halway down))
+        position - 0.0329, -0.0743, 0.3889
+        orietnation - 0.707, 0, 0, 0.707 (W,X,Y,Z)
+    */
+
+    tf2::Vector3 pos_goal = tf2::Vector3(0.0329, -0.0743, 0.3889);    
+    tf2::Quaternion orient_goal = tf2::Quaternion(0.707, 0, 0, 0.707);
     ai.check_reachability(pos_goal, orient_goal);
     
     

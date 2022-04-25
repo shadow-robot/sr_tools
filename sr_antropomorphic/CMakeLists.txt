@@ -5,6 +5,7 @@ project(sr_antropomorphic)
 # add_compile_options(-std=c++11)
 
 set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl/")
+set(Open3D_DIR "/usr/local/lib/cmake/Open3D/")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   bio_ik
   PCL REQUIRED
+  Open3D REQUIRED
 )
 
 ## System dependencies are found with CMake's conventions
@@ -146,6 +148,7 @@ add_definitions(${PCL_DEFINITIONS})
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/sr_antropomorphic_node.cpp)
 add_executable(sr_data_collector src/sr_data_collector.cpp)
+add_executable(sr_surface_estimation src/sr_surface_estimation.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -166,6 +169,14 @@ target_link_libraries(sr_data_collector
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )
+
+target_link_libraries(sr_surface_estimation
+  PRIVATE Open3D::Open3D
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+target_include_directories(sr_surface_estimation PUBLIC ${Open3D_INCLUDE_DIRS})
 
 #############
 ## Install ##

@@ -10,9 +10,28 @@ _tf_listener(_tf_buffer), _rate(rate)
 
     // TODO Somehow obtain all interesting links
     _frame_names.push_back("rh_fftip");
-    _frame_names.push_back("rh_ffknuckle");
+    _frame_names.push_back("rh_ffdistal");
     _frame_names.push_back("rh_ffmiddle");
     _frame_names.push_back("rh_ffproximal");
+
+    _frame_names.push_back("rh_lftip");
+    _frame_names.push_back("rh_lfdistal");
+    _frame_names.push_back("rh_lfmiddle");
+    _frame_names.push_back("rh_lfproximal");
+
+    _frame_names.push_back("rh_mftip");
+    _frame_names.push_back("rh_mfdistal");
+    _frame_names.push_back("rh_mfmiddle");
+    _frame_names.push_back("rh_mfproximal");
+
+    _frame_names.push_back("rh_rftip");
+    _frame_names.push_back("rh_rfdistal");
+    _frame_names.push_back("rh_rfmiddle");
+    _frame_names.push_back("rh_rfproximal");
+
+    _frame_names.push_back("rh_thtip");
+    _frame_names.push_back("rh_thdistal");
+    _frame_names.push_back("rh_thmiddle");
 
     _data = std::make_shared<std::map<std::string, pcl::PointCloud<pcl::PointXYZ>>>();
 
@@ -35,14 +54,12 @@ void DataCollector::loop()
 
             try
             {
-                transformStamped = _tf_buffer.lookupTransform("world", frame,
+                transformStamped = _tf_buffer.lookupTransform("rh_palm", frame,
                                                             ros::Time(0));
 
                 // TODO Check previous value is different
-                std::cout << "Hello" << std::endl;
                 if (samples > 0)
                 {
-                    std::cout << _data->at(frame).back().x << std::endl;
                     if (_data->at(frame).back().x == transformStamped.transform.translation.x)
                         continue;
                 }

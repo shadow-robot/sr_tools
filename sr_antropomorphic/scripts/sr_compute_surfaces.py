@@ -11,35 +11,65 @@ from open3d import geometry as gmt
 if __name__ == "__main__":
 
     # List directory with samples
-    pcd_files = listdir("/home/user/projects/shadow_robot/base/pc_tests")
+    pcd_files_hh = listdir("/home/user/projects/shadow_robot/base/pc_tests")
 
     # Loop to read all pcd files
-    point_clouds = []
-    for file in pcd_files:
-        point_clouds.append(o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file))
+    point_clouds_hh = {}
+    for file in pcd_files_hh:
+        point_clouds_hh.update({file : o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file)})
 
-    o3d.visualization.draw_geometries(point_clouds)
+    print("All pcd read")
+
+    o3d.visualization.draw_geometries(list(point_clouds_hh.values()))
 
     # Create meshes
-    meshes = []
+    meshes = {}
     alpha = 0.03
 
     i = 0.0
-    total_pc = float(len(point_clouds))
-    print(total_pc)
-    for point_cloud in point_clouds:
-        points_array = np.asarray(point_cloud.points)
+    total_pc = float(len(point_clouds_hh))
+
+    print("Before loop alpha shape")
+    for joint in point_clouds_hh:
+        points_array = np.asarray(point_clouds_hh[joint].points)
 
         try:
-            mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(point_cloud, alpha)
+            mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(point_clouds_hh[joint], alpha)
             color = np.array([i/total_pc,(total_pc-i)/total_pc,i/total_pc])
             print(color)
             mesh.paint_uniform_color(color)
             i = i+1.0
-            meshes.append(mesh)
+            meshes.update({joint : mesh})
         except:
             print("Error with one point cloud")
             continue
         
 
-    o3d.visualization.draw_geometries(meshes, mesh_show_back_face=True)
+    o3d.visualization.draw_geometries(list(meshes.values()), mesh_show_back_face=True)
+
+    # TODO: Read PC Artificial Hand and check how many points of the AH lay inside the region
+    pcd_files_ah = listdir("/home/user/projects/shadow_robot/base/pc_tests")
+
+    # Loop to read all pcd files
+    point_clouds_ah = {}
+    for file in pcd_files_ah:
+        point_clouds_ah.update({file : o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file)})
+
+    # Compare and see how many points inside every joint
+    for joint in meshes:
+        if joint in point_clouds_ah.keys():
+            # Both joint exist and are comparable
+            # Convert points to array, iterate and get occupancy. Add this number up
+            array_points_ah = np.asarray(point_clouds_ah[joint].points)
+            
+            points_inside = 0
+            scene = o3d.t.geometry.RaycastingScene()
+            mesh_t = o3d.t.geometry.TriangleMesh.from_legacy(meshes[joint])
+            scene.add_triangles(mesh_t)
+
+            for point in array_points_ah:
+                query_point = o3d.core.Tensor([point], dtype=o3d.core.Dtype.Float32)
+                if scene.compute_occupancy(query_point) > 0:
+                    points_inside = points_inside + 1
+            
+            print("This joint has " + str(points_inside) + " points inside")

@@ -15,7 +15,7 @@ class SrAntropomorphicIndex{
         bool check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target);
 
         robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
-        std::vector<const robot_model::JointModelGroup*> robots_joint_model_;
+        std::vector<robot_model::JointModelGroup*> robots_joint_model_;
         std::vector<std::string> allowed_names_;
         
         moveit::core::RobotModelPtr kinematic_model_;
@@ -23,4 +23,6 @@ class SrAntropomorphicIndex{
         
         std::vector<moveit::core::LinkModel*> kinematic_chain;
         std::vector<std::string> move_group_list_;
+
+        std::shared_ptr<const srdf::Model> srdf_model;
 };

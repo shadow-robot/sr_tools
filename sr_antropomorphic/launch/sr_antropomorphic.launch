@@ -3,5 +3,7 @@
     <arg name="move_group_list" value="[$(arg hand_side_prefix)_first_finger, $(arg hand_side_prefix)_thumb, $(arg hand_side_prefix)_middle_finger, $(arg hand_side_prefix)_ring_finger, $(arg hand_side_prefix)_little_finger]"/>
     <node name="sr_antropomorphic_node" pkg="sr_antropomorphic" type="sr_antropomorphic_node" output="screen">
         <rosparam param="move_group_list" subst_value="True">$(arg move_group_list)</rosparam>
+
+        
     </node>
 </launch>

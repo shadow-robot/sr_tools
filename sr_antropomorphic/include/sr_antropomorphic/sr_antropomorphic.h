@@ -8,6 +8,8 @@
 #include <bio_ik/bio_ik.h>
 #include <Eigen/Core>
 
+#include <math.h>
+
 class SrAntropomorphicIndex{
     public:
         SrAntropomorphicIndex();
@@ -15,7 +17,7 @@ class SrAntropomorphicIndex{
         bool check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target);
 
         robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
-        std::vector<robot_model::JointModelGroup*> robots_joint_model_;
+        std::vector<robot_model::JointModelGroup*> robots_joint_groups_;
         std::vector<std::string> allowed_names_;
         
         moveit::core::RobotModelPtr kinematic_model_;
@@ -25,4 +27,8 @@ class SrAntropomorphicIndex{
         std::vector<std::string> move_group_list_;
 
         std::shared_ptr<const srdf::Model> srdf_model;
+
+    private:
+        bool found_ik = false;
+
 };

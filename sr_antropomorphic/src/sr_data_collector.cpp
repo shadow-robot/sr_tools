@@ -12,26 +12,21 @@ _tf_listener(_tf_buffer), _rate(rate)
     _frame_names.push_back("rh_fftip");
     _frame_names.push_back("rh_ffdistal");
     _frame_names.push_back("rh_ffmiddle");
-    _frame_names.push_back("rh_ffproximal");
 
     _frame_names.push_back("rh_lftip");
     _frame_names.push_back("rh_lfdistal");
     _frame_names.push_back("rh_lfmiddle");
-    _frame_names.push_back("rh_lfproximal");
 
     _frame_names.push_back("rh_mftip");
     _frame_names.push_back("rh_mfdistal");
     _frame_names.push_back("rh_mfmiddle");
-    _frame_names.push_back("rh_mfproximal");
 
     _frame_names.push_back("rh_rftip");
     _frame_names.push_back("rh_rfdistal");
     _frame_names.push_back("rh_rfmiddle");
-    _frame_names.push_back("rh_rfproximal");
 
     _frame_names.push_back("rh_thtip");
     _frame_names.push_back("rh_thdistal");
-    _frame_names.push_back("rh_thmiddle");
 
     _data = std::make_shared<std::map<std::string, pcl::PointCloud<pcl::PointXYZ>>>();
 
@@ -68,7 +63,7 @@ void DataCollector::loop()
                                     transformStamped.transform.translation.y,
                                     transformStamped.transform.translation.z);
 
-                _data->at(frame).push_back(point);
+                 _data->at(frame).push_back(point);
             }
             catch (tf2::TransformException &ex) 
             {
@@ -86,7 +81,7 @@ void DataCollector::loop()
 
 void DataCollector::write_point_clouds()
 {
-    for (auto& field : *_data)
+    for (const auto& field : *_data)
     {
         // Store data like this?
         pcl::io::savePCDFileASCII ("/home/user/projects/shadow_robot/base/pc_tests/" + field.first + ".pcd", field.second);

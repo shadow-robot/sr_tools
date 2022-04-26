@@ -7,6 +7,8 @@ import numpy as np
 import open3d as o3d
 from open3d import geometry as gmt
 
+import random
+
 
 if __name__ == "__main__":
 
@@ -16,7 +18,7 @@ if __name__ == "__main__":
     # Loop to read all pcd files
     point_clouds_hh = {}
     for file in pcd_files_hh:
-        point_clouds_hh.update({file : o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file)})
+        point_clouds_hh.update({file[0:-4] : o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file)})
 
     print("All pcd read")
 
@@ -24,24 +26,25 @@ if __name__ == "__main__":
 
     # Create meshes
     meshes = {}
-    alpha = 0.03
+    alpha = 0.02
 
     i = 0.0
     total_pc = float(len(point_clouds_hh))
 
-    print("Before loop alpha shape")
+    # Compute alpha shape for Human Hand point clouds
     for joint in point_clouds_hh:
         points_array = np.asarray(point_clouds_hh[joint].points)
 
         try:
             mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(point_clouds_hh[joint], alpha)
-            color = np.array([i/total_pc,(total_pc-i)/total_pc,i/total_pc])
-            print(color)
+            if mesh.is_empty():
+                continue
+            color = np.array([random.uniform(0, 1) ,random.uniform(0, 1) ,random.uniform(0, 1)])
             mesh.paint_uniform_color(color)
             i = i+1.0
             meshes.update({joint : mesh})
         except:
-            print("Error with one point cloud")
+            print("Error with " + joint + " point cloud")
             continue
         
 
@@ -72,4 +75,6 @@ if __name__ == "__main__":
                 if scene.compute_occupancy(query_point) > 0:
                     points_inside = points_inside + 1
             
-            print("This joint has " + str(points_inside) + " points inside")
+            print("Joint " + joint + " has " + str(points_inside) + " points inside")
+
+            o3d.visualization.draw_geometries([meshes[joint], point_clouds_ah[joint]], mesh_show_back_face=True)

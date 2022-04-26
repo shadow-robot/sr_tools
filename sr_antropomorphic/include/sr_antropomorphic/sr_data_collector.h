@@ -12,6 +12,7 @@
 #include <pcl/common/io.h>
 #include <pcl/io/pcd_io.h>
 
+
 class DataCollector
 {
     public:

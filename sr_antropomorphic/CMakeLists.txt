@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   moveit_ros_robot_interaction
   tf2_ros
+  pcl_ros REQUIRED
+  sensor_msgs
   bio_ik
   PCL REQUIRED
   Open3D REQUIRED

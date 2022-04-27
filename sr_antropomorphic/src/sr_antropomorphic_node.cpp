@@ -34,7 +34,8 @@ bool SrAntropomorphicIndex::init(){
     return true;
 };
 
-bio_ik::BioIKKinematicsQueryOptions::set_goal(std::string link_name, double pos_weight, double orient_weight){
+bio_ik::BioIKKinematicsQueryOptions SrAntropomorphicIndex::set_goal(std::string link_name, double pos_weight, double orient_weight){
+    return kinematic_options_;
 }
 
 bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target){
@@ -44,7 +45,7 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
     double regularisation_weight = 1.0;
     double ik_timeout_  = 0.007;
 
-    bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
+    //bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
     moveit::core::GroupStateValidityCallbackFn constraint_;    
     std::string group_tip_link_name;
     

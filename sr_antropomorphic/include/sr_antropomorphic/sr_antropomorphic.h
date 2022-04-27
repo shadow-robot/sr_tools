@@ -17,7 +17,7 @@ class SrAntropomorphicIndex{
         bool init();
         bool check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target);
         bool check_finger_group_reachability(robot_model::JointModelGroup group, tf2::Vector3 position_target, tf2::Quaternion orientation_target);
-        void set_goal(std::string link_name, double pos_weight, double orient_weight);
+        bio_ik::BioIKKinematicsQueryOptions set_goal(std::string link_name, double pos_weight, double orient_weight);
 
         robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
         std::vector<robot_model::JointModelGroup*> robots_joint_groups_;
@@ -29,7 +29,7 @@ class SrAntropomorphicIndex{
         std::vector<std::string> move_group_list_;
 
         std::shared_ptr<const srdf::Model> srdf_model;
-        bio_ik::BioIKKinematicsQueryOptions kinematic_options_ = bio_ik::BioIKKinematicsQueryOptions {false,0};
+        bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
 
     private:
         bool found_ik = false;

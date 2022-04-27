@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # Loop to read all pcd files
     point_clouds_ah = {}
     for file in pcd_files_ah:
-        point_clouds_ah.update({file : o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file)})
+        point_clouds_ah.update({file[0:-4] : o3d.io.read_point_cloud("/home/user/projects/shadow_robot/base/pc_tests/" + file)})
 
     # Compare and see how many points inside every joint
     for joint in meshes:

@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<robot name="visual">
+
+  <!-- METACARPAL: fixed joints starting from common reference -->
+  <link name="rh_palm">
+  </link>
+
+  <link name="rh_thmetacarpal">
+  </link>
+
+  <joint name="palm_to_thmetacarpal" type="fixed">
+    <parent link="rh_palm"/>
+    <child link="rh_thmetacarpal"/>
+    <origin xyz="0.0 0.073 0.0842" rpy="0.5686 -1.5355 0.4044"/>
+  </joint>
+
+  <!-- CMC (2 DOF) joint thumb -->
+  <link name="rh_thcmc1">
+  </link>
+
+  <joint name="thmetacarpal_to_thcmc1" type="revolute">
+    <parent link="rh_thmetacarpal"/>
+    <child link="rh_thcmc1"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <limit lower="-0.5235987756" upper="1.047197551" effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <link name="rh_thcmc2">
+  </link>
+
+  <joint name="thcmc1_to_thcmc2" type="revolute">
+    <parent link="rh_thcmc1"/>
+    <child link="rh_thcmc2"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 1.57079632679"/>
+    <limit lower="-0.436332313" upper="0.6108652382" effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <!-- Thumb proximal phalanx MPC (2DOF) -->
+  <link name="rh_thproximalphalanx">
+  </link>
+
+  <joint name="thcmc2_to_thproximalphalanx" type="revolute">
+    <parent link="rh_thcmc2"/>
+    <child link="rh_thproximalphalanx"/>
+    <origin xyz="0.251 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <limit lower="-0.5235987756" upper="1.047197551" effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <link name="rh_thmpc">
+  </link>
+
+  <joint name="thproximalphalanx_to_thmpc" type="revolute">
+    <parent link="rh_thproximalphalanx"/>
+    <child link="rh_thmpc"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <limit lower="-0.1745329252" upper="1.396263402" effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <!-- Thumb medial phalanx MPC (2DOF) -->
+  <link name="rh_thmedialphalanx">
+  </link>
+
+  <joint name="thmpc_to_thmedialphalanx" type="revolute">
+    <parent link="rh_thmpc"/>
+    <child link="rh_thmedialphalanx"/>
+    <origin xyz="0.196 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <limit lower="-0.2617993878" upper="1.396263402" effort="1000.0" velocity="0.5"/>
+  </joint>
+
+  <link name="rh_thdistalphalanx">
+  </link>
+
+  <joint name="thmedialphalanx_to_thdistalphalanx" type="fixed">
+    <parent link="rh_thmedialphalanx"/>
+    <child link="rh_thdistalphalanx"/>
+    <origin xyz="0.0 0.158 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+
+  <link name="rh_thtip">
+  </link>
+
+  <joint name="thdistalphalanx_to_thtip" type="fixed">
+    <parent link="rh_thdistalphalanx"/>
+    <child link="rh_thtip"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+
+</robot>

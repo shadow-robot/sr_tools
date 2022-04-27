@@ -34,10 +34,6 @@ bool SrAntropomorphicIndex::init(){
     return true;
 };
 
-bio_ik::BioIKKinematicsQueryOptions SrAntropomorphicIndex::set_goal(std::string link_name, double pos_weight, double orient_weight){
-    return kinematic_options_;
-}
-
 bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target){
     
     double position_weight = 0.99;
@@ -46,6 +42,9 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
     double ik_timeout_  = 0.007;
 
     //bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
+    kinematic_options_.replace = true;
+    kinematic_options_.return_approximate_solution = false;
+
     moveit::core::GroupStateValidityCallbackFn constraint_;    
     std::string group_tip_link_name;
     
@@ -75,9 +74,6 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
         auto* regularization_goal = new bio_ik::MinimalDisplacementGoal();
         regularization_goal->setWeight(regularisation_weight);
         kinematic_options_.goals.emplace_back(regularization_goal);       
-
-        kinematic_options_.replace = true;
-        kinematic_options_.return_approximate_solution = false;
         
         found_ik = kinematic_state_->setFromIK(model, 
                                                EigenSTL::vector_Isometry3d(),
@@ -94,10 +90,10 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
 
         std::cout << "Solution for " << group_tip_link_name << " found(" << ((int)found_ik) << ")" << std::endl;
         if (found_ik){
-            std::cout << "Distance:" << sqrt(x*x+y*y+z*z) << std::endl;    
+            std::cout << "-Distance:" << sqrt(x*x+y*y+z*z) << std::endl;    
             nb_ik_solutions_found++;
             for (auto joint_model : model->getJointModels()){
-                std::cout << joint_model -> getName() << " " << 180*(*(kinematic_state_->getJointPositions(joint_model)))/3.1415 << std::endl;
+                std::cout << "--" << joint_model -> getName() << " " << 180*(*(kinematic_state_->getJointPositions(joint_model)))/3.1415 << std::endl;
             }
         }
     }  
@@ -108,84 +104,14 @@ bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2
     return false;
 }
 
-bool SrAntropomorphicIndex::check_finger_group_reachability(robot_model::JointModelGroup group, tf2::Vector3 position_target, tf2::Quaternion orientation_target){
-    
-    double position_weight = 0.99;
-    double orientation_weight = 0.01;
-    double regularisation_weight = 1.0;
-    double ik_timeout_  = 0.007;
-
-    bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
-    moveit::core::GroupStateValidityCallbackFn constraint_;    
-    std::string group_tip_link_name;
-    auto model_eef_list_ = srdf_model->getEndEffectors();
-
-    kinematic_options_.goals.clear();      
-    for (int j=0; j < model_eef_list_.size(); j++){
-        if (model_eef_list_[j].parent_group_ == group.getName()){
-            group_tip_link_name = model_eef_list_[j].parent_link_;
-        }
-    }
-
-    auto* position_goal = new bio_ik::PositionGoal();
-    position_goal->setLinkName(group_tip_link_name);
-    position_goal->setWeight(position_weight);
-    position_goal->setPosition(tf2::Vector3(position_target));
-    kinematic_options_.goals.emplace_back(position_goal);
-
-    auto* orientation_goal = new bio_ik::OrientationGoal();
-    orientation_goal->setLinkName(group_tip_link_name);
-    orientation_goal->setWeight(orientation_weight);
-    orientation_goal->setOrientation(tf2::Quaternion(orientation_target));
-    kinematic_options_.goals.emplace_back(orientation_goal);
-
-    auto* regularization_goal = new bio_ik::MinimalDisplacementGoal();
-    regularization_goal->setWeight(regularisation_weight);
-    kinematic_options_.goals.emplace_back(regularization_goal);       
-
-    kinematic_options_.replace = true;
-    kinematic_options_.return_approximate_solution = false;
-    
-    found_ik = kinematic_state_->setFromIK(&group, 
-                                            EigenSTL::vector_Isometry3d(),
-                                            std::vector<std::string>(), 
-                                            ik_timeout_,
-                                            moveit::core::GroupStateValidityCallbackFn(),
-                                            kinematic_options_);
-
-    const Eigen::Affine3d& ik_position = kinematic_state_->getGlobalLinkTransform(group_tip_link_name);
-
-    auto x = position_target.getX()-ik_position.translation().x();
-    auto y = position_target.getY()-ik_position.translation().y();
-    auto z = position_target.getZ()-ik_position.translation().z();
-
-    std::cout << "xSolution for " << group_tip_link_name << " found(" << ((int)found_ik) << ")" << std::endl;
-    if (found_ik){
-        std::cout << "x-Distance:" << sqrt(x*x+y*y+z*z) << std::endl;    
-        for (auto joint_model : group.getJointModels()){
-            std::cout << "--" << joint_model -> getName() << " " << 180*(*(kinematic_state_->getJointPositions(joint_model)))/3.1415 << std::endl;
-        }
-        return true;
-    }
-    return false;
-}
-
 int main(int argc, char **argv){
     ros::init(argc, argv, "sr_antropomorphic_index_node");
     SrAntropomorphicIndex ai = SrAntropomorphicIndex();
     ai.init();
 
-
-    // straight wrist (0, 0) and straight finger
-    // - Translation: [0.033, -0.010, 0.438]
-    // - Rotation: in Quaternion [0.000, -0.002, 0.000, 1.000]
-
     // straight wrist (0, 0) and bent finger
     // - Translation: [0.032, -0.056, 0.402]
     // - Rotation: in Quaternion [0.666, -0.005, 0.004, 0.746]
-
-    //tf2::Vector3 pos_goal = tf2::Vector3(0.033, -0.000, 0.191);    
-    //tf2::Quaternion orient_goal = tf2::Quaternion(0.000, 0.000, -0.000, 1.000);
 
     tf2::Vector3 pos_goal = tf2::Vector3(0.032, -0.056, 0.402);    
     tf2::Quaternion orient_goal = tf2::Quaternion(0.666, -0.005, 0.004, 0.746);

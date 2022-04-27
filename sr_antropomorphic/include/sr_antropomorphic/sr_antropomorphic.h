@@ -23,13 +23,11 @@ class SrAntropomorphicIndex{
         std::vector<robot_model::JointModelGroup*> robots_joint_groups_;
         
         moveit::core::RobotModelPtr kinematic_model_;
-        moveit::core::RobotStatePtr kinematic_state_;
-        
-        std::vector<moveit::core::LinkModel*> kinematic_chain;
+        moveit::core::RobotStatePtr kinematic_state_;        
         std::vector<std::string> move_group_list_;
 
         std::shared_ptr<const srdf::Model> srdf_model;
-        bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
+        bio_ik::BioIKKinematicsQueryOptions kinematic_options_; // failing line
 
     private:
         bool found_ik = false;

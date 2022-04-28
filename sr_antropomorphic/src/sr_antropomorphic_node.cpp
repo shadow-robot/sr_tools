@@ -35,65 +35,6 @@ bool SrAntropomorphicIndex::init(){
     return true;
 };
 
-bool SrAntropomorphicIndex::check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target){
-    
-    std::string group_tip_link_name;    
-    int nb_ik_solutions_found = 0;
-
-    for (auto model : robots_joint_groups_){
-        kinematic_options_.goals.clear();      
-        for (int j=0; j < model_eef_list_.size(); j++){
-            if (model_eef_list_[j].parent_group_ == model->getName()){
-                group_tip_link_name = model_eef_list_[j].parent_link_;
-            }
-        }
-
-        auto* position_goal = new bio_ik::PositionGoal();
-        position_goal->setLinkName(group_tip_link_name);
-        position_goal->setWeight(position_weight);
-        position_goal->setPosition(tf2::Vector3(position_target));
-        kinematic_options_.goals.emplace_back(position_goal);
-
-        auto* orientation_goal = new bio_ik::OrientationGoal();
-        orientation_goal->setLinkName(group_tip_link_name);
-        orientation_goal->setWeight(orientation_weight);
-        orientation_goal->setOrientation(tf2::Quaternion(orientation_target));
-        kinematic_options_.goals.emplace_back(orientation_goal);
-
-        //auto* regularization_goal = new bio_ik::MinimalDisplacementGoal();
-        //regularization_goal->setWeight(regularisation_weight);
-        //kinematic_options_.goals.emplace_back(regularization_goal);       
-        
-        found_ik = kinematic_state_->setFromIK(model, 
-                                               EigenSTL::vector_Isometry3d(),
-                                               std::vector<std::string>(), 
-                                               ik_timeout_,
-                                               moveit::core::GroupStateValidityCallbackFn(),
-                                               kinematic_options_);
-
-        const Eigen::Affine3d& ik_position = kinematic_state_->getGlobalLinkTransform(group_tip_link_name);
-        tf2::Vector3 ik_vec = tf2::Vector3(ik_position.translation().x(), ik_position.translation().y(), ik_position.translation().z());
-        double distance = ik_vec.distance(position_target);
-
-        if (found_ik){
-            std::cout << "Solution for " << group_tip_link_name << " found" << std::endl;
-            std::cout << "-Distance:" << distance << std::endl;    
-            nb_ik_solutions_found++;
-            for (auto joint_model : model->getJointModels()){
-                std::cout << "--" << joint_model -> getName() << " " << 180*(*(kinematic_state_->getJointPositions(joint_model)))/3.1415 << std::endl;
-            }
-        }else{
-            std::cout << "Solution for " << group_tip_link_name << " not found" << std::endl;
-        }
-        break;
-    }  
-
-    if (nb_ik_solutions_found == robots_joint_groups_.size()){
-        return true;
-    }    
-    return false;
-}
-
 bool SrAntropomorphicIndex::check_all_reachability(std::vector<FingerGroupParams> finger_groups){
     int nb_ik_solutions_found = 0;
     for (FingerGroupParams group : finger_groups){
@@ -137,14 +78,12 @@ bool SrAntropomorphicIndex::check_all_reachability(std::vector<FingerGroupParams
                                                moveit::core::GroupStateValidityCallbackFn(),
                                                kinematic_options_);
 
-
         if(found_ik){
             nb_ik_solutions_found++;
             std::cout << "Found solution" << std::endl;
         }else{
             std::cout << "Not found!" << std::endl;
         }
-
     }
     return nb_ik_solutions_found == finger_groups.size();
 }
@@ -155,7 +94,6 @@ int main(int argc, char **argv){
     ai.init();
 
     std::vector<FingerGroupParams> finger_group_goals;
-
     YAML::Node config = YAML::LoadFile("/home/user/projects/shadow_robot/base/src/sr_tools/sr_antropomorphic/config/test.yaml");
 
     if (config["grasps"]) {

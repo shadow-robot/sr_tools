@@ -27,8 +27,16 @@ class SrAntropomorphicIndex{
     public:
         SrAntropomorphicIndex();
         bool init();
-        bool check_reachability(tf2::Vector3 position_target, tf2::Quaternion orientation_target);
         bool check_all_reachability(std::vector<FingerGroupParams> finger_groups);
+
+
+    private:
+        bool found_ik = false;
+        std::string side_prefix_ = "rh_";
+        double ik_timeout_ = 0.006;
+        double position_weight = 0.00;
+        double orientation_weight = 1;
+        double regularisation_weight = 1;
 
         robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
         std::vector<robot_model::JointModelGroup*> robots_joint_groups_;
@@ -40,13 +48,6 @@ class SrAntropomorphicIndex{
         bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
         moveit::core::GroupStateValidityCallbackFn constraint_;  
 
-    private:
-        bool found_ik = false;
-        std::string side_prefix_ = "rh_";
-        double ik_timeout_ = 0.006;
-        double position_weight = 0.00;
-        double orientation_weight = 1;
-        double regularisation_weight = 1;
         
         std::vector<srdf::Model::EndEffector> model_eef_list_;
 

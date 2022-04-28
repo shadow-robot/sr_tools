@@ -28,7 +28,8 @@ class SrAntropomorphicIndex{
         SrAntropomorphicIndex();
         bool init();
         bool check_all_reachability(std::vector<FingerGroupParams> finger_groups);
-
+        std::vector<std::string> move_group_list_;
+        std::vector<srdf::Model::EndEffector> model_eef_list_;
 
     private:
         bool found_ik = false;
@@ -43,12 +44,12 @@ class SrAntropomorphicIndex{
         
         moveit::core::RobotModelPtr kinematic_model_;
         moveit::core::RobotStatePtr kinematic_state_;        
-        std::vector<std::string> move_group_list_;
+        
 
         bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
         moveit::core::GroupStateValidityCallbackFn constraint_;  
 
         
-        std::vector<srdf::Model::EndEffector> model_eef_list_;
+        
 
 };

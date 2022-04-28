@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(sr_antropomorphic)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -14,6 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   moveit_ros_robot_interaction
   bio_ik
+  tf2_geometry_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -150,6 +152,7 @@ add_executable(${PROJECT_NAME}_node src/sr_antropomorphic_node.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 #############

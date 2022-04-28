@@ -1,16 +1,18 @@
 <?xml version="1.0"?>
-<robot name="visual">
+<robot name="human_hand" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="scale" value="1.0" />
 
   <link name="world"/>
 
-  <link name="rh_hh_palm"/>
+  <link name="rh_palm"/>
 
   <!-- THUMB -->
 
   <!-- World to the first link -->
   <joint name="world_to_palm" type="fixed">
     <parent link="world"/>
-    <child link="rh_hh_palm"/>
+    <child link="rh_palm"/>
     <origin xyz="0 0 0" rpy="0.0 -1.57079632679 3.14159265359"/>
   </joint>
 
@@ -19,9 +21,9 @@
   </link>
 
   <joint name="palm_to_thmetacarpal" type="fixed">
-    <parent link="rh_hh_palm"/>
+    <parent link="rh_palm"/>
     <child link="rh_thmetacarpal"/>
-    <origin xyz="0.0 0.073 0.0842" rpy="0.5686 -1.5355 0.4044"/>
+    <origin xyz="0.0 ${scale*0.073} ${scale*0.0842}" rpy="0.5686 -1.5355 0.4044"/>
   </joint>
 
   <!-- CMC (2 DOF) joint thumb -->
@@ -54,7 +56,7 @@
   <joint name="thcmcext_to_thproximalphalanx" type="revolute">
     <parent link="rh_thcmcext"/>
     <child link="rh_thproximalphalanx"/>
-    <origin xyz="0.0 0.251 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.251} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-0.5235987756" upper="1.047197551" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -77,7 +79,7 @@
   <joint name="thmpc_to_thmedialphalanx" type="revolute">
     <parent link="rh_thmpext"/>
     <child link="rh_thmedialphalanx"/>
-    <origin xyz="0.0 0.196 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.196} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-0.2617993878" upper="1.396263402" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -88,7 +90,7 @@
   <joint name="thmedialphalanx_to_thdistalphalanx" type="fixed">
     <parent link="rh_thmedialphalanx"/>
     <child link="rh_thdistalphalanx"/>
-    <origin xyz="0.0 0.158 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.158} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <link name="rh_thtip">
@@ -106,9 +108,9 @@
   </link>
 
   <joint name="palm_to_ffmetacarpal" type="fixed">
-    <parent link="rh_hh_palm"/>
+    <parent link="rh_palm"/>
     <child link="rh_ffmetacarpal"/>
-    <origin xyz="0.0 0.073 0.0541" rpy="0.1438 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.073} ${scale*0.0541}" rpy="0.1438 0.0 0.0"/>
   </joint>
 
   <link name="rh_ffproximalphalanx">
@@ -117,7 +119,7 @@
   <joint name="ffmetacarpal_to_ffproximalphalanx" type="fixed">
     <parent link="rh_ffmetacarpal"/>
     <child link="rh_ffproximalphalanx"/>
-    <origin xyz="0.0 0.3779 0.0" rpy="-0.2618 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.3779} 0.0" rpy="-0.2618 0.0 0.0"/>
   </joint>
 
   <!-- First Finger MPC (2DOF) -->
@@ -149,7 +151,7 @@
   <joint name="ffmpcext_to_ffmedialphalanx" type="revolute">
     <parent link="rh_ffmpcext"/>
     <child link="rh_ffmedialphalanx"/>
-    <origin xyz="0.0 0.2649 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.2649} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.745329252" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -160,7 +162,7 @@
   <joint name="ffmedialphalanx_to_ffdistalphalanx" type="revolute">
     <parent link="rh_ffmedialphalanx"/>
     <child link="rh_ffdistalphalanx"/>
-    <origin xyz="0.0 0.143 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.143} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -171,7 +173,7 @@
   <joint name="ffdistalphalanx_to_fftip" type="fixed">
     <parent link="rh_ffdistalphalanx"/>
     <child link="rh_fftip"/>
-    <origin xyz="0.0 0.097 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.097} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <!-- MIDDLE FINGER -->
@@ -180,9 +182,9 @@
   </link>
 
   <joint name="palm_to_mfmetacarpal" type="fixed">
-    <parent link="rh_hh_palm"/>
+    <parent link="rh_palm"/>
     <child link="rh_mfmetacarpal"/>
-    <origin xyz="0.0 0.073 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.073} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <link name="rh_mfproximalphalanx">
@@ -191,7 +193,7 @@
   <joint name="mfmetacarpal_to_mfproximalphalanx" type="fixed">
     <parent link="rh_mfmetacarpal"/>
     <child link="rh_mfproximalphalanx"/>
-    <origin xyz="0.0 0.377 0.0" rpy="-0.1047 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.377} 0.0" rpy="-0.1047 0.0 0.0"/>
   </joint>
 
 
@@ -224,7 +226,7 @@
   <joint name="mfmpcext_to_mfmedialphalanx" type="revolute">
     <parent link="rh_mfmpcext"/>
     <child link="rh_mfmedialphalanx"/>
-    <origin xyz="0.0 0.2773 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.2773} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.745329252" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -235,7 +237,7 @@
   <joint name="mfmedialphalanx_to_mfdistalphalanx" type="revolute">
     <parent link="rh_mfmedialphalanx"/>
     <child link="rh_mfdistalphalanx"/>
-    <origin xyz="0.0 0.17 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.17} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -246,7 +248,7 @@
   <joint name="mfdistalphalanx_to_mftip" type="fixed">
     <parent link="rh_mfdistalphalanx"/>
     <child link="rh_mftip"/>
-    <origin xyz="0.0 0.108 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.108} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <!-- RING FINGER -->
@@ -255,9 +257,9 @@
   </link>
 
   <joint name="palm_to_rfmetacarpal" type="fixed">
-    <parent link="rh_hh_palm"/>
+    <parent link="rh_palm"/>
     <child link="rh_rfmetacarpal"/>
-    <origin xyz="0.0 0.073 -0.0554" rpy="-0.0981 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.073} ${scale*-0.0554}" rpy="-0.0981 0.0 0.0"/>
   </joint>
 
   <link name="rh_rfcmc">
@@ -277,7 +279,7 @@
   <joint name="rfmetacarpal_to_rfproximalphalanx" type="fixed">
     <parent link="rh_rfcmc"/>
     <child link="rh_rfproximalphalanx"/>
-    <origin xyz="0.0 0.3376 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.3376} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <!-- Ring Finger MPC (2DOF) -->
@@ -309,7 +311,7 @@
   <joint name="rfmpcext_to_rfmedialphalanx" type="revolute">
     <parent link="rh_rfmpcext"/>
     <child link="rh_rfmedialphalanx"/>
-    <origin xyz="0.0 0.2591 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.2591} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.745329252" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -320,7 +322,7 @@
   <joint name="rfmedialphalanx_to_rfdistalphalanx" type="revolute">
     <parent link="rh_rfmedialphalanx"/>
     <child link="rh_rfdistalphalanx"/>
-    <origin xyz="0.0 0.165 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.165} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -331,7 +333,7 @@
   <joint name="rfdistalphalanx_to_rftip" type="fixed">
     <parent link="rh_rfdistalphalanx"/>
     <child link="rh_rftip"/>
-    <origin xyz="0.0 0.107 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.107} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
   <!-- LITTLE FINGER -->
@@ -340,9 +342,9 @@
   </link>
 
   <joint name="palm_to_lfmetacarpal" type="fixed">
-    <parent link="rh_hh_palm"/>
+    <parent link="rh_palm"/>
     <child link="rh_hh_lfmetacarpal"/>
-    <origin xyz="0.0 0.073 -0.0958" rpy="-0.2427 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.073} ${scale*-0.0958}" rpy="-0.2427 0.0 0.0"/>
   </joint>
 
   <link name="rh_lfcmc">
@@ -362,7 +364,7 @@
   <joint name="lfmetacarpal_to_lfproximalphalanx" type="fixed">
     <parent link="rh_lfcmc"/>
     <child link="rh_lfproximalphalanx"/>
-    <origin xyz="0.0 0.3049 0.0" rpy="0.1222 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.3049} 0.0" rpy="0.1222 0.0 0.0"/>
   </joint>
 
   <!-- Little Finger MPC (2DOF) -->
@@ -394,7 +396,7 @@
   <joint name="lfmpcext_to_lfmedialphalanx" type="revolute">
     <parent link="rh_lfmpcext"/>
     <child link="rh_lfmedialphalanx"/>
-    <origin xyz="0.0 0.2059 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.2059} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.745329252" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -405,7 +407,7 @@
   <joint name="lfmedialphalanx_to_lfdistalphalanx" type="revolute">
     <parent link="rh_lfmedialphalanx"/>
     <child link="rh_lfdistalphalanx"/>
-    <origin xyz="0.0 0.117 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.117} 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
   </joint>
@@ -416,7 +418,7 @@
   <joint name="lfdistalphalanx_to_rftip" type="fixed">
     <parent link="rh_lfdistalphalanx"/>
     <child link="rh_lftip"/>
-    <origin xyz="0.0 0.093 0.0" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 ${scale*0.093} 0.0" rpy="0.0 0.0 0.0"/>
   </joint>
 
 </robot>

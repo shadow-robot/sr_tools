@@ -1,0 +1,17 @@
+grasps:
+  large_diameter:
+    rh_thumb:
+      position: [0.103, -0.020, 0.345]
+      orientation: [-0.275, 0.265, -0.651, 0.656]
+    rh_first_finger:
+      position: [0.033, -0.010, 0.438]
+      orientation: [0.000, 0.000, -0.000, 1.000]
+    rh_middle_finger:
+      position: [0.011, -0.010, 0.442]
+      orientation: [0.000, 0.000, -0.000, 1.000]
+    rh_ring_finger:
+      position: [-0.011, -0.010, 0.438]
+      orientation: [0.000, 0.000, -0.000, 1.000]
+    rh_little_finger:
+      position: [-0.033, -0.010, 0.430]
+      orientation: [0.000, 0.000, -0.000, 1.000]

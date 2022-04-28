@@ -25,24 +25,25 @@
   </joint>
 
   <!-- CMC (2 DOF) joint thumb -->
-  <link name="rh_thcmc1">
+  <link name="rh_thcmcadd">
   </link>
 
-  <joint name="thmetacarpal_to_thcmc1" type="revolute">
+  <joint name="thmetacarpal_to_thcmcadd" type="revolute">
     <parent link="rh_thmetacarpal"/>
-    <child link="rh_thcmc1"/>
+    <child link="rh_thcmcadd"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0 0 1"/>
     <limit lower="-0.5235987756" upper="1.047197551" effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="rh_thcmc2">
+  <link name="rh_thcmcext">
   </link>
 
-  <joint name="thcmc1_to_thcmc2" type="revolute">
-    <parent link="rh_thcmc1"/>
-    <child link="rh_thcmc2"/>
+  <joint name="thcmcadd_to_thcmcext" type="revolute">
+    <parent link="rh_thcmcadd"/>
+    <child link="rh_thcmcext"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="1 0 0"/>
     <limit lower="-0.436332313" upper="0.6108652382" effort="1000.0" velocity="0.5"/>
   </joint>
 
@@ -50,20 +51,20 @@
   <link name="rh_thproximalphalanx">
   </link>
 
-  <joint name="thcmc2_to_thproximalphalanx" type="revolute">
-    <parent link="rh_thcmc2"/>
+  <joint name="thcmcext_to_thproximalphalanx" type="revolute">
+    <parent link="rh_thcmcext"/>
     <child link="rh_thproximalphalanx"/>
     <origin xyz="0.0 0.251 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-0.5235987756" upper="1.047197551" effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="rh_thmpc">
+  <link name="rh_thmpext">
   </link>
 
   <joint name="thproximalphalanx_to_thmpc" type="revolute">
     <parent link="rh_thproximalphalanx"/>
-    <child link="rh_thmpc"/>
+    <child link="rh_thmpext"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.1745329252" upper="1.396263402" effort="1000.0" velocity="0.5"/>
@@ -74,7 +75,7 @@
   </link>
 
   <joint name="thmpc_to_thmedialphalanx" type="revolute">
-    <parent link="rh_thmpc"/>
+    <parent link="rh_thmpext"/>
     <child link="rh_thmedialphalanx"/>
     <origin xyz="0.0 0.196 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
@@ -120,23 +121,23 @@
   </joint>
 
   <!-- First Finger MPC (2DOF) -->
-  <link name="rh_ffmpc1">
+  <link name="rh_ffmpcadd">
   </link>
 
-  <joint name="ffmetacarpal_to_ffmpc1" type="revolute">
+  <joint name="ffmetacarpal_to_ffmpcadd" type="revolute">
     <parent link="rh_ffproximalphalanx"/>
-    <child link="rh_ffmpc1"/>
+    <child link="rh_ffmpcadd"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.2617993878" upper="0.7330382858" effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="rh_ffmpc2">
+  <link name="rh_ffmpcext">
   </link>
 
-  <joint name="ffmpc1_to_ffmpc2" type="revolute">
-    <parent link="rh_ffmpc1"/>
-    <child link="rh_ffmpc2"/>
+  <joint name="ffmpcadd_to_ffmpcext" type="revolute">
+    <parent link="rh_ffmpcadd"/>
+    <child link="rh_ffmpcext"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
@@ -145,8 +146,8 @@
   <link name="rh_ffmedialphalanx">
   </link>
 
-  <joint name="ffmpc2_to_ffmedialphalanx" type="revolute">
-    <parent link="rh_ffmpc2"/>
+  <joint name="ffmpcext_to_ffmedialphalanx" type="revolute">
+    <parent link="rh_ffmpcext"/>
     <child link="rh_ffmedialphalanx"/>
     <origin xyz="0.0 0.2649 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
@@ -195,23 +196,23 @@
 
 
   <!-- Middle Finger MPC (2DOF) -->
-  <link name="rh_mfmpc1">
+  <link name="rh_mfmpcadd">
   </link>
 
-  <joint name="mfmetacarpal_to_mfmpc1" type="revolute">
+  <joint name="mfmetacarpal_to_mfmpcadd" type="revolute">
     <parent link="rh_mfproximalphalanx"/>
-    <child link="rh_mfmpc1"/>
+    <child link="rh_mfmpcadd"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.1396263402" upper="0.6108652382" effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="rh_mfmpc2">
+  <link name="rh_mfmpcext">
   </link>
 
-  <joint name="mfmpc1_to_mfmpc2" type="revolute">
-    <parent link="rh_mfmpc1"/>
-    <child link="rh_mfmpc2"/>
+  <joint name="mfmpcadd_to_mfmpcext" type="revolute">
+    <parent link="rh_mfmpcadd"/>
+    <child link="rh_mfmpcext"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
@@ -220,8 +221,8 @@
   <link name="rh_mfmedialphalanx">
   </link>
 
-  <joint name="mfmpc2_to_mfmedialphalanx" type="revolute">
-    <parent link="rh_mfmpc2"/>
+  <joint name="mfmpcext_to_mfmedialphalanx" type="revolute">
+    <parent link="rh_mfmpcext"/>
     <child link="rh_mfmedialphalanx"/>
     <origin xyz="0.0 0.2773 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
@@ -280,23 +281,23 @@
   </joint>
 
   <!-- Ring Finger MPC (2DOF) -->
-  <link name="rh_rfmpc1">
+  <link name="rh_rfmpcadd">
   </link>
 
-  <joint name="rfmetacarpal_to_rfmpc1" type="revolute">
+  <joint name="rfmetacarpal_to_rfmpcadd" type="revolute">
     <parent link="rh_rfproximalphalanx"/>
-    <child link="rh_rfmpc1"/>
+    <child link="rh_rfmpcadd"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.3490658504" upper="0.2443460953" effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="rh_rfmpc2">
+  <link name="rh_rfmpcext">
   </link>
 
-  <joint name="rfmpc1_to_rfmpc2" type="revolute">
-    <parent link="rh_rfmpc1"/>
-    <child link="rh_rfmpc2"/>
+  <joint name="rfmpcadd_to_rfmpcext" type="revolute">
+    <parent link="rh_rfmpcadd"/>
+    <child link="rh_rfmpcext"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
@@ -305,8 +306,8 @@
   <link name="rh_rfmedialphalanx">
   </link>
 
-  <joint name="rfmpc2_to_rfmedialphalanx" type="revolute">
-    <parent link="rh_rfmpc2"/>
+  <joint name="rfmpcext_to_rfmedialphalanx" type="revolute">
+    <parent link="rh_rfmpcext"/>
     <child link="rh_rfmedialphalanx"/>
     <origin xyz="0.0 0.2591 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
@@ -365,23 +366,23 @@
   </joint>
 
   <!-- Little Finger MPC (2DOF) -->
-  <link name="rh_lfmpc1">
+  <link name="rh_lfmpcadd">
   </link>
 
-  <joint name="lfmetacarpal_to_lfmpc1" type="revolute">
+  <joint name="lfmetacarpal_to_lfmpcadd" type="revolute">
     <parent link="rh_lfproximalphalanx"/>
-    <child link="rh_lfmpc1"/>
+    <child link="rh_lfmpcadd"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.6981317008" upper="0.3316125579" effort="1000.0" velocity="0.5"/>
   </joint>
 
-  <link name="rh_lfmpc2">
+  <link name="rh_lfmpcext">
   </link>
 
-  <joint name="lfmpc1_to_lfmpc2" type="revolute">
-    <parent link="rh_lfmpc1"/>
-    <child link="rh_lfmpc2"/>
+  <joint name="lfmpcadd_to_lfmpcext" type="revolute">
+    <parent link="rh_lfmpcadd"/>
+    <child link="rh_lfmpcext"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>
     <limit lower="0.0" upper="1.570796327" effort="1000.0" velocity="0.5"/>
@@ -390,8 +391,8 @@
   <link name="rh_lfmedialphalanx">
   </link>
 
-  <joint name="lfmpc2_to_lfmedialphalanx" type="revolute">
-    <parent link="rh_lfmpc2"/>
+  <joint name="lfmpcext_to_lfmedialphalanx" type="revolute">
+    <parent link="rh_lfmpcext"/>
     <child link="rh_lfmedialphalanx"/>
     <origin xyz="0.0 0.2059 0.0" rpy="0.0 0.0 0.0"/>
     <axis xyz="0 0 1"/>

@@ -44,12 +44,8 @@ class SrAntropomorphicIndex{
         
         moveit::core::RobotModelPtr kinematic_model_;
         moveit::core::RobotStatePtr kinematic_state_;        
-        
 
         bio_ik::BioIKKinematicsQueryOptions kinematic_options_;
-        moveit::core::GroupStateValidityCallbackFn constraint_;  
-
-        
-        
+        moveit::core::GroupStateValidityCallbackFn constraint_;        
 
 };

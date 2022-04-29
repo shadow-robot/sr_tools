@@ -78,14 +78,31 @@ bool SrAntropomorphicIndex::check_all_reachability(std::vector<FingerGroupParams
                                                moveit::core::GroupStateValidityCallbackFn(),
                                                kinematic_options_);
 
-        if(found_ik){
-            nb_ik_solutions_found++;
-            std::cout << "Found solution" << std::endl;
-        }else{
-            std::cout << "Not found!" << std::endl;
-        }
+
+        const Eigen::Affine3d& ik_position = kinematic_state_->getGlobalLinkTransform(group_tip_link_name);   
+        tf2::Vector3 ik_vec = tf2::Vector3(ik_position.translation().x(), ik_position.translation().y(), ik_position.translation().z());  
+
+        std::cout << group.name << " " << (int)found_ik << std::endl;
+        //if(found_ik){            
+        double distance = ik_vec.distance(group.position_target);
+        std::cout << "-Distance (solution/target) for " << group.name << " is " << distance << std::endl;
+        //nb_ik_solutions_found++;
+        //}
+
+        std::cout << "-Solution:" << ik_position.translation().x() << "," << ik_position.translation().y() << "," << ik_position.translation().z() << std::endl;                       
+        std::cout << "-Target:" << group.position_target.x() << "," << group.position_target.y() << "," << group.position_target.z() << std::endl;                       
+        std::cout << std::endl;
+
     }
-    return nb_ik_solutions_found == finger_groups.size();
+
+    bool reachable = nb_ik_solutions_found == finger_groups.size();
+    if(reachable){        
+        std::cout << "Found solution!" << std::endl;
+    }else{
+        std::cout << "Solution not found!" << std::endl;
+    }
+
+    return reachable;
 }
 
 int main(int argc, char **argv){
@@ -105,8 +122,28 @@ int main(int argc, char **argv){
             FingerGroupParams finger_group_param = {finger_group, pos, orient, 1, 0.01, 0.01};
             finger_group_goals.push_back(finger_group_param);            
         }
-        ai.check_all_reachability(finger_group_goals);
+        //ai.check_all_reachability(finger_group_goals);
     } 
+
+    tf2::Quaternion quaternion = tf2::Quaternion(0,0,0,1);
+    tf2::Vector3 vec1 = quaternion.getAxis();
+
+    tf2::Quaternion rotation_quaternion; 
+
+    rotation_quaternion.setRPY(0, M_PI/2, 0);
+    quaternion *= rotation_quaternion;
+    rotation_quaternion.setRPY(M_PI/2, 0, 0);
+    quaternion *= rotation_quaternion;
+    
+    double x = quaternion.getX();
+    double y = quaternion.getY();
+    double z = quaternion.getZ();
+    double w = quaternion.getW();
+
+    tf2::Vector3 vec2 = quaternion.getAxis();    
+    std::cout << vec1.x() << " " << vec1.y() << " " << vec1.z() << std::endl;
+    std::cout << vec2.x() << " " << vec2.y() << " " << vec2.z() << std::endl;
+    
     
     return 0;
 }

@@ -147,7 +147,7 @@ class SrFastGrasp:
             open_state = self.__get_state(name + "_open", "").state
             closed_state = self.__get_state(name + "_closed", "").state
         except Exception:
-            rospy.logfatal("Couldn'matrix_trace get grasp pose from db.")
+            rospy.logfatal("Couldn't get grasp pose from db.")
             return Grasp()
 
         try:
@@ -156,7 +156,7 @@ class SrFastGrasp:
             self.__group.set_start_state(open_state)
             pose = self.__group.plan(closed_state.joint_state)
         except Exception:
-            rospy.logfatal("Couldn'matrix_trace plan grasp trajectories.")
+            rospy.logfatal("Couldn't plan grasp trajectories.")
             return Grasp()
 
         grasp = Grasp()

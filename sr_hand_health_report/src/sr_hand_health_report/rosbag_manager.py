@@ -27,7 +27,7 @@ class RosbagManager:
     def start_log(self):
         if not os.path.exists(self._log_test_directory):
             os.mkdir(self._log_test_directory)
-            with open("{}/README.txt".format(self._log_test_directory), "w+", encoding="ASCII") as log:
+            with open(f"{self._log_test_directory}/README.txt", "w+", encoding="ASCII") as log:
                 log.write("Test")
         os.system(f"rosparam dump {self._log_test_directory}/param_dump.yaml")
 

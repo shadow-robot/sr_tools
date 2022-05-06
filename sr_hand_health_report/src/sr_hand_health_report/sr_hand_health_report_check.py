@@ -218,7 +218,7 @@ class SrHealthReportCheck:
         if control_type == "trajectory":
             rospy.loginfo("Changing trajectory controllers to RUN")
             self.ctrl_helper.change_trajectory_ctrl("run")
-        elif control_type in ["position", "effort"]:
+        elif control_type in ("position", "effort"):
             self.ctrl_helper.change_trajectory_ctrl("stop")
             change_type_msg = ChangeControlType()
             change_type_msg.control_type = ControlType.PWM

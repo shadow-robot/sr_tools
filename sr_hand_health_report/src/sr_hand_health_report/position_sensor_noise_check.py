@@ -47,7 +47,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         test_failed = False
         if joint.joint_name != self._hand_prefix + "_wrj1" and joint.joint_name != self._hand_prefix + "_thj5":
             initial_raw_value = initial_raw_value[-1:]
-        for i, _ in enumerate(initial_raw_value):
+        for index in range(len(initial_raw_value)):
             time = rospy.Time.now() + self._check_duration
             while rospy.Time.now() < time and test_failed is not True:
                 difference = joint.get_raw_sensor_data()[i] - initial_raw_value[i]

@@ -50,7 +50,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         for index in range(len(initial_raw_value)):
             time = rospy.Time.now() + self._check_duration
             while rospy.Time.now() < time and test_failed is not True:
-                difference = joint.get_raw_sensor_data()[i] - initial_raw_value[i]
+                difference = joint.get_raw_sensor_data()[index] - initial_raw_value[index]
                 if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
                     if abs(difference) < NR_OF_BITS_NOISE_WARNING:
                         status = "{} bits noise - CHECK PASSED".format(abs(difference) + 1)

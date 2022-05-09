@@ -13,16 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import absolute_import
-import rospy
 import os
-import datetime
 import subprocess
+import rospy
 
 
-class RosbagManager(object):
+class RosbagManager:
     def __init__(self, log_test_directory):
         self._rosbag_proc = None
         self._log_test_directory = log_test_directory
@@ -31,24 +27,23 @@ class RosbagManager(object):
     def start_log(self):
         if not os.path.exists(self._log_test_directory):
             os.mkdir(self._log_test_directory)
-            f = open("{}/README.txt".format(self._log_test_directory), "w+")
-            f.write("Test")
-            f.close()
-        os.system("rosparam dump {}/param_dump.yaml".format(self._log_test_directory))
+            with open(f"{self._log_test_directory}/README.txt", "w+", encoding="ASCII") as log:
+                log.write("Test")
+        os.system(f"rosparam dump {self._log_test_directory}/param_dump.yaml")
 
     def record_bag(self, log_test_directory, bag_name):
         """
         Start data logging in folder and with test description
         """
-        rospy.loginfo("Loggin data in {} in {} bag file".format(log_test_directory, bag_name))
+        rospy.loginfo(f"Loggin data in {log_test_directory} in {bag_name} bag file")
 
         os.system("killall rosbag")
         os.system("killall rostopic")
         try:
-            self._rosbag_proc = subprocess.Popen(['rosbag record  \
-                -O {}/{} -a __name:=bag_node'.format(log_test_directory, bag_name)], shell=True)
+            self._rosbag_proc = subprocess.Popen([f'rosbag record  \
+                -O {log_test_directory}/{bag_name} -a __name:=bag_node'], shell=True)  # pylint: disable=R1732
             rospy.sleep(2.0)  # give time to record to start
-        except OSError as e:
+        except OSError:
             rospy.logerr("Could not start rosbag record")
             self._rosbag_proc.kill()
 
@@ -56,12 +51,12 @@ class RosbagManager(object):
         """
         Start playing a rosbg in a given folder
         """
-        rospy.loginfo("Playing rosbag {}/{}".format(log_test_directory, bag_name))
+        rospy.loginfo(f"Playing rosbag {log_test_directory}/{bag_name}")
 
         try:
-            self._rosbag_proc = subprocess.Popen(['rosbag play -q {}/{} \
-                --clock'.format(log_test_directory, bag_name)], shell=True)
-        except OSError as e:
+            self._rosbag_proc = subprocess.Popen([f'rosbag play -q {log_test_directory}/{bag_name} \
+                --clock'], shell=True)  # pylint: disable=R1732
+        except OSError:
             rospy.logerr("Could not play rosbag")
             self._rosbag_proc.kill()
 

@@ -17,7 +17,6 @@
 '''
 3d mouse tester module
 '''
-from __future__ import absolute_import, division
 import unittest
 import actionlib
 import rospy

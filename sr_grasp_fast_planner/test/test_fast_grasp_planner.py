@@ -1,6 +1,6 @@
 #!/usr/bin/env python 3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,12 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from builtins import round
 
 from math import log10, floor
 from unittest import TestCase
-
+import rostest
 import rospy
 from sr_robot_msgs.srv import GetFastGraspFromBoundingBox \
     as GetGrasp
@@ -27,8 +26,8 @@ from shape_msgs.msg import SolidPrimitive
 from geometry_msgs.msg import PoseStamped
 
 
-def round_sig(x, sig):
-    return round(x, sig-int(floor(log10(x)))-1)
+def round_sig(val, sig):
+    return round(val, sig-int(floor(log10(val)))-1)
 
 
 class TestFastGraspPlanner(TestCase):
@@ -47,6 +46,7 @@ class TestFastGraspPlanner(TestCase):
     #         pass
 
     def make_box_and_pose(self):
+        # pylint: disable=R0201
         pose = PoseStamped()
         pose.pose.position.x = 0.5
         pose.pose.position.y = 0.5
@@ -86,8 +86,6 @@ class TestFastGraspPlanner(TestCase):
 
 
 if __name__ == '__main__':
-    import rostest
-
     rospy.sleep(20)
 
     # rostest.rosrun("test_service_running",

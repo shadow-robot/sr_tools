@@ -1,6 +1,6 @@
 #!/usr/bin/env python 3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,71 +14,70 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import, division
-import numpy
 from copy import deepcopy
-
+import math
+import numpy
 import rospy
 from shape_msgs.msg import SolidPrimitive
 from visualization_msgs.msg import Marker
 from sr_robot_msgs.srv import GetFastGraspFromBoundingBox
-from moveit_msgs.msg import Grasp
 from moveit_commander import MoveGroupCommander
+from moveit_msgs.msg import Grasp
 from moveit_msgs.srv import GetRobotStateFromWarehouse as GetState
 from moveit_msgs.srv import GetPositionIK
 
 
-def quaternion_from_matrix(matrix, isprecise=False):
-    M = numpy.array(matrix, dtype=numpy.float64, copy=False)[:4, :4]
+def quaternion_from_matrix(input_matrix, isprecise=False):
+    matrix = numpy.array(input_matrix, dtype=numpy.float64, copy=False)[:4, :4]
     if isprecise:
-        q = numpy.empty((4, ))
-        t = numpy.trace(M)
-        if t > M[3, 3]:
-            q[0] = t
-            q[3] = M[1, 0] - M[0, 1]
-            q[2] = M[0, 2] - M[2, 0]
-            q[1] = M[2, 1] - M[1, 2]
+        quaternion = numpy.empty((4, ))
+        matrix_trace = numpy.trace(matrix)
+        if matrix_trace > matrix[3, 3]:
+            quaternion[0] = matrix_trace
+            quaternion[3] = matrix[1, 0] - matrix[0, 1]
+            quaternion[2] = matrix[0, 2] - matrix[2, 0]
+            quaternion[1] = matrix[2, 1] - matrix[1, 2]
         else:
             i, j, k = 1, 2, 3
-            if M[1, 1] > M[0, 0]:
+            if matrix[1, 1] > matrix[0, 0]:
                 i, j, k = 2, 3, 1
-            if M[2, 2] > M[i, i]:
+            if matrix[2, 2] > matrix[i, i]:
                 i, j, k = 3, 1, 2
-            t = M[i, i] - (M[j, j] + M[k, k]) + M[3, 3]
-            q[i] = t
-            q[j] = M[i, j] + M[j, i]
-            q[k] = M[k, i] + M[i, k]
-            q[3] = M[k, j] - M[j, k]
-        q *= 0.5 / math.sqrt(t * M[3, 3])
+            matrix_trace = matrix[i, i] - (matrix[j, j] + matrix[k, k]) + matrix[3, 3]
+            quaternion[i] = matrix_trace
+            quaternion[j] = matrix[i, j] + matrix[j, i]
+            quaternion[k] = matrix[k, i] + matrix[i, k]
+            quaternion[3] = matrix[k, j] - matrix[j, k]
+        quaternion *= 0.5 / math.sqrt(matrix_trace * matrix[3, 3])
     else:
-        m00 = M[0, 0]
-        m01 = M[0, 1]
-        m02 = M[0, 2]
-        m10 = M[1, 0]
-        m11 = M[1, 1]
-        m12 = M[1, 2]
-        m20 = M[2, 0]
-        m21 = M[2, 1]
-        m22 = M[2, 2]
-        # symmetric matrix K
-        K = numpy.array([[m00-m11-m22, 0.0,         0.0,         0.0],
-                         [m01+m10,     m11-m00-m22, 0.0,         0.0],
-                         [m02+m20,     m12+m21,     m22-m00-m11, 0.0],
-                         [m21-m12,     m02-m20,     m10-m01,     m00+m11+m22]])
-        K /= 3.0
-        # quaternion is eigenvector of K that corresponds to largest eigenvalue
-        w, V = numpy.linalg.eigh(K)
-        q = V[[3, 0, 1, 2], numpy.argmax(w)]
-    if q[0] < 0.0:
-        numpy.negative(q, q)
-    return q
+        m00 = matrix[0, 0]
+        m01 = matrix[0, 1]
+        m02 = matrix[0, 2]
+        m10 = matrix[1, 0]
+        m11 = matrix[1, 1]
+        m12 = matrix[1, 2]
+        m20 = matrix[2, 0]
+        m21 = matrix[2, 1]
+        m22 = matrix[2, 2]
+        # symmetric matrix
+        sym_matrix = numpy.array([[m00-m11-m22, 0.0,         0.0,         0.0],
+                                  [m01+m10,     m11-m00-m22, 0.0,         0.0],
+                                  [m02+m20,     m12+m21,     m22-m00-m11, 0.0],
+                                  [m21-m12,     m02-m20,     m10-m01,     m00+m11+m22]])
+        sym_matrix /= 3.0
+        # quaternion is eigenvector of sym_matrix that corresponds to largest eigenvalue
+        eigh_val, eigh_matrix = numpy.linalg.eigh(sym_matrix)
+        quaternion = eigh_matrix[[3, 0, 1, 2], numpy.argmax(eigh_val)]
+    if quaternion[0] < 0.0:
+        numpy.negative(quaternion, quaternion)
+    return quaternion
 
 
 class SrFastGrasp:
     def __init__(self):
         self.__marker_pub = rospy.Publisher("visualization_marker",
                                             Marker, queue_size=1)
-        self.__grasp_server = rospy.Service("grasp_from_bounding_box",
+        self.__grasp_server = rospy.Service("grasp_from_bounding_box",  # pylint: disable=W0238
                                             GetFastGraspFromBoundingBox,
                                             self.__bounding_box_cb)
         self.__default_grasp = 'super_amazing_grasp'
@@ -89,43 +88,42 @@ class SrFastGrasp:
         arm_group = rospy.get_param("~arm_group", "right_arm")
 
         self.__group = MoveGroupCommander(hand_group)
-        self.__arm_g = MoveGroupCommander(arm_group)
-        self.__ik = rospy.ServiceProxy("compute_ik", GetPositionIK)
+        self.__arm_g = MoveGroupCommander(arm_group)  # pylint: disable=W0238
+        self.__ik = rospy.ServiceProxy("compute_ik", GetPositionIK)  # pylint: disable=W0238
 
     def __modify_grasp_pose(self, grasp, pose):
+        # pylint: disable=R0201
         """
         Aligns grasp with axis from origin to center of object.
         A crude way to make a vaguely sane orientation for the hand
         that seems to more or less work.
         """
 
-        v1 = numpy.array([pose.pose.position.x,
-                          pose.pose.position.y,
-                          pose.pose.position.z])
-        v1_length = numpy.linalg.norm(v1)
+        val1 = numpy.array([pose.pose.position.x,
+                            pose.pose.position.y,
+                            pose.pose.position.z])
+        val1_length = numpy.linalg.norm(val1)
 
-        v1 = v1/v1_length
+        val1 = val1/val1_length
 
-        v2 = [1, 0, -v1[0]/v1[2]]
-        v2 = v2/numpy.linalg.norm(v2)
+        val2 = [1, 0, -val1[0]/val1[2]]
+        val2 = val2/numpy.linalg.norm(val2)
 
-        v3 = numpy.cross(v1, v2)
-        v3 = v3/numpy.linalg.norm(v3)
+        val3 = numpy.cross(val1, val2)
+        val3 = val3/numpy.linalg.norm(val3)
 
-        m = [
-            [v3[0], v1[0], v2[0]],
-            [v3[1], v1[1], v2[1]],
-            [v3[2], v1[2], v2[2]]
+        matrix = [
+            [val3[0], val1[0], val2[0]],
+            [val3[1], val1[1], val2[1]],
+            [val3[2], val1[2], val2[2]]
         ]
 
-        q = quaternion_from_matrix(m)
-
+        quaternion = quaternion_from_matrix(matrix)
         grasp.grasp_pose = deepcopy(pose)
-
-        grasp.grasp_pose.pose.orientation.x = q[0]
-        grasp.grasp_pose.pose.orientation.y = q[1]
-        grasp.grasp_pose.pose.orientation.z = q[2]
-        grasp.grasp_pose.pose.orientation.w = q[3]
+        grasp.grasp_pose.pose.orientation.x = quaternion[0]
+        grasp.grasp_pose.pose.orientation.y = quaternion[1]
+        grasp.grasp_pose.pose.orientation.z = quaternion[2]
+        grasp.grasp_pose.pose.orientation.w = quaternion[3]
 
     def __bounding_box_cb(self, request):
         box = request.bounding_box
@@ -174,16 +172,16 @@ class SrFastGrasp:
 
         return grasp
 
-    def __get_major_axis(self, box):
-        m = max(box.dimensions)
-        max_index = [i for i, j in enumerate(box.dimensions) if j == m]
+    def __get_major_axis(self, box):  # pylint: disable=W0238,R0201
+        max_box = max(box.dimensions)
+        max_index = [i for i, j in enumerate(box.dimensions) if j == max_box]
         return max_index[-1]  # Get the LAST axis with max val.
 
     def __send_marker_to_rviz(self, box, pose):
         marker = self.__get_marker_from_box(box, pose)
         self.__marker_pub.publish(marker)
 
-    def __get_marker_from_box(self, box, pose):
+    def __get_marker_from_box(self, box, pose):  # pylint: disable=R0201
         marker = Marker()
         marker.pose = pose.pose
         marker.header.frame_id = pose.header.frame_id
@@ -204,7 +202,7 @@ class SrFastGrasp:
         return marker
 
 
-if "__main__" == __name__:
+if __name__ == "__main__":
     rospy.init_node('sr_fast_grasp')
-    grasp = SrFastGrasp()
+    grasp_class = SrFastGrasp()
     rospy.spin()

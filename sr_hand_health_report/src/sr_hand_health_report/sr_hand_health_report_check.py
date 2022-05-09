@@ -13,20 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import absolute_import
-import rospy
-import os
-from controller_manager_msgs.srv import ListControllers
-from controller_manager_msgs.srv import SwitchController, LoadController, UnloadController
-from sensor_msgs.msg import JointState
-from std_msgs.msg import Float64
-from sr_robot_commander.sr_hand_commander import SrHandCommander
-from std_srvs.srv import SetBool
 from collections import OrderedDict
-from sr_robot_msgs.msg import EthercatDebug
+from std_msgs.msg import Float64
+import rospy
+from sensor_msgs.msg import JointState
 from sr_controllers_tools.sr_controller_helper import ControllerHelper
+from sr_robot_msgs.msg import EthercatDebug
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
 
@@ -36,18 +28,18 @@ SENSOR_CUTOUT_THRESHOLD = 200
 NR_OF_BITS_NOISE_WARNING = 3
 
 
-class Finger(object):
+class Finger:
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
         self.joints_dict = OrderedDict()
 
     def move_finger(self, command, control_type):
-        for j in self.joints_dict.values():
-            j.move_joint(command, control_type)
+        for joint in self.joints_dict.values():
+            joint.move_joint(command, control_type)
 
 
-class Joint(object):
+class Joint:
     def __init__(self, hand_prefix, finger_name, joint_index):
         self._finger_name = finger_name
         self.joint_index = joint_index
@@ -72,13 +64,25 @@ class Joint(object):
         self._current_position = float()
 
     def move_joint(self, command, control_type):
-        if control_type is "effort":
+        if control_type == "effort":
             self._pwm_command_publisher.publish(command)
-        elif control_type is "position":
+        elif control_type == "position":
             self._position_command_publisher.publish(command)
 
+    def set_current_position(self, new_position):
+        self._current_position = new_position
 
-class SrHealthReportCheck(object):
+    def get_current_position(self):
+        return self._current_position
+
+    def set_raw_sensor_data(self, new_raw_sensor_data):
+        self._raw_sensor_data = new_raw_sensor_data
+
+    def get_raw_sensor_data(self):
+        return self._raw_sensor_data
+
+
+class SrHealthReportCheck:
     def __init__(self, hand_side, fingers_to_test):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
@@ -118,7 +122,7 @@ class SrHealthReportCheck(object):
 
     def _init_map_finger_joints(self):
         fingers_to_joint_map = OrderedDict()
-        for joint in self._joint_msg.name:
+        for joint in self._joint_msg.name:  # pylint: disable=E1101
             finger_name = joint[3:-2]
             if finger_name not in fingers_to_joint_map:
                 fingers_to_joint_map[finger_name] = []
@@ -168,8 +172,8 @@ class SrHealthReportCheck(object):
         if "TH" in self._fingers_to_joint_map:
             for joint_index in self._fingers_to_joint_map["TH"]:
                 if joint_index == "J5":
-                    for s in range(0, 2):
-                        name_to_append = self._hand_prefix + "_TH" + joint_index + "_{}".format(s)
+                    for iteration in range(0, 2):
+                        name_to_append = self._hand_prefix + "_TH" + joint_index + f"_{iteration}"
                         raw_sensor_names_list.append(name_to_append.lower())
                 else:
                     name_to_append = self._hand_prefix + "_TH" + joint_index
@@ -177,8 +181,8 @@ class SrHealthReportCheck(object):
         if "WR" in self._fingers_to_joint_map:
             for joint_index in self._fingers_to_joint_map["WR"]:
                 if joint_index == "J1":
-                    for s in range(0, 2):
-                        name_to_append = self._hand_prefix + "_WR" + joint_index + "_{}".format(s)
+                    for iteration in range(0, 2):
+                        name_to_append = self._hand_prefix + "_WR" + joint_index + f"_{iteration}"
                         raw_sensor_names_list.append(name_to_append.lower())
                 else:
                     name_to_append = self._hand_prefix + "_WR" + joint_index
@@ -190,7 +194,7 @@ class SrHealthReportCheck(object):
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
                 if joint.joint_name == sensor_msg.name[count].lower():
-                    joint._current_position = sensor_msg.position[count]
+                    joint.set_current_position(sensor_msg.position[count])
                 count += 1
 
     def _raw_data_sensor_callback(self, ethercat_data):
@@ -208,18 +212,18 @@ class SrHealthReportCheck(object):
                     raw_sensor_data_list.append(self._raw_sensor_data_map[self._hand_prefix + '_wrj1_1'])
                 else:
                     raw_sensor_data_list.insert(0, self._raw_sensor_data_map[joint.joint_name])
-                joint._raw_sensor_data = raw_sensor_data_list
+                joint.set_raw_sensor_data(raw_sensor_data_list)
 
     def switch_controller_mode(self, control_type):
-        if control_type is "trajectory":
+        if control_type == "trajectory":
             rospy.loginfo("Changing trajectory controllers to RUN")
             self.ctrl_helper.change_trajectory_ctrl("run")
-        elif control_type is "position" or control_type is "effort":
+        elif control_type in ("position", "effort"):
             self.ctrl_helper.change_trajectory_ctrl("stop")
             change_type_msg = ChangeControlType()
             change_type_msg.control_type = ControlType.PWM
             self.ctrl_helper.change_force_ctrl_type(change_type_msg)
-            rospy.loginfo("Changing controllers to: %s", control_type)
+            rospy.loginfo(f"Changing controllers to: {control_type}")
             self.ctrl_helper.change_hand_ctrl(control_type)
 
     def drive_joint_to_position(self, joint, command):
@@ -227,9 +231,9 @@ class SrHealthReportCheck(object):
         joint.move_joint(command, "position")
         self.switch_controller_mode("effort")
 
-    def drive_joint_with_pwm(self, joint, command, duration, rate):
+    def drive_joint_with_pwm(self, joint, command, duration, rate):  # pylint: disable=R0201
         now = rospy.Time.now()
-        while (rospy.Time.now() < now + rospy.Duration(duration)):
+        while rospy.Time.now() < now + rospy.Duration(duration):
             joint.move_joint(command, "effort")
             rate.sleep()
         joint.move_joint(0, "effort")

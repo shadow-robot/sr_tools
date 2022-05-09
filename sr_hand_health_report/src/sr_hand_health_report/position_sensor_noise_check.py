@@ -14,17 +14,17 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import rospy
 from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
 
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
-        super(PositionSensorNoiseCheck, self).__init__(hand_side, fingers_to_test)
+        super().__init__(hand_side, fingers_to_test)
         self._check_duration = rospy.Duration(5.0)
-        self._shared_dict = dict()
+        self._shared_dict = {}
         self._publishing_rate = rospy.Rate(200)
+        self._initial_raw_value = None
 
     def run_check(self):
         result = {"position_sensor_noise_check": []}
@@ -35,7 +35,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
             rospy.loginfo("collecting and analyzing data for FINGER {}".format(finger.finger_name))
             for joint in finger.joints_dict.values():
                 rospy.loginfo("collecting and analyzing data for JOINT {}".format(joint.joint_name))
-                self._initial_raw_value = joint._raw_sensor_data
+                self._initial_raw_value = joint.get_raw_sensor_data()
                 self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
         result["position_sensor_noise_check"].append(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
@@ -43,14 +43,13 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     def check_joint_raw_sensor_value(self, initial_raw_value, joint, dictionary):
         status = ""
-        warning = False
         test_failed = False
         if joint.joint_name != self._hand_prefix + "_wrj1" and joint.joint_name != self._hand_prefix + "_thj5":
             initial_raw_value = initial_raw_value[-1:]
-        for i, value in enumerate(initial_raw_value):
+        for index in range(len(initial_raw_value)):
             time = rospy.Time.now() + self._check_duration
             while rospy.Time.now() < time and test_failed is not True:
-                difference = joint._raw_sensor_data[i] - initial_raw_value[i]
+                difference = joint.get_raw_sensor_data()[index] - initial_raw_value[index]
                 if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
                     if abs(difference) < NR_OF_BITS_NOISE_WARNING:
                         status = "{} bits noise - CHECK PASSED".format(abs(difference) + 1)

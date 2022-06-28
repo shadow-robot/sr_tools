@@ -23,6 +23,6 @@
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>sr_description</exec_depend>
   <exec_depend>sr_edc_launch</exec_depend>
-  <exec_depend>sr_ethercat_hand_config</exec_depend>
+  <exec_depend>sr_hand_config</exec_depend>
 
 </package>

@@ -37,7 +37,7 @@ If you can't open the link or if you have any doubts about this process, contact
 In order to run the script, first run the hand with the following command:
 
 ```
-roslaunch sr_ethercat_hand_hand_health_report sr_hand.launch
+roslaunch sr_hand_health_report sr_hand.launch
 ```
 
 This launch file will run the driver and load the required PWM controllers.

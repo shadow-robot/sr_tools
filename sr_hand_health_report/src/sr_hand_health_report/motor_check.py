@@ -13,22 +13,18 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-from builtins import round
 import sys
-import yaml
 import rospy
-import rospkg
 from sr_hand_health_report_check import SrHealthReportCheck
 from sr_hand_health_report.position_sensor_noise_check import PositionSensorNoiseCheck
 from diagnostic_msgs.msg import DiagnosticArray
-import numpy as np
 
 
 class MotorCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
-        self._results = dict()
+        self._results = {}
         try:
             self._hand_serial = rospy.get_param('/hand_side/hand_serial')
         except KeyError:
@@ -48,8 +44,7 @@ class MotorCheck(SrHealthReportCheck):
                         if item.value == "Motor error":
                             working_state = False
                         result['motor_check'].append(dict({motor_name: working_state}))
-        except Exception as e:
-            rospy.logerr(e)
+        except Exception:
             rospy.logerr(f"Did not receive any message on {self._topic_name} topic")
         return result
 
@@ -57,4 +52,4 @@ class MotorCheck(SrHealthReportCheck):
 if __name__ == "__main__":
     rospy.init_node('motor_check_node')
     motor_check = MotorCheck("left", "[FF, MF, RF, LF, TH, WR]")
-    result = motor_check.run_check()
+    motor_check.run_check()

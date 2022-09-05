@@ -16,7 +16,6 @@
 import sys
 import rospy
 from sr_hand_health_report_check import SrHealthReportCheck
-from sr_hand_health_report.position_sensor_noise_check import PositionSensorNoiseCheck
 from diagnostic_msgs.msg import DiagnosticArray
 
 

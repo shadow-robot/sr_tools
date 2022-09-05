@@ -21,6 +21,7 @@ import rospy
 import rospkg
 from monotonicity_check import MonotonicityCheck
 from position_sensor_noise_check import PositionSensorNoiseCheck
+from motor_check import MotorCheck
 from rosbag_manager import RosbagManager
 from sr_system_info.system_info import SystemInfo
 from sr_hand_health_report.msg import CheckStatus
@@ -92,6 +93,14 @@ class HealthReportScriptNode:
         position_sensor_noise_results = position_sensor_noise_check.run_check()
         return position_sensor_noise_results
 
+    def run_motor_check(self, publish_state=True):
+        check_name = "motor_check"
+        if publish_state:
+            self._publish_check_status(check_name)
+        motor_check = MotorCheck(args.hand_side, self._fingers_to_test)
+        motor_test_results = motor_check.run_check()
+        return motor_test_results
+
     def write_results_to_file(self, filename=None):
         if filename is None:
             filename = self._results_path
@@ -121,9 +130,12 @@ class HealthReportScriptNode:
             if check == "monotonicity_check":
                 monotonic_test_results = self.run_monotonicity_check(publish_state=False)
                 self._results["checks"].append(monotonic_test_results)
-            if check == "position_sensor_noise_check":
+            elif check == "position_sensor_noise_check":
                 position_sensor_noise_results = self.run_position_sensor_noise_check(publish_state=False)
                 self._results["checks"].append(position_sensor_noise_results)
+            elif check == "motor_check":
+                motor_test_results = self.run_motor_check(publish_state=False)
+                self._results["checks"].append(motor_test_results)
             else:
                 rospy.logwarn("{} not FOUND".format(check))
         self.write_results_to_file()

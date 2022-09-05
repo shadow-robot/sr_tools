@@ -30,7 +30,7 @@ class MotorCheck(SrHealthReportCheck):
         self._topic_name = '/diagnostics_agg'
         self._results = dict()
         try:
-            self._hand_serial = rospy.get_param('/hand_side/hand_serial') #, 111) 
+            self._hand_serial = rospy.get_param('/hand_side/hand_serial')
         except KeyError:
             rospy.logerr("Hand serial not registered in parameter server")
             sys.exit(1)

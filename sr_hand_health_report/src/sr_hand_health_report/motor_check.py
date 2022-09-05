@@ -47,7 +47,7 @@ class MotorCheck(SrHealthReportCheck):
                         working_state = True
                         if item.value == "Motor error":
                             working_state = False
-                        result['motor_check'].append(dict({motor_name : working_state}))                
+                        result['motor_check'].append(dict({motor_name: working_state}))
         except Exception as e:
             rospy.logerr(e)
             rospy.logerr(f"Did not receive any message on {self._topic_name} topic")
@@ -56,5 +56,5 @@ class MotorCheck(SrHealthReportCheck):
 
 if __name__ == "__main__":
     rospy.init_node('motor_check_node')
-    motor_check = MotorCheck("left", "[FF, MF, RF, LF, TH, WR]")  
+    motor_check = MotorCheck("left", "[FF, MF, RF, LF, TH, WR]")
     result = motor_check.run_check()

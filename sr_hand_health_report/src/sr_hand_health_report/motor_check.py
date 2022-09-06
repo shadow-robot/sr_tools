@@ -23,12 +23,6 @@ class MotorCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
-        self._results = {}
-        try:
-            self._hand_serial = rospy.get_param('/hand_side/hand_serial')
-        except KeyError:
-            rospy.logerr("Hand serial not registered in parameter server")
-            sys.exit(1)
 
     def run_check(self):
         result = {"motor_check": []}
@@ -46,9 +40,3 @@ class MotorCheck(SrHealthReportCheck):
         except Exception:
             rospy.logerr(f"Did not receive any message on {self._topic_name} topic")
         return result
-
-
-if __name__ == "__main__":
-    rospy.init_node('motor_check_node')
-    motor_check = MotorCheck("left", "[FF, MF, RF, LF, TH, WR]")
-    motor_check.run_check()

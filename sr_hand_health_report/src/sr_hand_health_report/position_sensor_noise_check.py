@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
+from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
 
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):
@@ -39,6 +39,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
         result["position_sensor_noise_check"].append(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
+        self._result = result
         return result
 
     def check_joint_raw_sensor_value(self, initial_raw_value, joint, dictionary):
@@ -68,3 +69,6 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
             else:
                 name = joint.joint_name + "_1"
                 dictionary[name] = status
+
+    def has_passed(self):
+        return all(result for result in self._result.values())

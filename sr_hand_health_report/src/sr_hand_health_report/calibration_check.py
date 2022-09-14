@@ -19,8 +19,7 @@ import yaml
 import rospy
 import rospkg
 from sr_hand_health_report_check import SrHealthReportCheck
-from sr_hand_health_report.position_sensor_noise_check import PositionSensorNoiseCheck
-from diagnostic_msgs.msg import DiagnosticArray
+from sr_robot_lib.etherCAT_hand_lib import EtherCAT_Hand_Lib
 import numpy as np
 
 ZERO_JOINT_ANGLE_THRESHOLD = 0.07  # in radian
@@ -28,17 +27,22 @@ ZERO_JOINT_ANGLE_THRESHOLD = 0.07  # in radian
 
 class CalibrationCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
-        #super().__init__(hand_side, fingers_to_test)
+        super().__init__(hand_side, fingers_to_test)
 
         try:
-            self._hand_serial = rospy.get_param("~hand_serial", 2346)
+            self._hand_serial = rospy.get_param(f"/sr_hand_robot/{hand_side[0]}h/hand_serial")
+
         except Exception:
             rospy.logerr("No hand connected!")
             sys.exit(1)
 
+        self.robot_lib = EtherCAT_Hand_Lib()
+        self.robot_lib.activate()
+
         self.calibration = self.load_calibration()
-        rospy.logwarn(self.calibration)
         self.set_fingers_to_zero()
+        rospy.sleep(1)
+        self.move_fingers_to_right()
 
     def load_calibration(self):
         calibration_dict = {}
@@ -54,33 +58,48 @@ class CalibrationCheck(SrHealthReportCheck):
                 calibration_angle = calibration_point[1]
                 calibration_raw_value = calibration_point[0]
                 calibration_dict[joint][str(calibration_angle)] = calibration_raw_value
-
         return calibration_dict
 
     def set_fingers_to_zero(self):
+        self.switch_controller_mode("position")
+        #rospy.logwarn(self.ctrl_helper.change_hand_ctrl("position")) 
         success = True
         for finger in self.fingers_to_check:
-            for joint in finger.joints_dict.values():
-                self.drive_joint_to_position(joint, 0)
-            rospy.sleep(2)
+            finger.move_finger(0.0, "position")
             for joint in finger.joints_dict.values():
                 if not -ZERO_JOINT_ANGLE_THRESHOLD < joint.get_current_position() < ZERO_JOINT_ANGLE_THRESHOLD:
                     success = False
-                    break
+                    #break
+        return success
+    
+    def move_fingers_to_right(self):
+        self.switch_controller_mode("position")
+        success = True
+        for finger in self.fingers_to_check:
+            for joint in finger.joints_dict.values():
+                if "j4" in joint.joint_name:
+                    joint.move_joint(20.0, "position")
+                #if not -ZERO_JOINT_ANGLE_THRESHOLD < joint.get_current_position() < ZERO_JOINT_ANGLE_THRESHOLD:
+                    #success = False
+                    #break
         return success
 
     def run_check(self):
-        rospy.logwarn(self.fingers_to_check)
+        
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
         return 
 
     def _run_check_per_finger(self, finger):
+        self.switch_controller_mode("position")
+        finger.joints_dict[finger.finger_name].
+        joint_position = {}
         for joint in finger.joints_dict.values():
+            rospy.logwarn(joint.joint_name)
             if finger.finger_name == "wr":
-                command = 350
-            else:
                 command = 250
+            else:
+                command = 150
             
             joint_name = finger.finger_name + joint.joint_index
             extend_command = self.command_sign_map[joint_name]*command
@@ -88,11 +107,14 @@ class CalibrationCheck(SrHealthReportCheck):
 
             time = 5  # 5 seconds
             rate = rospy.Rate(50)  # 50 Herz
-            joint_position = {}
+            joint_position[joint.joint_name] = {}
             self.drive_joint_with_pwm(joint, extend_command, time, rate)
-            joint_position['extend'] = joint.get_current_position()
+            joint_suffix = (joint.joint_name.split('_')[1]).upper()
+            joint_position[joint.joint_name]['extend'] = self.robot_lib.get_raw_value(joint_suffix)
             self.drive_joint_with_pwm(joint, flex_command, time, rate)
-            joint_position['flex'] = joint.get_current_position()
+            joint_position[joint.joint_name]['flex'] = self.robot_lib.get_raw_value(joint_suffix)
+
+        rospy.logwarn(joint_position)
 
 
 if __name__ == "__main__":

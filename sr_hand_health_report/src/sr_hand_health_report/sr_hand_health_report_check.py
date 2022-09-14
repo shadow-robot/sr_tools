@@ -86,6 +86,7 @@ class SrHealthReportCheck:
     def __init__(self, hand_side, fingers_to_test):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
+        self._result = None
 
         self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
         self._fingers_to_joint_map = self._init_map_finger_joints()
@@ -237,3 +238,9 @@ class SrHealthReportCheck:
             joint.move_joint(command, "effort")
             rate.sleep()
         joint.move_joint(0, "effort")
+
+    def get_result(self):
+        return self._result
+    
+    def has_passed(self):
+        raise NotImplementedError("The function 'has_passed' must be implemented")

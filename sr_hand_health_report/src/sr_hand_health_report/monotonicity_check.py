@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 from builtins import round
 import rospy
-from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
+from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
 import numpy as np
 
 SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
@@ -42,7 +42,9 @@ class MonotonicityCheck(SrHealthReportCheck):
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
 
-        result["monotonicity_check"].append(self._dict_of_monotonic_joints)
+        result["monotonicity_check"] = self._dict_of_monotonic_joints
+        self._result = result
+        rospy.logwarn(result)
         rospy.loginfo("Monotonicity Check finished, exporting results")
         return result
 
@@ -149,6 +151,18 @@ class MonotonicityCheck(SrHealthReportCheck):
                 limit_reached = True
         return limit_reached
 
+    def get_result(self):
+        return self._result
+
+    def has_passed(self):
+        passed = True
+        rospy.logwarn(self._result)
+        for joint_result in self._result['monotonicity_check'].keys():
+            if not self._result['monotonicity_check'][joint_result]['is_monotonic']:
+                passed = False
+                break
+        return passed
+
 
 def check_sensor_range(first_sensor_value, second_sensor_value):
     """
@@ -163,7 +177,6 @@ def check_sensor_range(first_sensor_value, second_sensor_value):
         higher_value = second_sensor_value
         lower_value = first_sensor_value
     return higher_value, lower_value
-
 
 def get_raw_sensor_value(data):
     return sum(data) / len(data)

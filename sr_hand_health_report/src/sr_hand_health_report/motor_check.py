@@ -27,22 +27,28 @@ class MotorCheck(SrHealthReportCheck):
 
     def run_check(self):
         result = {"motor_check": []}
-        #rospy.logwarn("--starting check")
+
         try:
             received_msg = rospy.wait_for_message(self._topic_name, DiagnosticArray, 5)
         except rospy.ROSException:
             rospy.logerr(f"Did not receive any message on {self._topic_name} topic")
+            self._result = result
+            return result
 
-        #rospy.logwarn("--got message")
-        for message in received_msg.status:
-            for item in message.values:
-                if "SRDMotor" in item.key and self._hand_prefix in item.key:
-                    split_motor_description_line = item.key.split(' ')
-                    motor_name = f"{split_motor_description_line[0]}_{split_motor_description_line[-1]}".lower()
-                    working_state = True
-                    if item.value == "Motor error":
-                        working_state = False
-                    result['motor_check'].append(dict({motor_name: working_state}))
+        for j, message in enumerate(received_msg.status):
+            if "SRDMotor" in message.name and self._hand_prefix in message.name and \
+               "No motor associated to this joint" not in message.message:
+                working_state = False
+                motor_description_line = message.name.split("/")[-1]
+                split_motor_description_line = motor_description_line.split(' ')
+                motor_name = f"{split_motor_description_line[0]}_{split_motor_description_line[-1]}".lower()
+                for item in message.values:
+                    if "Temperature" in item.key:
+                        working_state = True
+                        break
+                rospy.logwarn({motor_name: working_state})
+                result['motor_check'].append(dict({motor_name: working_state}))
+
         self._result = result
         return result
 

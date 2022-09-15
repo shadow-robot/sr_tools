@@ -39,14 +39,12 @@ class MotorCheck(SrHealthReportCheck):
             if "SRDMotor" in message.name and self._hand_prefix in message.name and \
                "No motor associated to this joint" not in message.message:
                 working_state = False
-                motor_description_line = message.name.split("/")[-1]
-                split_motor_description_line = motor_description_line.split(' ')
+                split_motor_description_line = message.name.split("/")[-1].split(' ')
                 motor_name = f"{split_motor_description_line[0]}_{split_motor_description_line[-1]}".lower()
                 for item in message.values:
                     if "Temperature" in item.key:
                         working_state = True
                         break
-                rospy.logwarn({motor_name: working_state})
                 result['motor_check'].append(dict({motor_name: working_state}))
 
         self._result = result

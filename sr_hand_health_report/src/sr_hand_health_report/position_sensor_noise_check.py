@@ -15,7 +15,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
+from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportCheck,
+                                                               SENSOR_CUTOUT_THRESHOLD,
+                                                               NR_OF_BITS_NOISE_WARNING)
 
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):

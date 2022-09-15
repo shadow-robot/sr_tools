@@ -241,6 +241,6 @@ class SrHealthReportCheck:
 
     def get_result(self):
         return self._result
-    
+
     def has_passed(self):
         raise NotImplementedError("The function 'has_passed' must be implemented")

@@ -15,7 +15,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 from builtins import round
 import rospy
-from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
+from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportCheck,
+                                                               SENSOR_CUTOUT_THRESHOLD,
+                                                               NR_OF_BITS_NOISE_WARNING)
 import numpy as np
 
 SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
@@ -177,6 +179,7 @@ def check_sensor_range(first_sensor_value, second_sensor_value):
         higher_value = second_sensor_value
         lower_value = first_sensor_value
     return higher_value, lower_value
+
 
 def get_raw_sensor_value(data):
     return sum(data) / len(data)

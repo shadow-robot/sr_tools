@@ -26,7 +26,7 @@ class MotorCheck(SrHealthReportCheck):
         self._topic_name = '/diagnostics_agg'
 
     def run_check(self):
-        result = {"motor_check": []}
+        result = {"motor_check": {}}
 
         try:
             received_msg = rospy.wait_for_message(self._topic_name, DiagnosticArray, 5)
@@ -45,10 +45,10 @@ class MotorCheck(SrHealthReportCheck):
                     if "Temperature" in item.key:
                         working_state = True
                         break
-                result['motor_check'].append(dict({motor_name: working_state}))
+                result['motor_check'][motor_name] = working_state
 
         self._result = result
         return result
 
     def has_passed(self):
-        return all(result for result in self._result.values())
+        return all(result for result in self._result['motor_check'].values())

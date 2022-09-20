@@ -158,7 +158,6 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     def has_passed(self):
         passed = True
-        rospy.logwarn(self._result)
         for joint_result in self._result['monotonicity_check'].keys():
             if not self._result['monotonicity_check'][joint_result]['is_monotonic']:
                 passed = False

@@ -46,7 +46,6 @@ class MonotonicityCheck(SrHealthReportCheck):
 
         result["monotonicity_check"] = self._dict_of_monotonic_joints
         self._result = result
-        rospy.logwarn(result)
         rospy.loginfo("Monotonicity Check finished, exporting results")
         return result
 

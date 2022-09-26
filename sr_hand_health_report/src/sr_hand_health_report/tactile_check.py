@@ -135,7 +135,4 @@ class TactileCheck(SrHealthReportCheck):
                     passed = False
                     break
         return passed
-<<<<<<< HEAD
-=======
- 
->>>>>>> 039ac0a9c94365bab94e00d25874367385a95074
+

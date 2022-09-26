@@ -135,9 +135,4 @@ class TactileCheck(SrHealthReportCheck):
                     passed = False
                     break
         return passed
-
-
-if __name__ == "__main__":
-    rospy.init_node("x")
-    t = TactileCheck("right", ["FF"])
-    rospy.logwarn(t.run_check())
+ 

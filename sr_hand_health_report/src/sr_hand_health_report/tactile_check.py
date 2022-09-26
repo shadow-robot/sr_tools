@@ -24,7 +24,7 @@ from diagnostic_msgs.msg import DiagnosticArray
 
 class TactileCheck(SrHealthReportCheck):
 
-    _REASONABLE_RANGE = {"pst": [300,1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
+    _REASONABLE_RANGE = {"pst": [300, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
     _FINGERS = ("FF", "MF", "RF", "LF", "TH")
 
     def __init__(self, hand_side, fingers_to_test):
@@ -44,10 +44,10 @@ class TactileCheck(SrHealthReportCheck):
         except FileNotFoundError:
             rospy.logerr(f"General info for {self._serial} does not exists!")
         return tactile_type_from_file
-        
+
     def run_check(self):
         result = {"tactile_check": {}}
-        result["tactile_check"] = dict.fromkeys(self._fingers_to_test, '')       
+        result["tactile_check"] = dict.fromkeys(self._fingers_to_test, '')
 
         if not self.check_if_tactile_type_match():
             result["tactile_check"] = "Wrong tactile definition in general_info.yaml!"
@@ -73,7 +73,7 @@ class TactileCheck(SrHealthReportCheck):
     def sensor_connected(self, finger):
         connected = False
         finger_to_index_mapping = {"FF": 1, "MF": 2, "RF": 3, "LF": 4, "TH": 5}
-        expected_diagnostic_name = f"{self._hand_prefix} Tactile {finger_to_index_mapping[finger]}"  # example name: "rh Tactile 5"
+        expected_diagnostic_name = f"{self._hand_prefix} Tactile {finger_to_index_mapping[finger]}"
 
         now = rospy.get_time()
         while rospy.get_time() - now < 2:
@@ -102,21 +102,21 @@ class TactileCheck(SrHealthReportCheck):
                 reasonable_min = self._REASONABLE_RANGE[self._expected_tactile_type][0]
                 reasonable_max = self._REASONABLE_RANGE[self._expected_tactile_type][1]
                 data = msg.pressure
-                reasonable = reasonable_min < data[self._FINGERS.index(finger)] < reasonable_max       
+                reasonable = reasonable_min < data[self._FINGERS.index(finger)] < reasonable_max
 
             elif self._topic_type_string == "BiotacAll":
                 msg = msg.tactiles[self._FINGERS.index(finger)]
                 reasonable_min = self._REASONABLE_RANGE[self._expected_tactile_type][0]
                 reasonable_max = self._REASONABLE_RANGE[self._expected_tactile_type][1]
-                
+
                 if len(msg.electrodes) == sum(msg.electrodes):
                     data = msg.pac
-                else: #len(msg.electrodes) < sum(msg.electrodes):
+                else:
                     data = msg.electrodes
 
                 for value in data:
                     if not (reasonable_min < value < reasonable_max):
-                        reasonable =  False
+                        reasonable = False
         except Exception:
             pass
         return reasonable
@@ -135,9 +135,3 @@ class TactileCheck(SrHealthReportCheck):
                     passed = False
                     break
         return passed
-
-
-if __name__ == "__main__":
-    rospy.init_node("x")
-    t = TactileCheck("right", ["FF"])
-    rospy.logwarn(t.run_check())

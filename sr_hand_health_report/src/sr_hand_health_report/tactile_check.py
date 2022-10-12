@@ -59,7 +59,7 @@ class TactileCheck(SrHealthReportCheck):
         else:
             for finger in self._fingers_to_test:
                 result["tactile_check"][finger] = {}
-                result["tactile_check"][finger]["connected"] = self.sensor_connected(finger)
+                result["tactile_check"][finger]["connected"] = self.is_sensor_connected(finger)
                 result["tactile_check"][finger]["reasonable"] = self.is_reasonable(finger)
         self._result = result
         return result
@@ -75,7 +75,7 @@ class TactileCheck(SrHealthReportCheck):
                 check = True
         return check
 
-    def sensor_connected(self, finger):
+    def is_sensor_connected(self, finger):
         connected = False
         finger_to_index_mapping = {"FF": 1, "MF": 2, "RF": 3, "LF": 4, "TH": 5}
         expected_diagnostic_name = f"{self._hand_prefix} Tactile {finger_to_index_mapping[finger]}"
@@ -84,6 +84,7 @@ class TactileCheck(SrHealthReportCheck):
         timeout = 2
         while rospy.get_time() - now < timeout:
             # 2s to give more time for messages to arrive due to low publishing rate of /diagnostics
+            diagnostic_data = None
             try:
                 diagnostic_msg = rospy.wait_for_message('/diagnostics', DiagnosticArray, timeout=1)
                 diagnostic_data = [msg for msg in diagnostic_msg.status if msg.name == expected_diagnostic_name]
@@ -94,7 +95,7 @@ class TactileCheck(SrHealthReportCheck):
                 for entry in diagnostic_data[0].values:
                     details_dict.update({entry.key: entry.value})
                 serial = details_dict['Serial Number'][-4:]
-                connected = False if (serial == "" or serial == "????") else True
+                connected = not (serial in ("", "????"))
                 break
         return connected
 
@@ -121,7 +122,7 @@ class TactileCheck(SrHealthReportCheck):
                     data = msg.electrodes
 
                 for value in data:
-                    if not (reasonable_min < value < reasonable_max):
+                    if not reasonable_min < value < reasonable_max:
                         reasonable = False
         except Exception:
             pass
@@ -141,4 +142,3 @@ class TactileCheck(SrHealthReportCheck):
                     passed = False
                     break
         return passed
-

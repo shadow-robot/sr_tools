@@ -35,7 +35,7 @@ class MotorCheck(SrHealthReportCheck):
             self._result = result
             return result
 
-        for j, message in enumerate(received_msg.status):
+        for _, message in enumerate(received_msg.status):
             if "SRDMotor" in message.name and self._hand_prefix in message.name and \
                "No motor associated to this joint" not in message.message:
                 working_state = False

@@ -100,21 +100,20 @@ class TactileCheck(SrHealthReportCheck):
         return connected
 
     def is_reasonable(self, finger):
-        reasonable = True
+        reasonable = False
         try:
             topic_type = rostopic.get_topic_class(self._topic_name)[0]
             msg = rospy.wait_for_message(self._topic_name, topic_type, timeout=1)
 
+            reasonable_min = self._REASONABLE_RANGE[self._expected_tactile_type][0]
+            reasonable_max = self._REASONABLE_RANGE[self._expected_tactile_type][1]
+
             if self._topic_type_string == "ShadowPST":
-                reasonable_min = self._REASONABLE_RANGE[self._expected_tactile_type][0]
-                reasonable_max = self._REASONABLE_RANGE[self._expected_tactile_type][1]
                 data = msg.pressure
                 reasonable = reasonable_min < data[self._FINGERS.index(finger)] < reasonable_max
 
             elif self._topic_type_string == "BiotacAll":
                 msg = msg.tactiles[self._FINGERS.index(finger)]
-                reasonable_min = self._REASONABLE_RANGE[self._expected_tactile_type][0]
-                reasonable_max = self._REASONABLE_RANGE[self._expected_tactile_type][1]
 
                 if len(msg.electrodes) == sum(msg.electrodes):
                     data = msg.pac
@@ -124,6 +123,8 @@ class TactileCheck(SrHealthReportCheck):
                 for value in data:
                     if not reasonable_min < value < reasonable_max:
                         reasonable = False
+                        break
+                    reasonable = True
         except Exception:
             pass
         return reasonable

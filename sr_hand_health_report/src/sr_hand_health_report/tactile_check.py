@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import rospy
 import rostopic
 import rospkg
@@ -30,7 +31,11 @@ class TactileCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = f"/{self._hand_prefix}/tactile"
-        self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
+        try:
+            self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
+        except KeyError:
+            rospy.logerr("No hand detected!")
+            sys.exit(1)
         self._expected_tactile_type = self.get_expected_tactile_type()
         self._topic_type_string = None
 
@@ -76,20 +81,21 @@ class TactileCheck(SrHealthReportCheck):
         expected_diagnostic_name = f"{self._hand_prefix} Tactile {finger_to_index_mapping[finger]}"
 
         now = rospy.get_time()
-        while rospy.get_time() - now < 2:
+        timeout = 2
+        while rospy.get_time() - now < timeout:
             # 2s to give more time for messages to arrive due to low publishing rate of /diagnostics
             try:
                 diagnostic_msg = rospy.wait_for_message('/diagnostics', DiagnosticArray, timeout=1)
-                diagnostic_data = [x for x in diagnostic_msg.status if x.name == expected_diagnostic_name]
-                if diagnostic_data:
-                    details_dict = {}
-                    for entry in diagnostic_data[0].values:
-                        details_dict.update({entry.key: entry.value})
-                    serial = details_dict['Serial Number'][-4:]
-                    connected = False if (serial == "" or serial == "????") else True
-                    break
+                diagnostic_data = [msg for msg in diagnostic_msg.status if msg.name == expected_diagnostic_name]
             except rospy.exceptions.ROSException:
                 pass
+            if diagnostic_data:
+                details_dict = {}
+                for entry in diagnostic_data[0].values:
+                    details_dict.update({entry.key: entry.value})
+                serial = details_dict['Serial Number'][-4:]
+                connected = False if (serial == "" or serial == "????") else True
+                break
         return connected
 
     def is_reasonable(self, finger):

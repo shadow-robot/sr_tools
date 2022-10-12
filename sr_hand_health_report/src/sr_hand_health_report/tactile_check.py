@@ -95,7 +95,7 @@ class TactileCheck(SrHealthReportCheck):
                 for entry in diagnostic_data[0].values:
                     details_dict.update({entry.key: entry.value})
                 serial = details_dict['Serial Number'][-4:]
-                connected = not (serial in ("", "????"))
+                connected = not serial in ("", "????")
                 break
         return connected
 

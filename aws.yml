@@ -27,7 +27,8 @@ settings:
     modules:
       - check_cache
       - code_coverage
-
+      - code_cov
+   
 trunks:
   - name: noetic-devel
     jobs:

@@ -14,15 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import rospy
-import rostopic
-import rospkg
-import yaml
-from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck
-from diagnostic_msgs.msg import DiagnosticArray
 import time
-import numpy as np
 import math
+import rospy
+from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck
+import numpy as np
 from urdf_parser_py.urdf import URDF
 
 
@@ -75,12 +71,12 @@ class BacklashCheck(SrHealthReportCheck):
             for joint in finger_object.joints_dict.values():
                 rospy.logwarn(f"Running check for {joint.joint_name}")
                 if finger_object.finger_name in ('ff', 'mf', 'rf', 'lf') and joint.joint_index != "j1":
-                    rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
+                    # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     joint_result = self.wiggle_joint(joint)
                     result['backlash_check'][joint.joint_name] = joint_result
                 elif finger_object.finger_name == 'th':
                     joint_result = self.wiggle_joint(joint)
-                    rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
+                    # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     result['backlash_check'][joint.joint_name] = joint_result
 
             self.switch_controller_mode("position")
@@ -117,8 +113,6 @@ class BacklashCheck(SrHealthReportCheck):
                 time.sleep(0.01)
                 if current_time > rospy.Duration.from_sec(self.WIGGLING_TIME):
                     test_time += rospy.Duration.from_sec(self.WIGGLING_TIME)
-                    rospy.logwarn(f"{joint.get_current_position()}  {starting_position}")
-                    rospy.logwarn("x1")
                     success = False
                     break
 
@@ -133,8 +127,6 @@ class BacklashCheck(SrHealthReportCheck):
                 time.sleep(0.01)
                 if current_time > rospy.Duration.from_sec(self.WIGGLING_TIME):
                     test_time += rospy.Duration.from_sec(self.WIGGLING_TIME)
-                    rospy.logwarn(f"{joint.get_current_position()}  {starting_position}")
-                    rospy.logwarn("x2")
                     success = False
                     break
 
@@ -158,16 +150,14 @@ class BacklashCheck(SrHealthReportCheck):
         self._result = result
         return result
 
-    def _debounce(self, joint, time=1):
+    def _debounce(self, joint, timeout=1):
         if joint.get_current_position() < self.joint_limits[joint.joint_name].lower + math.radians(1):
             joint.move_joint(-self.FINGER_PWM, 'effort')
-            rospy.sleep(time)
-            rospy.logerr(f"debouncing up {joint.joint_name}")
+            rospy.sleep(timeout)
             joint.move_joint(0, 'effort')
         if joint.get_current_position() > self.joint_limits[joint.joint_name].upper - math.radians(1):
             joint.move_joint(self.FINGER_PWM, 'effort')
-            rospy.sleep(time)
-            rospy.logerr(f"debouncing down {joint.joint_name}")
+            rospy.sleep(timeout)
             joint.move_joint(0, 'effort')
 
     def get_result(self):
@@ -188,10 +178,10 @@ class BacklashCheck(SrHealthReportCheck):
 
 
 if __name__ == '__main__':
-    rospy.init_node("xxxxx")
+    rospy.init_node("sr_backlash_check")
 
-    tc = BacklashCheck('right', ["TH", "FF", "MF", "RF"])
-    tc.run_check()
+    backlash_check = BacklashCheck('right', ["TH", "FF", "MF", "RF"])
+    backlash_check.run_check()
 
-    for finger_object in tc.fingers_to_check:
-        finger_object.move_finger(0, 'position')
+    for finger_element in backlash_check.fingers_to_check:
+        finger_element.move_finger(0, 'position')

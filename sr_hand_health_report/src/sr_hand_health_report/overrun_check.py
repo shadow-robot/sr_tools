@@ -30,7 +30,7 @@ class OverrunCheck(SrHealthReportCheck):
 
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
-        
+
         self.check_time = 10
         self.number_of_drops = 0
         self.iterations = 0

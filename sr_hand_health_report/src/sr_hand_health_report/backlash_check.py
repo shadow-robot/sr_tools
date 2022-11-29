@@ -63,7 +63,7 @@ class BacklashCheck(SrHealthReportCheck):
     def run_check(self):
         self.move_fingers_to_start_position()
         result = {"backlash_check": {}}
-        
+
         self.switch_controller_mode("position")
         for finger_object in self.fingers_to_check:
             self.move_finger_to_side(finger_object, 'right')

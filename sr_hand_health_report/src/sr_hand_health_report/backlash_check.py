@@ -75,10 +75,9 @@ class BacklashCheck(SrHealthReportCheck):
             for joint in finger_object.joints_dict.values():
                 rospy.logwarn(f"Running check for {joint.joint_name}")
                 if finger_object.finger_name in ('ff','mf','rf','lf') and joint.joint_index != "j1":
-                    if joint.joint_index != "j1":
-                        rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
-                        joint_result = self.wiggle_joint(joint)
-                        result['backlash_check'][joint.joint_name] = joint_result
+                    rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
+                    joint_result = self.wiggle_joint(joint)
+                    result['backlash_check'][joint.joint_name] = joint_result
                 elif finger_object.finger_name == 'th':
                     joint_result = self.wiggle_joint(joint)
                     rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")

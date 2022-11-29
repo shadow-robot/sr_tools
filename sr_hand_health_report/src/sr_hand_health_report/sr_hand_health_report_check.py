@@ -143,7 +143,7 @@ class SrHealthReportCheck:
                 controller_joints_names.append(full_joint_name.lower())
         return controller_joints_names
 
-    def _init_finger_objects(self, fingers_to_test = None):
+    def _init_finger_objects(self, fingers_to_test=None):
         if not fingers_to_test:
             fingers_to_test = self._fingers_to_test
         fingers_to_check = []

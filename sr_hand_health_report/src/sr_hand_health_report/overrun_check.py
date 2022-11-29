@@ -43,7 +43,7 @@ class OverrunCheck(SrHealthReportCheck):
 
     def overruns_callback(self, data):
         overrun = OverrunCheck.get_recent_overruns_by_regex(data)
-        
+
         self.overrun_average += int(float(overrun))
         self.drop_average += self.number_of_drops
         self.number_of_drops = 0

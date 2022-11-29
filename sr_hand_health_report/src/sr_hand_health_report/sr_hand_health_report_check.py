@@ -194,14 +194,13 @@ class SrHealthReportCheck:
         return raw_sensor_names_list
 
     def _joint_states_callback(self, sensor_msg):
-        d = {}
+        joint_dict = {}
         for name, position in zip(sensor_msg.name, sensor_msg.position):
-            d.update({name.lower(): position})
+            joint_dict.update({name.lower(): position})
 
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
-                    #rospy.logerr(f"{joint.joint_name} {d[joint.joint_name]}")
-                joint.set_current_position(d[joint.joint_name])
+                joint.set_current_position(joint_dict[joint.joint_name])
 
     def _raw_data_sensor_callback(self, ethercat_data):
         for i in range(len(self._raw_sensor_names_list)):

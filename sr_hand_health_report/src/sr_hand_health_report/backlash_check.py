@@ -74,7 +74,7 @@ class BacklashCheck(SrHealthReportCheck):
 
             for joint in finger_object.joints_dict.values():
                 rospy.logwarn(f"Running check for {joint.joint_name}")
-                if finger_object.finger_name in ('ff','mf','rf','lf') and joint.joint_index != "j1":
+                if finger_object.finger_name in ('ff', 'mf', 'rf', 'lf') and joint.joint_index != "j1":
                     rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     joint_result = self.wiggle_joint(joint)
                     result['backlash_check'][joint.joint_name] = joint_result
@@ -148,7 +148,7 @@ class BacklashCheck(SrHealthReportCheck):
                     total_time = test_time
                 else:
                     total_time += test_time
-        
+
         joint.move_joint(0, 'effort')
 
         result = {}
@@ -160,19 +160,15 @@ class BacklashCheck(SrHealthReportCheck):
 
     def _debounce(self, joint, time=1):
         if joint.get_current_position() < self.joint_limits[joint.joint_name].lower + math.radians(1):
-            #rospy.logwarn(f"{joint.joint_name} {self.joint_limits[joint.joint_name].lower} {joint.get_current_position() } {self.joint_limits[joint.joint_name].upper}")        
             joint.move_joint(-self.FINGER_PWM, 'effort')
             rospy.sleep(time)
             rospy.logerr(f"debouncing up {joint.joint_name}")
             joint.move_joint(0, 'effort')
-            #rospy.logerr(f"{joint.joint_name} {self.joint_limits[joint.joint_name].lower} {joint.get_current_position() } {self.joint_limits[joint.joint_name].upper}")        
         if joint.get_current_position() > self.joint_limits[joint.joint_name].upper - math.radians(1):
-            #rospy.logwarn(f"{joint.joint_name} {self.joint_limits[joint.joint_name].lower} {joint.get_current_position() } {self.joint_limits[joint.joint_name].upper}")        
             joint.move_joint(self.FINGER_PWM, 'effort')
             rospy.sleep(time)
             rospy.logerr(f"debouncing down {joint.joint_name}")
             joint.move_joint(0, 'effort')
-            #rospy.logerr(f"{joint.joint_name} {self.joint_limits[joint.joint_name].lower} {joint.get_current_position() } {self.joint_limits[joint.joint_name].upper}")        
 
     def get_result(self):
         return self._result

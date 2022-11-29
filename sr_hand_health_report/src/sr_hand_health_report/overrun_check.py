@@ -15,15 +15,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-import rostopic
-import rospkg
-import yaml
 from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
-import time
-
-NUC_MACHINE_NAME = 'nuc-control'
 
 
 class OverrunCheck(SrHealthReportCheck):
@@ -60,14 +54,13 @@ class OverrunCheck(SrHealthReportCheck):
                 if value_dict.key == 'Recent Control Loop Overruns':
                     return value_dict.value
         raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
-    
+
     def run_check(self):
         self.overrun_average = 0
         self.drop_average = 0
         start_time = rospy.get_rostime().secs
         while (rospy.get_rostime().secs - start_time) < self.check_time:
             rospy.sleep(0.1)
-            rospy.logerr(self.iterations)
 
         result = {}
         result["overrun_check"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
@@ -81,8 +74,8 @@ class OverrunCheck(SrHealthReportCheck):
 
 
 if __name__ == '__main__':
-    rospy.init_node("xxxxx")
+    rospy.init_node("sr_overrun_check")
 
-    tc = OverrunCheck('right', ['FF', 'MF', 'RF'])
-    tc.run_check()
-    rospy.logwarn(tc.get_result())
+    overrun_check = OverrunCheck('right', ['FF', 'MF', 'RF'])
+    overrun_check.run_check()
+    rospy.loginfo(overrun_check.get_result())

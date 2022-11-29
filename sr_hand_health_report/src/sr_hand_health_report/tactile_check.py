@@ -41,9 +41,9 @@ class TactileCheck(SrHealthReportCheck):
 
     def get_expected_tactile_type(self):
         tactile_type_from_file = {}
-        file = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
+        file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
         try:
-            with open(file, 'r', encoding="ASCII") as yaml_file:
+            with open(file_, 'r', encoding="ASCII") as yaml_file:
                 output = yaml.safe_load(yaml_file)
                 tactile_type_from_file = list(output['sensors']['tip'].values())[0]
         except FileNotFoundError:

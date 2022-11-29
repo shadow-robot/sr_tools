@@ -25,7 +25,7 @@ from diagnostic_msgs.msg import DiagnosticArray
 
 class TactileCheck(SrHealthReportCheck):
 
-    _REASONABLE_RANGE = {"pst": [300, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
+    _REASONABLE_RANGE = {"pst": [200, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
     _FINGERS = ("FF", "MF", "RF", "LF", "TH")
 
     def __init__(self, hand_side, fingers_to_test):

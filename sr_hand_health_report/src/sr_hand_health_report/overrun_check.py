@@ -25,6 +25,7 @@ import time
 
 NUC_MACHINE_NAME = 'nuc-control'
 
+
 class OverrunCheck(SrHealthReportCheck):
 
     def __init__(self, hand_side, fingers_to_test):

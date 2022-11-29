@@ -57,9 +57,9 @@ class Joint:
 
         self._pwm_command_publisher = rospy.Publisher(f"/sh_{self.joint_name_controller}_effort_controller/command",
                                                       Float64, queue_size=2)
-
-        self._position_command_publisher = rospy.Publisher(f"/sh_{self.joint_name_controller}_position_controller/command",
-                                                           Float64, queue_size=2)
+        
+        self._position_command_publisher = rospy.Publisher(f"/sh_{self.joint_name_controller}_"
+                                                           f"position_controller/command", Float64, queue_size=2)
         self._raw_sensor_data = []
         self._current_position = float()
 

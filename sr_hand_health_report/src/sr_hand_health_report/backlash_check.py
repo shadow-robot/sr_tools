@@ -37,8 +37,6 @@ class BacklashCheck(SrHealthReportCheck):
         self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1}
         self.joint_limits = {}
         self._set_joint_limits()
-        #self.move_fingers_to_start_position()
-        #self.run_check()
 
     def _set_joint_limits(self):
         for joint in URDF.from_parameter_server().joints:

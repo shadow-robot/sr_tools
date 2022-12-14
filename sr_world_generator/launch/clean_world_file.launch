@@ -2,25 +2,25 @@
     <!-- Whether to run in dry run mode; if true, nothing is saved. -->
     <arg name="dry_run" default="false"/>
     <!-- The name of the input world file to be cleaned, e.g. "new_world.world". -->
-    <arg name="input_world_file_name"/>
-    <!-- The folder containing the input world file to be cleaned, e.g. "/home/user". -->
-    <arg name="input_world_file_folder" default="/home/user"/>
+    <arg name="input_file_name"/>
+    <!-- The directory containing the input world file to be cleaned, e.g. "/home/user". -->
+    <arg name="input_file_directory" default="/home/user"/>
     <!-- The path to the input world file to be cleaned, e.g. "/home/user/new_world.world". -->
-    <arg name="input_world_file_path" default="$(arg input_world_file_folder)/$(arg input_world_file_name)"/>
+    <arg name="input_file_path" default="$(arg input_file_directory)/$(arg input_file_name)"/>
     <!-- The name of the output cleaned world file, e.g. "new_world.world". -->
-    <arg name="output_world_file_name" default="$(arg input_world_file_name)"/>
-    <!-- The folder to save the output cleaned world file, e.g. "/home/user". -->
-    <arg name="output_world_file_folder" default="$(arg input_world_file_folder)"/>
+    <arg name="output_file_name" default="$(arg input_file_name)"/>
+    <!-- The directory to save the output cleaned world file, e.g. "/home/user". -->
+    <arg name="output_file_directory" default="$(arg input_file_directory)"/>
     <!-- The path to the output cleaned world file, e.g. "/home/user/new_world.world". -->
-    <arg name="output_world_file_path" default="$(arg output_world_file_folder)/$(arg output_world_file_name)"/>
+    <arg name="output_file_path" default="$(arg output_file_directory)/$(arg output_file_name)"/>
     <!-- The names of the models to be removed from the world file, e.g. "['ur10esrh']". -->
     <arg name="removed_model_names" default="['ur10esrh']"/>
     <!-- The node that will do the world file cleaning -->
-    <node name="clean_world_file" pkg="sr_world_generator" type="clean_world_file.py" output="screen">
+    <node name="clean_file" pkg="sr_world_generator" type="clean_world_file.py" output="screen">
         <!-- The parameters of the node as defined above. -->
         <param name="dry_run" value="$(arg dry_run)"/>
-        <param name="input_world_file_path" value="$(arg input_world_file_path)"/>
-        <param name="output_world_file_path" value="$(arg output_world_file_path)"/>
+        <param name="input_file_path" value="$(arg input_file_path)"/>
+        <param name="output_file_path" value="$(arg output_file_path)"/>
         <rosparam param="removed_model_names" subst_value="True">$(arg removed_model_names)</rosparam>
     </node>
 </launch>

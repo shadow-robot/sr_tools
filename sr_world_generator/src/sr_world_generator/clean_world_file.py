@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import xml.etree.ElementTree as ET
+import os
 import rospy
 
 
@@ -29,15 +30,25 @@ class WorldFileCleaner:
     def __init__(self, dry_run: bool = False):
         self._dry_run = dry_run
 
-    def load_world_file(self, world_file_path: str):
+    def load_world_file(self, file_path: str):
         """
         Loads the world file from the specified path.
 
         Args:
-            world_file_path: The path to the world file to load.
+            file_path: The path to the world file to load.
         """
-        rospy.loginfo(f'Loading world file from {world_file_path}')
-        self._xml_tree = ET.parse(world_file_path)
+        rospy.loginfo(f'Loading world file from {file_path}')
+        # Check if the file exists
+        if not os.path.isfile(file_path):
+            rospy.logerr(f'World file does not exist: {file_path}')
+            return False
+        # Try to parse the file
+        try:
+            self._xml_tree = ET.parse(file_path)
+        except ET.ParseError as e:
+            rospy.logerr(f'Failed to parse world file: {e}')
+            return False
+        return True
 
     def remove_models(self, removed_model_names: "list[str]"):
         """
@@ -78,7 +89,13 @@ class WorldFileCleaner:
         # Only save the file if we're not in dry run mode
         if not self._dry_run:
             rospy.loginfo(f'Saving world file to {output_file_path}')
-            self._xml_tree.write(output_file_path)
+            # Try to save the file
+            try:
+                self._xml_tree.write(output_file_path)
+            except Exception as e:
+                rospy.logerr(f'Failed to save world file: {e}')
+                return False
+        return True
 
 
 if __name__ == '__main__':
@@ -86,13 +103,16 @@ if __name__ == '__main__':
     rospy.init_node('clean_gazebo_world_file', anonymous=True)
     # Get parameters from the ROS parameter server
     removed_model_names_param = rospy.get_param("~removed_model_names")
-    input_world_file_path_param = rospy.get_param("~input_world_file_path")
-    output_world_file_path_param = rospy.get_param("~output_world_file_path")
+    input_file_path_param = rospy.get_param("~input_file_path")
+    output_file_path_param = rospy.get_param("~output_file_path")
     dry_run_param = rospy.get_param("~dry_run")
     # Create a new WorldFileCleaner object
     world_file_cleaner = WorldFileCleaner(dry_run_param)
     # Load the world file, remove the models and state, and save the world file
-    world_file_cleaner.load_world_file(input_world_file_path_param)
+    if not world_file_cleaner.load_world_file(input_file_path_param):
+        exit(0)
     world_file_cleaner.remove_models(removed_model_names_param)
     world_file_cleaner.remove_state()
-    world_file_cleaner.save_world_file(output_world_file_path_param)
+    if not world_file_cleaner.save_world_file(output_file_path_param):
+        exit(0)
+    rospy.loginfo(f'Cleaned world file saved to: {output_file_path_param}')

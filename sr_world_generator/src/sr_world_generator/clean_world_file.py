@@ -45,8 +45,8 @@ class WorldFileCleaner:
         # Try to parse the file
         try:
             self._xml_tree = ET.parse(file_path)
-        except ET.ParseError as e:
-            rospy.logerr(f'Failed to parse world file: {e}')
+        except ET.ParseError as parse_exception:
+            rospy.logerr(f'Failed to parse world file: {parse_exception}')
             return False
         return True
 
@@ -92,8 +92,8 @@ class WorldFileCleaner:
             # Try to save the file
             try:
                 self._xml_tree.write(output_file_path)
-            except Exception as e:
-                rospy.logerr(f'Failed to save world file: {e}')
+            except Exception as general_exception:
+                rospy.logerr(f'Failed to save world file: {general_exception}')
                 return False
         return True
 

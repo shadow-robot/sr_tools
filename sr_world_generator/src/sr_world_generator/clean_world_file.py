@@ -14,8 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import xml.etree.ElementTree as ET
+
 import os
+import sys
+import xml.etree.ElementTree as ET
+
 import rospy
 
 
@@ -110,9 +113,9 @@ if __name__ == '__main__':
     world_file_cleaner = WorldFileCleaner(dry_run_param)
     # Load the world file, remove the models and state, and save the world file
     if not world_file_cleaner.load_world_file(input_file_path_param):
-        exit(0)
+        sys.exit(0)
     world_file_cleaner.remove_models(removed_model_names_param)
     world_file_cleaner.remove_state()
     if not world_file_cleaner.save_world_file(output_file_path_param):
-        exit(0)
+        sys.exit(0)
     rospy.loginfo(f'Cleaned world file saved to: {output_file_path_param}')

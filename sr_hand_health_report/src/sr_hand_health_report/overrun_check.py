@@ -59,11 +59,11 @@ class OverrunCheck(SrHealthReportCheck):
     def run_check(self):
         self.overrun_average = 0
         self.drop_average = 0
-        '''
+        """
         start_time = rospy.get_rostime().secs
         while (rospy.get_rostime().secs - start_time) < self.CHECK_TIME:
             rospy.sleep(0.1)
-        '''
+        """
         rospy.sleep(self.CHECK_TIME)
 
         result = {}

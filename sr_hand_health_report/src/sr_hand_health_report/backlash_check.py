@@ -50,14 +50,14 @@ class BacklashCheck(SrHealthReportCheck):
         for finger in finger_objects:
             # if finger.finger_name.lower() != "wr":
             finger.move_finger(0, 'position')
-            '''
+            """
             else:
                 for joint_index, joint_object in finger.joints_dict.items():
                     if joint_index.lower() == "j3":
                         joint_object.move_joint(math.radians(0), 'position')
                     else:
                         joint_object.move_joint(math.radians(0), 'position')
-            '''
+            """
 
     def run_check(self):
         self.move_fingers_to_start_position()

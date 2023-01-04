@@ -24,37 +24,40 @@ from urdf_parser_py.urdf import URDF
 
 class BacklashCheck(SrHealthReportCheck):
 
+    TEST_COUNT = 10
     THRESHOLD = 0.01
     FINGER_PWM = -250
     WIGGLING_TIME = 2
+    FINGERS = ("TH", "FF", "MF", "RF", "LF")
 
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
-        self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1}
+        self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
         self.joint_limits = {}
         self._set_joint_limits()
+        self._pass_conditions = {'std': 0.001, 'avg': 0.001}
 
     def _set_joint_limits(self):
+        joint_list = [joint_name.lower() for joint_name in self._joint_msg.name]
         for joint in URDF.from_parameter_server().joints:
-            if joint.name.lower() in [joint_name.lower() for joint_name in self._joint_msg.name]:
+            if joint.name.lower() in joint_list:
                 self.joint_limits[joint.name.lower()] = joint.limit
 
-    def is_wrist_included(self):
-        return "WR" in self._fingers_to_joint_map.keys()
-
     def move_fingers_to_start_position(self):
-        finger_objects = self._init_finger_objects(["FF", "MF", "RF", "TH"])
+        finger_objects = self._init_finger_objects(self.FINGERS)
         self.switch_controller_mode('position')
 
         for finger in finger_objects:
-            if finger.finger_name.lower() != "wr":
-                finger.move_finger(0, 'position')
-            if finger.finger_name.lower() in ['ff', 'mf', 'rf', 'lf']:
+            # if finger.finger_name.lower() != "wr":
+            finger.move_finger(0, 'position')
+            '''
+            else:
                 for joint_index, joint_object in finger.joints_dict.items():
                     if joint_index.lower() == "j3":
                         joint_object.move_joint(math.radians(0), 'position')
                     else:
                         joint_object.move_joint(math.radians(0), 'position')
+            '''
 
     def run_check(self):
         self.move_fingers_to_start_position()
@@ -78,6 +81,10 @@ class BacklashCheck(SrHealthReportCheck):
                     joint_result = self.wiggle_joint(joint)
                     # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     result['backlash_check'][joint.joint_name] = joint_result
+                elif finger_object.finger_name == 'wr':
+                    joint_result = self.wiggle_joint(joint)
+                    # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
+                    result['backlash_check'][joint.joint_name] = joint_result
 
             self.switch_controller_mode("position")
             self.move_finger_to_side(finger_object, 'left')
@@ -88,17 +95,17 @@ class BacklashCheck(SrHealthReportCheck):
     def move_finger_to_side(self, finger_object, side):
         angle = math.radians(-20) if side == 'right' else math.radians(20)
         angle *= self._side_sign_map[finger_object.finger_name]
-        finger_object.joints_dict['J4'].move_joint(angle, 'position')
+        if "J4" in finger_object.joints_dict:
+            finger_object.joints_dict['J4'].move_joint(angle, 'position')
 
     def wiggle_joint(self, joint):
         test_times = []
         total_time = None
-        test_count = 10  # number of iterations
 
         test_start_time = rospy.get_rostime()
         timeout_condition = True
 
-        while len(test_times) < test_count and timeout_condition and not rospy.is_shutdown():
+        while len(test_times) < self.TEST_COUNT and timeout_condition and not rospy.is_shutdown():
 
             success = True
             test_time = rospy.get_rostime()
@@ -145,6 +152,7 @@ class BacklashCheck(SrHealthReportCheck):
 
         result = {}
         times = [time_entry.nsecs/10e9 for time_entry in test_times]
+        # Casting the numpy methods to float, as the yaml package cannot handle it automatically.
         result['std'] = float(np.std(times))
         result['avg'] = float(np.mean(times))
         self._result = result
@@ -165,8 +173,8 @@ class BacklashCheck(SrHealthReportCheck):
 
     def has_passed(self):
         # to be edited after value confirmation with Luke and production
-        pass_value_std = 0.1
-        pass_value_avg = 0.1
+        pass_value_std = 0.001
+        pass_value_avg = 0.001
         passed = True
 
         for joint_name in self._result['backlash_check'].keys():
@@ -180,7 +188,7 @@ class BacklashCheck(SrHealthReportCheck):
 if __name__ == '__main__':
     rospy.init_node("sr_backlash_check")
 
-    backlash_check = BacklashCheck('right', ["TH", "FF", "MF", "RF"])
+    backlash_check = BacklashCheck('right', BacklashCheck.FINGERS)
     backlash_check.run_check()
 
     for finger_element in backlash_check.fingers_to_check:

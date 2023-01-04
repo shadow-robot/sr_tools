@@ -22,10 +22,11 @@ from sr_robot_msgs.msg import EthercatDebug
 
 class OverrunCheck(SrHealthReportCheck):
 
+    CHECK_TIME = 10  # enough time to give reasonable result
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
 
-        self.check_time = 10
         self.number_of_drops = 0
         self.iterations = 0
         self.overrun_average = 0
@@ -36,7 +37,7 @@ class OverrunCheck(SrHealthReportCheck):
         rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self.drops_callback)
 
     def overruns_callback(self, data):
-        overrun = OverrunCheck.get_recent_overruns_by_regex(data)
+        overrun = OverrunCheck.get_recent_overruns(data)
 
         self.overrun_average += int(float(overrun))
         self.drop_average += self.number_of_drops
@@ -48,7 +49,7 @@ class OverrunCheck(SrHealthReportCheck):
             self.number_of_drops += 1
 
     @staticmethod
-    def get_recent_overruns_by_regex(msg):
+    def get_recent_overruns(msg):
         for status in msg.status:
             for value_dict in status.values:
                 if value_dict.key == 'Recent Control Loop Overruns':
@@ -58,9 +59,12 @@ class OverrunCheck(SrHealthReportCheck):
     def run_check(self):
         self.overrun_average = 0
         self.drop_average = 0
+        '''
         start_time = rospy.get_rostime().secs
-        while (rospy.get_rostime().secs - start_time) < self.check_time:
+        while (rospy.get_rostime().secs - start_time) < self.CHECK_TIME:
             rospy.sleep(0.1)
+        '''
+        rospy.sleep(self.CHECK_TIME)
 
         result = {}
         result["overrun_check"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}

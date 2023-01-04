@@ -144,10 +144,11 @@ class SrHealthReportCheck:
         return controller_joints_names
 
     def _init_finger_objects(self, fingers_to_test=None):
+        fingers_to_check = []
         if not fingers_to_test:
             fingers_to_test = self._fingers_to_test
-        fingers_to_check = []
-        for i, finger in enumerate(fingers_to_test):
+
+        for i, finger in enumerate(self._fingers_to_joint_map):
             if finger in self._fingers_to_joint_map:
                 fingers_to_check.append(Finger(self._hand_prefix, finger.lower()))
                 for joint_index in self._fingers_to_joint_map[finger]:

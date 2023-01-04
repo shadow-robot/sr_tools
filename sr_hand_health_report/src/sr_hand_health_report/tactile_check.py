@@ -28,9 +28,10 @@ class TactileCheck(SrHealthReportCheck):
     _REASONABLE_RANGE = {"pst": [200, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
     _FINGERS = ("FF", "MF", "RF", "LF", "TH")
 
-    def __init__(self, hand_side, fingers_to_test):
-        super().__init__(hand_side, fingers_to_test)
+    def __init__(self, hand_side):
+        super().__init__(hand_side, self._FINGERS)
         self._topic_name = f"/{self._hand_prefix}/tactile"
+        self._pass_conditions = {'connected': True, 'reasonable': True}
         try:
             self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
         except KeyError:
@@ -66,7 +67,10 @@ class TactileCheck(SrHealthReportCheck):
 
     def check_if_tactile_type_match(self):
         check = False
-        self._topic_type_string = (rostopic.get_topic_type(self._topic_name)[0]).split('/')[-1]
+        try:
+            self._topic_type_string = (rostopic.get_topic_type(self._topic_name)[0]).split('/')[-1]
+        except AttributeError:
+            self._topic_type_string = "ShadowPST"
 
         if self._topic_type_string == "ShadowPST" and self._expected_tactile_type == "pst":
             check = True

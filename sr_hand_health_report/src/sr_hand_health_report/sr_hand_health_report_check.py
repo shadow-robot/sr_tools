@@ -55,11 +55,11 @@ class Joint:
 
         self.joint_name_controller = self._hand_prefix + "_" + self._finger_name + self.joint_index_controller
 
-        self._pwm_command_publisher = rospy.Publisher("/sh_%s_effort_controller/command" %
-                                                      (self.joint_name_controller), Float64, queue_size=2)
+        self._pwm_command_publisher = rospy.Publisher(f"/sh_{self.joint_name_controller}_effort_controller/command",
+                                                      Float64, queue_size=2)
 
-        self._position_command_publisher = rospy.Publisher("/sh_%s_position_controller/command" %
-                                                           (self.joint_name_controller), Float64, queue_size=2)
+        self._position_command_publisher = rospy.Publisher(f"/sh_{self.joint_name_controller}_"
+                                                           f"position_controller/command", Float64, queue_size=2)
         self._raw_sensor_data = []
         self._current_position = float()
 
@@ -94,6 +94,7 @@ class SrHealthReportCheck:
 
         self.ctrl_helper = ControllerHelper([self._hand_prefix], [self._hand_prefix + "_"],
                                             self._controller_joints_names)
+        self.ctrl_helper.time_to_reload_params = 1.0
         self._fingers_to_test = fingers_to_test
         self.fingers_to_check = self._init_finger_objects()
 
@@ -142,9 +143,12 @@ class SrHealthReportCheck:
                 controller_joints_names.append(full_joint_name.lower())
         return controller_joints_names
 
-    def _init_finger_objects(self):
+    def _init_finger_objects(self, fingers_to_test=None):
         fingers_to_check = []
-        for i, finger in enumerate(self._fingers_to_test):
+        if not fingers_to_test:
+            fingers_to_test = self._fingers_to_test
+
+        for i, finger in enumerate(self._fingers_to_joint_map):
             if finger in self._fingers_to_joint_map:
                 fingers_to_check.append(Finger(self._hand_prefix, finger.lower()))
                 for joint_index in self._fingers_to_joint_map[finger]:
@@ -191,15 +195,16 @@ class SrHealthReportCheck:
         return raw_sensor_names_list
 
     def _joint_states_callback(self, sensor_msg):
-        count = 0
+        joint_dict = {}
+        for name, position in zip(sensor_msg.name, sensor_msg.position):
+            joint_dict.update({name.lower(): position})
+
         for finger in self.fingers_to_check:
             for joint in finger.joints_dict.values():
-                if joint.joint_name == sensor_msg.name[count].lower():
-                    joint.set_current_position(sensor_msg.position[count])
-                count += 1
+                joint.set_current_position(joint_dict[joint.joint_name])
 
     def _raw_data_sensor_callback(self, ethercat_data):
-        for i in range(0, len(self._raw_sensor_names_list)):
+        for i in range(len(self._raw_sensor_names_list)):
             self._raw_sensor_data_map[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
 
         for finger in self.fingers_to_check:

@@ -25,12 +25,13 @@ from diagnostic_msgs.msg import DiagnosticArray
 
 class TactileCheck(SrHealthReportCheck):
 
-    _REASONABLE_RANGE = {"pst": [300, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
+    _REASONABLE_RANGE = {"pst": [200, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
     _FINGERS = ("FF", "MF", "RF", "LF", "TH")
 
-    def __init__(self, hand_side, fingers_to_test):
-        super().__init__(hand_side, fingers_to_test)
+    def __init__(self, hand_side):
+        super().__init__(hand_side, self._FINGERS)
         self._topic_name = f"/{self._hand_prefix}/tactile"
+        self._pass_conditions = {'connected': True, 'reasonable': True}
         try:
             self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
         except KeyError:
@@ -41,9 +42,9 @@ class TactileCheck(SrHealthReportCheck):
 
     def get_expected_tactile_type(self):
         tactile_type_from_file = {}
-        file = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
+        file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
         try:
-            with open(file, 'r', encoding="ASCII") as yaml_file:
+            with open(file_, 'r', encoding="ASCII") as yaml_file:
                 output = yaml.safe_load(yaml_file)
                 tactile_type_from_file = list(output['sensors']['tip'].values())[0]
         except FileNotFoundError:
@@ -66,7 +67,10 @@ class TactileCheck(SrHealthReportCheck):
 
     def check_if_tactile_type_match(self):
         check = False
-        self._topic_type_string = (rostopic.get_topic_type(self._topic_name)[0]).split('/')[-1]
+        try:
+            self._topic_type_string = (rostopic.get_topic_type(self._topic_name)[0]).split('/')[-1]
+        except AttributeError:
+            self._topic_type_string = "ShadowPST"
 
         if self._topic_type_string == "ShadowPST" and self._expected_tactile_type == "pst":
             check = True

@@ -24,6 +24,7 @@ class MotorCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
+        self._pass_conditions = {'std': 0.001, 'avg': 0.001}
 
     def run_check(self):
         result = {"motor_check": {}}

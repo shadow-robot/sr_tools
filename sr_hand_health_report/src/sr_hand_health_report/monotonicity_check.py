@@ -24,6 +24,9 @@ SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
 
 
 class MonotonicityCheck(SrHealthReportCheck):
+
+    PASSED_THRESHOLDS = True
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._is_joint_monotonous = True
@@ -37,17 +40,25 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._second_end_stop_sensor_value = None
 
     def run_check(self):
-        result = {"monotonicity_check": []}
+        result = {"monotonicity": []}
         rospy.loginfo("Running Monotonicity Check")
+        self.move_fingers_to_start_position()
         self.switch_controller_mode("effort")
 
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
 
-        result["monotonicity_check"] = self._dict_of_monotonic_joints
+        result["monotonicity"] = self._dict_of_monotonic_joints
         self._result = result
         rospy.loginfo("Monotonicity Check finished, exporting results")
+        self.switch_controller_mode("position")
         return result
+
+    def move_fingers_to_start_position(self):
+        self.switch_controller_mode('position')
+        for finger in self.fingers_to_check:
+            # if finger.finger_name.lower() != "wr":
+            finger.move_finger(0, 'position')     
 
     def _run_check_per_finger(self, finger):
         for joint in finger.joints_dict.values():
@@ -75,7 +86,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         is_joint_monotonous = True
 
         time = rospy.Time.now() + self._check_duration
-        while rospy.Time.now() < time:
+        while rospy.Time.now() < time and not rospy.is_shutdown():
             if end_reached is False:
                 joint.move_joint(extend_command, "effort")
             else:
@@ -87,10 +98,10 @@ class MonotonicityCheck(SrHealthReportCheck):
             if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)) and end_reached is False:
                 time = rospy.Time.now() + self._check_duration
                 end_reached = True
-                self._first_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
-        self._second_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+                self._first_end_stop_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
+        self._second_end_stop_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
 
-        higher_value, lower_value = check_sensor_range(self._first_end_stop_sensor_value,
+        higher_value, lower_value = self.check_sensor_range(self._first_end_stop_sensor_value,
                                                        self._second_end_stop_sensor_value)
 
         self._add_result_to_dict(joint.joint_name, higher_value, lower_value)
@@ -121,11 +132,11 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     def _check_monotonicity(self, joint):
         if self._older_raw_sensor_value == 0:
-            self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+            self._older_raw_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
 
-        difference_between_raw_data = (get_raw_sensor_value(joint.get_raw_sensor_data()) -
+        difference_between_raw_data = (self.get_raw_sensor_value(joint.get_raw_sensor_data()) -
                                        self._older_raw_sensor_value)
-        self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+        self._older_raw_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:
                 if abs(self._previous_difference) > NR_OF_BITS_NOISE_WARNING:
@@ -157,27 +168,37 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     def has_passed(self):
         passed = True
-        for joint_result in self._result['monotonicity_check'].keys():
-            if not self._result['monotonicity_check'][joint_result]['is_monotonic']:
-                passed = False
-                break
+        for joint_result in self._result['monotonicity'].keys():
+            for key in self._result['monotonicity'][list(self._result['monotonicity'].keys())[0]]:
+                if not self.has_single_passed(key, self._result['monotonicity'][joint_result][key]):
+                    passed = False
+                    break
         return passed
 
-
-def check_sensor_range(first_sensor_value, second_sensor_value):
-    """
-    This function records the minimum and maximum range hit by the joint
-    during the monotonicity check, this is collected to sanity check the
-    sensor range
-    """
-    if first_sensor_value > second_sensor_value:
-        higher_value = first_sensor_value
-        lower_value = second_sensor_value
-    else:
-        higher_value = second_sensor_value
-        lower_value = first_sensor_value
-    return higher_value, lower_value
+    def has_single_passed(self, name, value):
+        output = True
+        if name == "is_monotonic":
+            output = value == self.PASSED_THRESHOLDS
+        elif name == "higher_raw_sensor_value" or name == "lower_raw_sensor_value":
+            output = value > 100 and value < 4000
+        return output
 
 
-def get_raw_sensor_value(data):
-    return sum(data) / len(data)
+    @staticmethod
+    def check_sensor_range(first_sensor_value, second_sensor_value):
+        """
+        This function records the minimum and maximum range hit by the joint
+        during the monotonicity check, this is collected to sanity check the
+        sensor range
+        """
+        if first_sensor_value > second_sensor_value:
+            higher_value = first_sensor_value
+            lower_value = second_sensor_value
+        else:
+            higher_value = second_sensor_value
+            lower_value = first_sensor_value
+        return higher_value, lower_value
+
+    @staticmethod
+    def get_raw_sensor_value(data):
+        return sum(data) / len(data)

@@ -27,11 +27,11 @@ class TactileCheck(SrHealthReportCheck):
 
     _REASONABLE_RANGE = {"pst": [200, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
     _FINGERS = ("FF", "MF", "RF", "LF", "TH")
+    PASSED_THRESHOLDS = {'connected': True, 'reasonable': True}
 
     def __init__(self, hand_side):
         super().__init__(hand_side, self._FINGERS)
         self._topic_name = f"/{self._hand_prefix}/tactile"
-        self._pass_conditions = {'connected': True, 'reasonable': True}
         try:
             self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
         except KeyError:
@@ -52,16 +52,16 @@ class TactileCheck(SrHealthReportCheck):
         return tactile_type_from_file
 
     def run_check(self):
-        result = {"tactile_check": {}}
-        result["tactile_check"] = dict.fromkeys(self._fingers_to_test, '')
+        result = {"tactile": {}}
+        result["tactile"] = dict.fromkeys(self._fingers_to_test, '')
 
         if not self.check_if_tactile_type_match():
-            result["tactile_check"] = "Wrong tactile definition in general_info.yaml!"
+            result["tactile"] = "Wrong tactile definition in general_info.yaml!"
         else:
             for finger in self._fingers_to_test:
-                result["tactile_check"][finger] = {}
-                result["tactile_check"][finger]["connected"] = self.is_sensor_connected(finger)
-                result["tactile_check"][finger]["reasonable"] = self.is_reasonable(finger)
+                result["tactile"][finger] = {}
+                result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
+                result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
         self._result = result
         return result
 
@@ -139,11 +139,14 @@ class TactileCheck(SrHealthReportCheck):
     def has_passed(self):
         passed = True
         for finger in self._fingers_to_test:
-            if not isinstance(self._result["tactile_check"], dict):
+            if not isinstance(self._result["tactile"], dict):
                 passed = False
                 break
-            for key in self._result["tactile_check"][finger].keys():
-                if not self._result["tactile_check"][finger][key]:
+            for key in self._result["tactile"][finger].keys():
+                if not self._result["tactile"][finger][key]:
                     passed = False
                     break
         return passed
+
+    def has_single_passed(self, name, value):
+        return self.PASSED_THRESHOLDS[name] == value

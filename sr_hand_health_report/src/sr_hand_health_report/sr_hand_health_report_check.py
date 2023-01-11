@@ -249,3 +249,6 @@ class SrHealthReportCheck:
 
     def has_passed(self):
         raise NotImplementedError("The function 'has_passed' must be implemented")
+
+    def has_single_passed(self, name, value):
+        raise NotImplementedError("The function 'has_single_passed' must be implemented")

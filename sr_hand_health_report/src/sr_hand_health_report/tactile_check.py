@@ -40,6 +40,10 @@ class TactileCheck(SrHealthReportCheck):
         self._expected_tactile_type = self.get_expected_tactile_type()
         self._topic_type_string = None
 
+    """
+        Checks the expected type from general_info.yaml file
+        @return: str expected fingertype 
+    """
     def get_expected_tactile_type(self):
         tactile_type_from_file = {}
         file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
@@ -51,6 +55,9 @@ class TactileCheck(SrHealthReportCheck):
             rospy.logerr(f"General info for {self._serial} does not exists!")
         return tactile_type_from_file
 
+    """
+        Runs check for tested fingers
+    """
     def run_check(self):
         result = {"tactile_check": {}}
         result["tactile_check"] = dict.fromkeys(self._fingers_to_test, '')
@@ -65,6 +72,10 @@ class TactileCheck(SrHealthReportCheck):
         self._result = result
         return result
 
+    """
+        Checks the expected type from general_info.yaml file and topic type match
+        @return: bool
+    """
     def check_if_tactile_type_match(self):
         check = False
         try:
@@ -79,6 +90,10 @@ class TactileCheck(SrHealthReportCheck):
                 check = True
         return check
 
+    """
+        Checks the tactile sensor is present on the finger
+        @return: bool
+    """
     def is_sensor_connected(self, finger):
         connected = False
         finger_to_index_mapping = {"FF": 1, "MF": 2, "RF": 3, "LF": 4, "TH": 5}
@@ -103,6 +118,11 @@ class TactileCheck(SrHealthReportCheck):
                 break
         return connected
 
+    """
+        Checks the values reported from the tactile sensor are within reasonable range
+        @param: Finger object to be tested 
+        @return: bool
+    """
     def is_reasonable(self, finger):
         reasonable = False
         try:
@@ -133,9 +153,17 @@ class TactileCheck(SrHealthReportCheck):
             pass
         return reasonable
 
+    """
+        Returns the result dictionary
+        @return: dict results 
+    """
     def get_result(self):
         return self._result
 
+    """
+        Checks if test passed by comparing results with threshold values
+        @return: bool
+    """
     def has_passed(self):
         passed = True
         for finger in self._fingers_to_test:

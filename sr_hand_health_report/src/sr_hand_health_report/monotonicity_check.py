@@ -36,6 +36,9 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._first_end_stop_sensor_value = None
         self._second_end_stop_sensor_value = None
 
+    """
+        Runs the check for all fingers
+    """
     def run_check(self):
         result = {"monotonicity_check": []}
         rospy.loginfo("Running Monotonicity Check")
@@ -49,6 +52,10 @@ class MonotonicityCheck(SrHealthReportCheck):
         rospy.loginfo("Monotonicity Check finished, exporting results")
         return result
 
+    """
+        Runs the check for the provided finger
+        @param: Finger object to run the check on. 
+    """
     def _run_check_per_finger(self, finger):
         for joint in finger.joints_dict.values():
             if finger.finger_name == "wr":
@@ -57,6 +64,12 @@ class MonotonicityCheck(SrHealthReportCheck):
                 command = 250
             self._run_check_per_joint(joint, command, finger)
 
+    """
+        Runs the check for the provided finger
+        @param: Finger object to run the check on. 
+        @param: int value of PWM command to be sent 
+        @param: Joint object to run the check on. 
+    """
     def _run_check_per_joint(self, joint, command, finger):
         rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
         joint_name = finger.finger_name + joint.joint_index
@@ -113,12 +126,23 @@ class MonotonicityCheck(SrHealthReportCheck):
                                           self.command_sign_map[finger.finger_name + "j3"] * 250, 3.0,
                                           self._publishing_rate)
 
+    """
+        Add the results to the result dicttionary
+        @param: str joint name
+        @param: float higher range value
+        @param: float lower range value
+    """
     def _add_result_to_dict(self, joint_name, higher_value, lower_value):
         self._dict_of_monotonic_joints[joint_name] = {}
         self._dict_of_monotonic_joints[joint_name]["is_monotonic"] = self._is_joint_monotonous
         self._dict_of_monotonic_joints[joint_name]["higher_raw_sensor_value"] = higher_value
         self._dict_of_monotonic_joints[joint_name]["lower_raw_sensor_value"] = lower_value
-
+    
+    """
+        Checks if the joint is monotonuous
+        @param: Joint object to be tested
+        @return: bool 
+    """
     def _check_monotonicity(self, joint):
         if self._older_raw_sensor_value == 0:
             self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
@@ -155,6 +179,10 @@ class MonotonicityCheck(SrHealthReportCheck):
     def get_result(self):
         return self._result
 
+    """
+        Checks if the single test execution result passed
+        @return bool value 
+    """
     def has_passed(self):
         passed = True
         for joint_result in self._result['monotonicity_check'].keys():
@@ -163,21 +191,27 @@ class MonotonicityCheck(SrHealthReportCheck):
                 break
         return passed
 
-
-def check_sensor_range(first_sensor_value, second_sensor_value):
     """
-    This function records the minimum and maximum range hit by the joint
-    during the monotonicity check, this is collected to sanity check the
-    sensor range
+        Checks the sensors range and return them in high to low order.
+        @param: float first_sensor_value
+        @param: float second_sensor_value 
     """
-    if first_sensor_value > second_sensor_value:
-        higher_value = first_sensor_value
-        lower_value = second_sensor_value
-    else:
-        higher_value = second_sensor_value
-        lower_value = first_sensor_value
-    return higher_value, lower_value
+    @staticmethod
+    def check_sensor_range(first_sensor_value, second_sensor_value):
 
+        if first_sensor_value > second_sensor_value:
+            higher_value = first_sensor_value
+            lower_value = second_sensor_value
+        else:
+            higher_value = second_sensor_value
+            lower_value = first_sensor_value
+        return higher_value, lower_value
 
-def get_raw_sensor_value(data):
-    return sum(data) / len(data)
+    """
+        Checks the sensors range and return them in high to low order.
+        @param: list of data
+        @return: float Average of the data 
+    """
+    @staticmethod
+    def get_raw_sensor_value(data):
+        return sum(data) / len(data)

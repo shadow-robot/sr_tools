@@ -26,6 +26,10 @@ class MotorCheck(SrHealthReportCheck):
         self._topic_name = '/diagnostics_agg'
         self._pass_conditions = {'std': 0.001, 'avg': 0.001}
 
+    """
+        Runs the check for all fingers to test
+        @return: dict the result
+    """
     def run_check(self):
         result = {"motor_check": {}}
 
@@ -51,5 +55,9 @@ class MotorCheck(SrHealthReportCheck):
         self._result = result
         return result
 
+    """
+        Checks if all subtests passed
+        @return: bool
+    """
     def has_passed(self):
         return all(result for result in self._result['motor_check'].values())

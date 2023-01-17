@@ -60,11 +60,11 @@ class OverrunCheck(SrHealthReportCheck):
     def run_check(self):
         self.overrun_average = 0
         self.drop_average = 0
-
         rospy.sleep(self.CHECK_TIME)
 
         result = {}
         result["overrun"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+
         self._result = result
 
     def get_result(self):
@@ -86,4 +86,3 @@ if __name__ == '__main__':
     overrun = OverrunCheck('right', ['FF', 'MF', 'RF'])
     overrun.run_check()
     rospy.loginfo(overrun.get_result())
-

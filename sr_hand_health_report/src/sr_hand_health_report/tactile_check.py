@@ -32,6 +32,7 @@ class TactileCheck(SrHealthReportCheck):
     def __init__(self, hand_side):
         super().__init__(hand_side, self._FINGERS)
         self._topic_name = f"/{self._hand_prefix}/tactile"
+        self._pass_conditions = {'connected': True, 'reasonable': True}
         try:
             self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
         except KeyError:

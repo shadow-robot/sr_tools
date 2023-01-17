@@ -29,8 +29,9 @@ class BacklashCheck(SrHealthReportCheck):
     FINGER_PWM = -250
     WIGGLING_TIME = 2
     FINGERS = ("TH", "FF", "MF", "RF", "LF")
+
     PASSED_THRESHOLDS = {'std': 0.015, 'avg': 0.01}
-    
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
@@ -85,6 +86,7 @@ class BacklashCheck(SrHealthReportCheck):
                     joint_result = self.wiggle_joint(joint)
                     # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     result['backlash'][joint.joint_name] = joint_result
+
 
             self.switch_controller_mode("position")
             self.move_finger_to_side(finger_object, 'left')

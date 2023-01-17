@@ -21,6 +21,9 @@ from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportChe
 
 
 class PositionSensorNoiseCheck(SrHealthReportCheck):
+
+    PASSED_THRESHOLDS = "CHECK PASSED"
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._check_duration = rospy.Duration(5.0)
@@ -33,7 +36,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         @return: Dictionary with the results of the check
     """
     def run_check(self):
-        result = {"position_sensor_noise_check": {}}
+        result = {"position_sensor_noise": {}}
         rospy.loginfo("Running Position Sensor Noise Check")
 
         for finger in self.fingers_to_check:
@@ -42,7 +45,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 rospy.loginfo("collecting and analyzing data for JOINT {}".format(joint.joint_name))
                 self._initial_raw_value = joint.get_raw_sensor_data()
                 self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
-        result["position_sensor_noise_check"].update(dict(self._shared_dict))
+        result["position_sensor_noise"].update(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
         self._result = result
         return result
@@ -61,6 +64,9 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         for index in range(len(initial_raw_value)):
             time = rospy.Time.now() + self._check_duration
             while rospy.Time.now() < time and test_failed is not True:
+                if self._stopped_execution:
+                    self._stopped_execution = False
+                    break
                 difference = joint.get_raw_sensor_data()[index] - initial_raw_value[index]
                 if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
                     if abs(difference) < NR_OF_BITS_NOISE_WARNING:
@@ -86,4 +92,10 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         @return Bool value 
     """
     def has_passed(self):
-        return all(result for result in self._result.values())
+        for key in self._result:
+            if not self.has_single_passed(key, self._result[key]):
+                return False
+        return True
+
+    def has_single_passed(self, _, value):
+        return self.PASSED_THRESHOLDS in value

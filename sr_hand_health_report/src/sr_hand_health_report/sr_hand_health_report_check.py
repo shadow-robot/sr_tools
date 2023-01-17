@@ -87,6 +87,7 @@ class SrHealthReportCheck:
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
         self._result = None
+        self._stopped_execution = False
 
         self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
         self._fingers_to_joint_map = self._init_map_finger_joints()
@@ -255,5 +256,20 @@ class SrHealthReportCheck:
         Checks if the test execution result passed
         @return Bool value 
     """
+
+    def move_fingers_to_start_position(self):
+        finger_objects = self._init_finger_objects(self.fingers_to_check)
+        self.switch_controller_mode('position')
+
+        for finger in finger_objects:
+            # if finger.finger_name.lower() != "wr":
+            finger.move_finger(0, 'position')
+
     def has_passed(self):
         raise NotImplementedError("The function 'has_passed' must be implemented")
+
+    def has_single_passed(self, name, value):
+        raise NotImplementedError("The function 'has_single_passed' must be implemented")
+
+    def stop_test(self):
+        self._stopped_execution = True

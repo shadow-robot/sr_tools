@@ -21,6 +21,8 @@ from diagnostic_msgs.msg import DiagnosticArray
 
 class MotorCheck(SrHealthReportCheck):
 
+    PASSED_THRESHOLDS = True
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
@@ -30,7 +32,7 @@ class MotorCheck(SrHealthReportCheck):
         @return: dict the result
     """
     def run_check(self):
-        result = {"motor_check": {}}
+        result = {"motor": {}}
 
         try:
             received_msg = rospy.wait_for_message(self._topic_name, DiagnosticArray, 5)
@@ -48,7 +50,10 @@ class MotorCheck(SrHealthReportCheck):
                     if "Temperature" in item.key:
                         working_state = True
                         break
-                result['motor_check'][motor_name] = working_state
+                result['motor'][motor_name] = working_state
+            if self._stopped_execution:
+                self._stopped_execution = False
+                break
 
         self._result = result
 
@@ -57,12 +62,12 @@ class MotorCheck(SrHealthReportCheck):
         @return Bool value 
     """
     def has_passed(self):
-        return all(result for result in self._result['motor_check'].values())
+        return all(result for result in self._result['motor'].values())
 
     """
         Checks if the single test execution result passed
         @return Bool value 
     """
-    def has_single_passed(self):
-        return all(result for result in self._result['motor_check'].values())
+    def has_single_passed(self, _, value):
+        return value == MotorCheck.PASSED_THRESHOLDS
 

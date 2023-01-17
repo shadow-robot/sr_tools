@@ -24,6 +24,9 @@ SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
 
 
 class MonotonicityCheck(SrHealthReportCheck):
+
+    PASSED_THRESHOLDS = {'is_monotonic': True, 'higher_raw_sensor_value': 4090, 'lower_raw_sensor_value': 5}
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._is_joint_monotonous = True
@@ -40,16 +43,18 @@ class MonotonicityCheck(SrHealthReportCheck):
         Runs the check for all fingers
     """
     def run_check(self):
-        result = {"monotonicity_check": []}
+        result = {"monotonicity": []}
         rospy.loginfo("Running Monotonicity Check")
+        self.move_fingers_to_start_position()
         self.switch_controller_mode("effort")
 
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
 
-        result["monotonicity_check"] = self._dict_of_monotonic_joints
+        result["monotonicity"] = dict(self._dict_of_monotonic_joints)
         self._result = result
         rospy.loginfo("Monotonicity Check finished, exporting results")
+        self.switch_controller_mode("position")
         return result
 
     """
@@ -88,7 +93,11 @@ class MonotonicityCheck(SrHealthReportCheck):
         is_joint_monotonous = True
 
         time = rospy.Time.now() + self._check_duration
-        while rospy.Time.now() < time:
+        while rospy.Time.now() < time and not rospy.is_shutdown():
+            if self._stopped_execution:
+                self._stopped_execution = False
+                break
+                
             if end_reached is False:
                 joint.move_joint(extend_command, "effort")
             else:
@@ -182,10 +191,11 @@ class MonotonicityCheck(SrHealthReportCheck):
     """
     def has_passed(self):
         passed = True
-        for joint_result in self._result['monotonicity_check'].keys():
-            if not self._result['monotonicity_check'][joint_result]['is_monotonic']:
-                passed = False
-                break
+        for joint_result in self._result['monotonicity'].keys():
+            for key in self._result['monotonicity'][list(self._result['monotonicity'].keys())[0]]:
+                if not self.has_single_passed(key, self._result['monotonicity'][joint_result][key]):
+                    passed = False
+                    break
         return passed
 
     """
@@ -193,6 +203,17 @@ class MonotonicityCheck(SrHealthReportCheck):
         @param: float first_sensor_value
         @param: float second_sensor_value 
     """
+
+    def has_single_passed(self, name, value):
+        output = False
+        if name == 'is_monotonic':
+            output = MonotonicityCheck.PASSED_THRESHOLDS['is_monotonic'] == value
+        elif name == 'higher_raw_sensor_value':
+            output = MonotonicityCheck.PASSED_THRESHOLDS['higher_raw_sensor_value'] > value
+        elif name == 'lower_raw_sensor_value':
+            output = MonotonicityCheck.PASSED_THRESHOLDS['lower_raw_sensor_value'] < value
+        return output
+
     @staticmethod
     def check_sensor_range(first_sensor_value, second_sensor_value):
 

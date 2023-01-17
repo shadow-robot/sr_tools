@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from sys import breakpointhook
 import rospy
 from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck
 from diagnostic_msgs.msg import DiagnosticArray
@@ -23,6 +24,7 @@ from sr_robot_msgs.msg import EthercatDebug
 class OverrunCheck(SrHealthReportCheck):
 
     CHECK_TIME = 10  # enough time to give reasonable result
+    PASSED_THRESHOLDS = {'overrun_average': 1, 'drop_average': 1}
 
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
@@ -74,21 +76,35 @@ class OverrunCheck(SrHealthReportCheck):
     def run_check(self):
         self.overrun_average = 0
         self.drop_average = 0
-        """
-        start_time = rospy.get_rostime().secs
-        while (rospy.get_rostime().secs - start_time) < self.CHECK_TIME:
-            rospy.sleep(0.1)
-        """
-        rospy.sleep(self.CHECK_TIME)
 
+        start_time = rospy.get_rostime()
+        while rospy.get_rostime().secs - start_time.secs < self.CHECK_TIME:
+            rospy.sleep(0.5)
+            if self._stopped_execution:
+                self._stopped_execution = False
+                break
+    
         result = {}
-        result["overrun_check"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+        result["overrun"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+
         self._result = result
+
+    def has_passed(self):
+        output = True
+        for name in OverrunCheck.PASSED_THRESHOLDS:
+            if not self.has_single_passed(name, self._result["overrun"][name]):
+                output = False
+                break
+        return output
+
+    def has_single_passed(self, name, value):
+        return value < OverrunCheck.PASSED_THRESHOLDS[name]
+
 
 
 if __name__ == '__main__':
-    rospy.init_node("sr_overrun_check")
+    rospy.init_node("sr_overrun")
 
-    overrun_check = OverrunCheck('right', ['FF', 'MF', 'RF'])
-    overrun_check.run_check()
-    rospy.loginfo(overrun_check.get_result())
+    overrun = OverrunCheck('right', ['FF', 'MF', 'RF'])
+    overrun.run_check()
+    rospy.loginfo(overrun.get_result())

@@ -244,8 +244,16 @@ class SrHealthReportCheck:
             rate.sleep()
         joint.move_joint(0, "effort")
 
+    """
+        Get the result of the test
+        @return: Dictionary containing the result of the test
+    """
     def get_result(self):
         return self._result
 
+    """
+        Checks if the test execution result passed
+        @return Bool value 
+    """
     def has_passed(self):
         raise NotImplementedError("The function 'has_passed' must be implemented")

@@ -161,8 +161,8 @@ class TactileCheck(SrHealthReportCheck):
         return self._result
 
     """
-        Checks if test passed by comparing results with threshold values
-        @return: bool
+        Checks if the test execution result passed
+        @return Bool value 
     """
     def has_passed(self):
         passed = True

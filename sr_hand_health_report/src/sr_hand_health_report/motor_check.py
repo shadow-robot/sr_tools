@@ -24,7 +24,6 @@ class MotorCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
-        self._pass_conditions = {'std': 0.001, 'avg': 0.001}
 
     """
         Runs the check for all fingers to test
@@ -38,7 +37,6 @@ class MotorCheck(SrHealthReportCheck):
         except rospy.ROSException:
             rospy.logerr(f"Did not receive any message on {self._topic_name} topic")
             self._result = result
-            return result
 
         for _, message in enumerate(received_msg.status):
             if "SRDMotor" in message.name and self._hand_prefix in message.name and \
@@ -53,11 +51,18 @@ class MotorCheck(SrHealthReportCheck):
                 result['motor_check'][motor_name] = working_state
 
         self._result = result
-        return result
 
     """
-        Checks if all subtests passed
-        @return: bool
+        Checks if the test execution result passed
+        @return Bool value 
     """
     def has_passed(self):
         return all(result for result in self._result['motor_check'].values())
+
+    """
+        Checks if the single test execution result passed
+        @return Bool value 
+    """
+    def has_single_passed(self):
+        return all(result for result in self._result['motor_check'].values())
+

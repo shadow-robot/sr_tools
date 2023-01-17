@@ -33,10 +33,14 @@ class OverrunCheck(SrHealthReportCheck):
         self.drop_average = 0
         self._result = None
 
-        rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback)
-        rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self.drops_callback)
+        rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self._overruns_callback)
+        rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self._drops_callback)
 
-    def overruns_callback(self, data):
+    """
+        Overrun callback
+        @param: DiagnosticArray data
+    """
+    def _overruns_callback(self, data):
         overrun = OverrunCheck.get_recent_overruns(data)
 
         self.overrun_average += int(float(overrun))
@@ -44,10 +48,18 @@ class OverrunCheck(SrHealthReportCheck):
         self.number_of_drops = 0
         self.iterations += 1
 
-    def drops_callback(self, data):
+    """
+        Drops callback
+        @param: EthercatDebug data
+    """
+    def _drops_callback(self, data):
         if data.sensors[10] == 0:
             self.number_of_drops += 1
 
+    """
+        Get overruns from message
+        @param: DiagnosticArray message
+    """
     @staticmethod
     def get_recent_overruns(msg):
         for status in msg.status:
@@ -56,6 +68,9 @@ class OverrunCheck(SrHealthReportCheck):
                     return value_dict.value
         raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
 
+    """
+        Runs the check for CHECK_TIME time
+    """
     def run_check(self):
         self.overrun_average = 0
         self.drop_average = 0
@@ -69,12 +84,6 @@ class OverrunCheck(SrHealthReportCheck):
         result = {}
         result["overrun_check"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
         self._result = result
-
-    def get_result(self):
-        return self._result
-
-    def has_passed(self):
-        raise NotImplementedError("The function 'has_passed' must be implemented")
 
 
 if __name__ == '__main__':

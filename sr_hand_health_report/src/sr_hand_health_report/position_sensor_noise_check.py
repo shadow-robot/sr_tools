@@ -28,10 +28,13 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         self._publishing_rate = rospy.Rate(200)
         self._initial_raw_value = None
 
+    """
+        Runs the test for selected fingers.
+        @return: Dictionary with the results of the check
+    """
     def run_check(self):
         result = {"position_sensor_noise_check": {}}
         rospy.loginfo("Running Position Sensor Noise Check")
-        rospy.sleep(3.0)
 
         for finger in self.fingers_to_check:
             rospy.loginfo("collecting and analyzing data for FINGER {}".format(finger.finger_name))
@@ -44,6 +47,12 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         self._result = result
         return result
 
+    """
+        Checks the sensor noise and saves the result to _shared_dict
+        @param initial_raw_value: Float value of raw sensor reading
+        @param Joint: Joint object being under test
+        @param dictionary: Dictionary where the result is saved
+    """
     def check_joint_raw_sensor_value(self, initial_raw_value, joint, dictionary):
         status = ""
         test_failed = False
@@ -72,5 +81,9 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 name = joint.joint_name + "_1"
                 dictionary[name] = status
 
+    """
+        Checks if the test execution result passed
+        @return Bool value 
+    """
     def has_passed(self):
         return all(result for result in self._result.values())

@@ -30,6 +30,12 @@ class BacklashCheck(SrHealthReportCheck):
     WIGGLING_TIME = 2
     FINGERS = ("TH", "FF", "MF", "RF", "LF")
 
+    """
+        Initialize the BacklashCheck object
+        @param port: String indicating the USB port to use to communicate with the MST sensor
+        @param baudrate: Integer indicating the baud rate used to communicate with the device
+        @param timeout: Maximum amount of time (in seconds) the port will wait to get a reading from the MST
+    """
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
@@ -37,12 +43,18 @@ class BacklashCheck(SrHealthReportCheck):
         self._set_joint_limits()
         self._pass_conditions = {'std': 0.001, 'avg': 0.001}
 
+    """
+        Sets the joint limits from the URDF
+    """
     def _set_joint_limits(self):
         joint_list = [joint_name.lower() for joint_name in self._joint_msg.name]
         for joint in URDF.from_parameter_server().joints:
             if joint.name.lower() in joint_list:
                 self.joint_limits[joint.name.lower()] = joint.limit
 
+    """
+        Moves tested fingers into 0 degree joint anglees in position control mode.
+    """
     def move_fingers_to_start_position(self):
         finger_objects = self._init_finger_objects(self.FINGERS)
         self.switch_controller_mode('position')
@@ -59,6 +71,9 @@ class BacklashCheck(SrHealthReportCheck):
                         joint_object.move_joint(math.radians(0), 'position')
             """
 
+    """
+        Runs the backlash check for all selected fingers and assings the result into the _result variable.
+    """
     def run_check(self):
         self.move_fingers_to_start_position()
         result = {"backlash_check": {}}
@@ -90,14 +105,23 @@ class BacklashCheck(SrHealthReportCheck):
             self.move_finger_to_side(finger_object, 'left')
 
         self._result = result
-        rospy.logerr(result)
 
+    """
+        Moves the finger to the left/right joint limit of J4
+        @param finger_object: Finger object indicating which finger to move
+        @param side: String defining the side, 'right' or 'left'
+    """
     def move_finger_to_side(self, finger_object, side):
         angle = math.radians(-20) if side == 'right' else math.radians(20)
         angle *= self._side_sign_map[finger_object.finger_name]
         if "J4" in finger_object.joints_dict:
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
 
+    """
+        Moves the joint repeatably by switching the PWM sign and sending the commands to the effort controller.
+        The result is being save into the _results variable and contains the average and standard deviation.
+        @param joint: Joint object indicating which joint to 'wiggle'
+    """
     def wiggle_joint(self, joint):
         test_times = []
         total_time = None
@@ -158,6 +182,7 @@ class BacklashCheck(SrHealthReportCheck):
         self._result = result
         return result
 
+    '''
     def _debounce(self, joint, timeout=1):
         if joint.get_current_position() < self.joint_limits[joint.joint_name].lower + math.radians(1):
             joint.move_joint(-self.FINGER_PWM, 'effort')
@@ -167,10 +192,12 @@ class BacklashCheck(SrHealthReportCheck):
             joint.move_joint(self.FINGER_PWM, 'effort')
             rospy.sleep(timeout)
             joint.move_joint(0, 'effort')
+    '''
 
-    def get_result(self):
-        return self._result
-
+    """
+        Checks if the test execution result passed
+        @return Bool value 
+    """
     def has_passed(self):
         # to be edited after value confirmation with Luke and production
         pass_value_std = 0.001

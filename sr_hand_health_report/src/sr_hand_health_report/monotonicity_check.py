@@ -100,10 +100,10 @@ class MonotonicityCheck(SrHealthReportCheck):
             if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)) and end_reached is False:
                 time = rospy.Time.now() + self._check_duration
                 end_reached = True
-                self._first_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
-        self._second_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+                self._first_end_stop_sensor_value = MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data())
+        self._second_end_stop_sensor_value = MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data())
 
-        higher_value, lower_value = check_sensor_range(self._first_end_stop_sensor_value,
+        higher_value, lower_value = MonotonicityCheck.check_sensor_range(self._first_end_stop_sensor_value,
                                                        self._second_end_stop_sensor_value)
 
         self._add_result_to_dict(joint.joint_name, higher_value, lower_value)
@@ -145,11 +145,11 @@ class MonotonicityCheck(SrHealthReportCheck):
     """
     def _check_monotonicity(self, joint):
         if self._older_raw_sensor_value == 0:
-            self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+            self._older_raw_sensor_value = MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data())
 
-        difference_between_raw_data = (get_raw_sensor_value(joint.get_raw_sensor_data()) -
+        difference_between_raw_data = (MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data()) -
                                        self._older_raw_sensor_value)
-        self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+        self._older_raw_sensor_value = MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data())
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:
                 if abs(self._previous_difference) > NR_OF_BITS_NOISE_WARNING:
@@ -176,12 +176,9 @@ class MonotonicityCheck(SrHealthReportCheck):
                 limit_reached = True
         return limit_reached
 
-    def get_result(self):
-        return self._result
-
     """
-        Checks if the single test execution result passed
-        @return bool value 
+        Checks if the test execution result passed
+        @return Bool value 
     """
     def has_passed(self):
         passed = True

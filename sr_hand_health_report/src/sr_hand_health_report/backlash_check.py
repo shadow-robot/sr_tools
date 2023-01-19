@@ -30,7 +30,7 @@ class BacklashCheck(SrHealthReportCheck):
     WIGGLING_TIME = 2
     FINGERS = ("TH", "FF", "MF", "RF", "LF")
     PASSED_THRESHOLDS = {'std': 0.015, 'avg': 0.01}
-    
+
     """
         Initialize the BacklashCheck object
         @param port: String indicating the USB port to use to communicate with the MST sensor
@@ -40,6 +40,7 @@ class BacklashCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
+        self._name = "Backlash"
         self.joint_limits = {}
         self._set_joint_limits()
 
@@ -56,11 +57,11 @@ class BacklashCheck(SrHealthReportCheck):
         Moves tested fingers into 0 degree joint anglees in position control mode.
     """
     def move_fingers_to_start_position(self):
-        finger_objects = self._init_finger_objects(self.FINGERS)
         self.switch_controller_mode('position')
 
-        for finger in finger_objects:
+        for finger in self.fingers_to_check:
             # if finger.finger_name.lower() != "wr":
+
             finger.move_finger(0, 'position')
             """
             else:
@@ -75,8 +76,13 @@ class BacklashCheck(SrHealthReportCheck):
         Runs the backlash check for all selected fingers and assings the result into the _result variable.
     """
     def run_check(self):
-        self.move_fingers_to_start_position()
+
         result = {"backlash": {}}
+        if self._stopped_execution:
+            self._stopped_execution = False
+            return result
+
+        self.move_fingers_to_start_position()
 
         self.switch_controller_mode("position")
         for finger_object in self.fingers_to_check:
@@ -100,11 +106,11 @@ class BacklashCheck(SrHealthReportCheck):
                     joint_result = self.wiggle_joint(joint)
                     # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     result['backlash'][joint.joint_name] = joint_result
-                
+
                 if self._stopped_execution:
                     break
             if self._stopped_execution:
-                break
+                return {}
 
             self.switch_controller_mode("position")
             self.move_finger_to_side(finger_object, 'left')
@@ -202,7 +208,7 @@ class BacklashCheck(SrHealthReportCheck):
 
     """
         Checks if the test execution result passed
-        @return Bool value 
+        @return Bool value
     """
     def has_passed(self):
         # to be edited after value confirmation with Luke and production

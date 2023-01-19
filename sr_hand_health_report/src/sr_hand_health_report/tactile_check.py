@@ -31,18 +31,29 @@ class TactileCheck(SrHealthReportCheck):
 
     def __init__(self, hand_side):
         super().__init__(hand_side, self._FINGERS)
+        self._name = "Tactile"
         self._topic_name = f"/{self._hand_prefix}/tactile"
         try:
-            self._serial = rospy.get_param(f"/sr_hand_robot/{self._hand_prefix}/hand_serial")
+            serials = rospy.get_param("/diagnostic_aggregator/load_diagnostic_analyzer/hand_serials_list")
+            if len(serials) == 2:
+                self._serial = serials[0] if self._hand_prefix == 'rh' else serials[1]
+            else:
+                self._serial = serials[0]
         except KeyError:
+            pass
+
+        try:
+            self._serial
+        except Exception:
             rospy.logerr("No hand detected!")
             sys.exit(1)
+
         self._expected_tactile_type = self.get_expected_tactile_type()
         self._topic_type_string = None
 
     """
         Checks the expected type from general_info.yaml file
-        @return: str expected fingertype 
+        @return: str expected fingertype
     """
     def get_expected_tactile_type(self):
         tactile_type_from_file = {}
@@ -69,6 +80,10 @@ class TactileCheck(SrHealthReportCheck):
                 result["tactile"][finger] = {}
                 result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
                 result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
+                if self._stopped_execution:
+                    self._stopped_execution = False
+                    return {}
+
         self._result = result
 
         return result
@@ -104,7 +119,7 @@ class TactileCheck(SrHealthReportCheck):
         timeout = 2
         while rospy.get_time() - now < timeout:
             if self._stopped_execution:
-                    break
+                break
             # 2s to give more time for messages to arrive due to low publishing rate of /diagnostics
             diagnostic_data = None
             try:
@@ -123,7 +138,7 @@ class TactileCheck(SrHealthReportCheck):
 
     """
         Checks the values reported from the tactile sensor are within reasonable range
-        @param: Finger object to be tested 
+        @param: Finger object to be tested
         @return: bool
     """
     def is_reasonable(self, finger):
@@ -158,14 +173,14 @@ class TactileCheck(SrHealthReportCheck):
 
     """
         Returns the result dictionary
-        @return: dict results 
+        @return: dict results
     """
     def get_result(self):
         return self._result
 
     """
         Checks if the test execution result passed
-        @return Bool value 
+        @return Bool value
     """
     def has_passed(self):
         passed = True

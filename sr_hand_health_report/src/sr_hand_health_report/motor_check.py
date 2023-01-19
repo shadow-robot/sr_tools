@@ -26,6 +26,7 @@ class MotorCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
+        self._name = "Motor"
 
     """
         Runs the check for all fingers to test
@@ -53,21 +54,20 @@ class MotorCheck(SrHealthReportCheck):
                 result['motor'][motor_name] = working_state
             if self._stopped_execution:
                 self._stopped_execution = False
-                break
+                return {}
 
         self._result = result
 
     """
         Checks if the test execution result passed
-        @return Bool value 
+        @return Bool value
     """
     def has_passed(self):
         return all(result for result in self._result['motor'].values())
 
     """
         Checks if the single test execution result passed
-        @return Bool value 
+        @return Bool value
     """
     def has_single_passed(self, _, value):
         return value == MotorCheck.PASSED_THRESHOLDS
-

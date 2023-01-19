@@ -26,6 +26,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
+        self._name = "Position Sensor Noise"
         self._check_duration = rospy.Duration(5.0)
         self._shared_dict = {}
         self._publishing_rate = rospy.Rate(200)
@@ -45,6 +46,13 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 rospy.loginfo("collecting and analyzing data for JOINT {}".format(joint.joint_name))
                 self._initial_raw_value = joint.get_raw_sensor_data()
                 self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
+
+                if self._stopped_execution:
+                    break
+            if self._stopped_execution:
+                self._stopped_execution = False
+                return {}
+
         result["position_sensor_noise"].update(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
         self._result = result
@@ -65,7 +73,6 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
             time = rospy.Time.now() + self._check_duration
             while rospy.Time.now() < time and test_failed is not True:
                 if self._stopped_execution:
-                    self._stopped_execution = False
                     break
                 difference = joint.get_raw_sensor_data()[index] - initial_raw_value[index]
                 if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
@@ -80,6 +87,9 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                         status = "{} bits noise - CHECK FAILED".format(abs(difference) + 1)
                         test_failed = True
                 self._publishing_rate.sleep()
+
+            if self._stopped_execution:
+                break
             print("Finished loop for {}".format(joint.joint_name))
             if joint.joint_name not in dictionary:
                 dictionary[joint.joint_name] = status
@@ -89,7 +99,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     """
         Checks if the test execution result passed
-        @return Bool value 
+        @return Bool value
     """
     def has_passed(self):
         for key in self._result:

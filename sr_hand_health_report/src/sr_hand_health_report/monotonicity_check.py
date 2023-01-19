@@ -29,13 +29,14 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
+        self._name = "Monotonicity"
         self._is_joint_monotonous = True
         self._dict_of_monotonic_joints = {}
         self._publishing_rate = rospy.Rate(50)  # 50 Hz
         self._older_raw_sensor_value = 0
         self._previous_difference = 0
         self._pwm_command = 250
-        self._check_duration = rospy.Duration(7.0)
+        self._check_duration = rospy.Duration(4.0)
         self._first_end_stop_sensor_value = None
         self._second_end_stop_sensor_value = None
 
@@ -50,6 +51,9 @@ class MonotonicityCheck(SrHealthReportCheck):
 
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
+            if self._stopped_execution:
+                self._stopped_execution = False
+                return {}
 
         result["monotonicity"] = dict(self._dict_of_monotonic_joints)
         self._result = result
@@ -59,7 +63,7 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     """
         Runs the check for the provided finger
-        @param: Finger object to run the check on. 
+        @param: Finger object to run the check on.
     """
     def _run_check_per_finger(self, finger):
         for joint in finger.joints_dict.values():
@@ -68,12 +72,14 @@ class MonotonicityCheck(SrHealthReportCheck):
             else:
                 command = 250
             self._run_check_per_joint(joint, command, finger)
+            if self._stopped_execution:
+                break
 
     """
         Runs the check for the provided finger
-        @param: Finger object to run the check on. 
-        @param: int value of PWM command to be sent 
-        @param: Joint object to run the check on. 
+        @param: Finger object to run the check on.
+        @param: int value of PWM command to be sent
+        @param: Joint object to run the check on.
     """
     def _run_check_per_joint(self, joint, command, finger):
         rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
@@ -94,10 +100,6 @@ class MonotonicityCheck(SrHealthReportCheck):
 
         time = rospy.Time.now() + self._check_duration
         while rospy.Time.now() < time and not rospy.is_shutdown():
-            if self._stopped_execution:
-                self._stopped_execution = False
-                break
-                
             if end_reached is False:
                 joint.move_joint(extend_command, "effort")
             else:
@@ -110,10 +112,13 @@ class MonotonicityCheck(SrHealthReportCheck):
                 time = rospy.Time.now() + self._check_duration
                 end_reached = True
                 self._first_end_stop_sensor_value = MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data())
+            if self._stopped_execution:
+                return
+
         self._second_end_stop_sensor_value = MonotonicityCheck.get_raw_sensor_value(joint.get_raw_sensor_data())
 
         higher_value, lower_value = MonotonicityCheck.check_sensor_range(self._first_end_stop_sensor_value,
-                                                       self._second_end_stop_sensor_value)
+                                                                         self._second_end_stop_sensor_value)
 
         self._add_result_to_dict(joint.joint_name, higher_value, lower_value)
         self._reset_joint_to_position(finger, joint, extend_command, flex_command)
@@ -146,11 +151,11 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._dict_of_monotonic_joints[joint_name]["is_monotonic"] = self._is_joint_monotonous
         self._dict_of_monotonic_joints[joint_name]["higher_raw_sensor_value"] = higher_value
         self._dict_of_monotonic_joints[joint_name]["lower_raw_sensor_value"] = lower_value
-    
+
     """
         Checks if the joint is monotonuous
         @param: Joint object to be tested
-        @return: bool 
+        @return: bool
     """
     def _check_monotonicity(self, joint):
         if self._older_raw_sensor_value == 0:
@@ -187,7 +192,7 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     """
         Checks if the test execution result passed
-        @return Bool value 
+        @return Bool value
     """
     def has_passed(self):
         passed = True
@@ -201,7 +206,7 @@ class MonotonicityCheck(SrHealthReportCheck):
     """
         Checks the sensors range and return them in high to low order.
         @param: float first_sensor_value
-        @param: float second_sensor_value 
+        @param: float second_sensor_value
     """
 
     def has_single_passed(self, name, value):
@@ -228,7 +233,7 @@ class MonotonicityCheck(SrHealthReportCheck):
     """
         Checks the sensors range and return them in high to low order.
         @param: list of data
-        @return: float Average of the data 
+        @return: float Average of the data
     """
     @staticmethod
     def get_raw_sensor_value(data):

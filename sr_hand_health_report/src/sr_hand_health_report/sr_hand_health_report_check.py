@@ -86,11 +86,13 @@ class SrHealthReportCheck:
     def __init__(self, hand_side, fingers_to_test):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
+        self._name = ""
         self._result = None
         self._stopped_execution = False
 
         self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
         self._fingers_to_joint_map = self._init_map_finger_joints()
+
         self._controller_joints_names = self._init_controller_joints()
 
         self.ctrl_helper = ControllerHelper([self._hand_prefix], [self._hand_prefix + "_"],
@@ -127,9 +129,10 @@ class SrHealthReportCheck:
         fingers_to_joint_map = OrderedDict()
         for joint in self._joint_msg.name:  # pylint: disable=E1101
             finger_name = joint[3:-2]
-            if finger_name not in fingers_to_joint_map:
-                fingers_to_joint_map[finger_name] = []
-            fingers_to_joint_map[finger_name].append(joint[-2:])
+            if self._hand_prefix in joint:
+                if finger_name not in fingers_to_joint_map:
+                    fingers_to_joint_map[finger_name] = []
+                fingers_to_joint_map[finger_name].append(joint[-2:])
         return fingers_to_joint_map
 
     def _init_controller_joints(self):
@@ -254,7 +257,7 @@ class SrHealthReportCheck:
 
     """
         Checks if the test execution result passed
-        @return Bool value 
+        @return Bool value
     """
 
     def move_fingers_to_start_position(self):
@@ -273,3 +276,9 @@ class SrHealthReportCheck:
 
     def stop_test(self):
         self._stopped_execution = True
+
+    def is_stopped(self):
+        return self._stopped_execution
+
+    def get_name(self):
+        return self._name

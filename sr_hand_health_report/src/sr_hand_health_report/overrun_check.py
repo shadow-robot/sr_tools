@@ -29,6 +29,7 @@ class OverrunCheck(SrHealthReportCheck):
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
 
+        self._name = "Overrun"
         self.number_of_drops = 0
         self.iterations = 0
         self.overrun_average = 0
@@ -82,8 +83,8 @@ class OverrunCheck(SrHealthReportCheck):
             rospy.sleep(0.5)
             if self._stopped_execution:
                 self._stopped_execution = False
-                break
-    
+                return {}
+
         result = {}
         result["overrun"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
 
@@ -99,7 +100,6 @@ class OverrunCheck(SrHealthReportCheck):
 
     def has_single_passed(self, name, value):
         return value < OverrunCheck.PASSED_THRESHOLDS[name]
-
 
 
 if __name__ == '__main__':

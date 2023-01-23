@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -24,6 +24,11 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     PASSED_THRESHOLDS = "CHECK PASSED"
 
+    """
+        Initialize the PositionSensorNoiseCheck object
+        @param hand_side: String indicating the side
+        @param fingers_to_test: List of finger prefixes to test
+    """
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._name = "Position Sensor Noise"
@@ -31,6 +36,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         self._shared_dict = {}
         self._publishing_rate = rospy.Rate(200)
         self._initial_raw_value = None
+        self._result = {'position_sensor_noise': {}}
 
     """
         Runs the test for selected fingers.
@@ -51,12 +57,11 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                     break
             if self._stopped_execution:
                 self._stopped_execution = False
-                return {}
+                return
 
-        result["position_sensor_noise"].update(dict(self._shared_dict))
+        self._result["position_sensor_noise"].update(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
-        self._result = result
-        return result
+        return
 
     """
         Checks the sensor noise and saves the result to _shared_dict
@@ -99,13 +104,19 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     """
         Checks if the test execution result passed
-        @return Bool value
+        @return bool check passed
     """
     def has_passed(self):
         for key in self._result:
             if not self.has_single_passed(key, self._result[key]):
                 return False
-        return True
+        return True and bool(self._result['position_sensor_noise'])
 
+    """
+        Checks if the single test execution result passed
+        @param name: name of the test
+        @param value: value to be compared with the thresholds
+        @return bool check passed
+    """
     def has_single_passed(self, _, value):
         return self.PASSED_THRESHOLDS in value

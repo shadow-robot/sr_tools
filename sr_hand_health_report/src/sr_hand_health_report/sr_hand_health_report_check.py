@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 from collections import OrderedDict
+from operator import indexOf
 from std_msgs.msg import Float64
 import rospy
 from sensor_msgs.msg import JointState
@@ -21,6 +22,7 @@ from sr_controllers_tools.sr_controller_helper import ControllerHelper
 from sr_robot_msgs.msg import EthercatDebug
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
+import math
 
 COUPLED_JOINTS = ["J1", "J2"]
 FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
@@ -29,6 +31,9 @@ NR_OF_BITS_NOISE_WARNING = 3
 
 
 class Finger:
+
+    PREFIXES = ("FF", 'MF', 'RF', 'LF', 'TH', 'WR')
+
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
@@ -38,8 +43,12 @@ class Finger:
         for joint in self.joints_dict.values():
             joint.move_joint(command, control_type)
 
+    def _get_sorting_value(self):
+        return self.PREFIXES.index(self.finger_name.upper())
+
 
 class Joint:
+
     def __init__(self, hand_prefix, finger_name, joint_index):
         self._finger_name = finger_name
         self.joint_index = joint_index
@@ -110,6 +119,8 @@ class SrHealthReportCheck:
         self._joint_states_subscriber = rospy.Subscriber("/joint_states", JointState,
                                                          self._joint_states_callback)
 
+        self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
+
         if self._hand_prefix == "lh":
             self.command_sign_map = {"ffj1": -1, "ffj2": -1, "ffj3": 1, "ffj4": -1,
                                      "mfj1": -1, "mfj2": -1, "mfj3": 1, "mfj4": -1,
@@ -153,11 +164,13 @@ class SrHealthReportCheck:
             fingers_to_test = self._fingers_to_test
 
         for i, finger in enumerate(self._fingers_to_joint_map):
-            if finger in self._fingers_to_joint_map:
+            if finger in fingers_to_test:
                 fingers_to_check.append(Finger(self._hand_prefix, finger.lower()))
                 for joint_index in self._fingers_to_joint_map[finger]:
                     fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(),
                                                                          joint_index.lower())
+
+        fingers_to_check.sort(reverse=False, key=lambda x: x._get_sorting_value())
         return fingers_to_check
 
     def _init_raw_sensor_data_list(self):
@@ -256,18 +269,30 @@ class SrHealthReportCheck:
         return self._result
 
     """
+        Moves tested fingers into 0 degree joint anglees in position control mode.
+    """
+    def move_fingers_to_start_position(self):
+        self.switch_controller_mode('position')
+        for finger in self.fingers_to_check:
+            finger.move_finger(0, 'position')
+            rospy.logwarn(f"Moving to start {finger.finger_name}")
+
+    """
+        Moves the finger to the left/right joint limit of J4
+        @param finger_object: Finger object indicating which finger to move
+        @param side: String defining the side, 'right' or 'left'
+    """
+    def move_finger_to_side(self, finger_object, side):
+        angle = math.radians(-20) if side == 'right' else math.radians(20)
+        angle *= self._side_sign_map[finger_object.finger_name]
+        if "J4" in finger_object.joints_dict:
+            finger_object.joints_dict['J4'].move_joint(angle, 'position')
+            rospy.logwarn(f"moving {finger_object.finger_name} to {side}")
+
+    """
         Checks if the test execution result passed
         @return Bool value
     """
-
-    def move_fingers_to_start_position(self):
-        finger_objects = self._init_finger_objects(self.fingers_to_check)
-        self.switch_controller_mode('position')
-
-        for finger in finger_objects:
-            # if finger.finger_name.lower() != "wr":
-            finger.move_finger(0, 'position')
-
     def has_passed(self):
         raise NotImplementedError("The function 'has_passed' must be implemented")
 

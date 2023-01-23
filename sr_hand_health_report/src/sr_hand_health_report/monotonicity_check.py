@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -16,6 +16,7 @@
 from builtins import round
 import rospy
 from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportCheck,
+                                                               Finger,
                                                                SENSOR_CUTOUT_THRESHOLD,
                                                                NR_OF_BITS_NOISE_WARNING)
 import numpy as np
@@ -27,6 +28,11 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     PASSED_THRESHOLDS = {'is_monotonic': True, 'higher_raw_sensor_value': 4090, 'lower_raw_sensor_value': 5}
 
+    """
+        Initialize the MonotonicityCheck object
+        @param hand_side: String indicating the side
+        @param fingers_to_test: List of finger prefixes to test
+    """
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._name = "Monotonicity"
@@ -39,27 +45,29 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._check_duration = rospy.Duration(4.0)
         self._first_end_stop_sensor_value = None
         self._second_end_stop_sensor_value = None
+        self._result = {'monotonicity': {}}
 
     """
         Runs the check for all fingers
     """
     def run_check(self):
-        result = {"monotonicity": []}
         rospy.loginfo("Running Monotonicity Check")
         self.move_fingers_to_start_position()
         self.switch_controller_mode("effort")
+
+        Finger.PREFIXES = ("FF", 'MF', 'LF', 'RF', 'TH', 'WR')
+        self.fingers_to_check.sort(reverse=False, key=lambda x: x._get_sorting_value())
 
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
             if self._stopped_execution:
                 self._stopped_execution = False
-                return {}
+                return
 
-        result["monotonicity"] = dict(self._dict_of_monotonic_joints)
-        self._result = result
+        self._result["monotonicity"] = dict(self._dict_of_monotonic_joints)
         rospy.loginfo("Monotonicity Check finished, exporting results")
         self.switch_controller_mode("position")
-        return result
+        return
 
     """
         Runs the check for the provided finger
@@ -192,7 +200,7 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     """
         Checks if the test execution result passed
-        @return Bool value
+        @return bool check passed
     """
     def has_passed(self):
         passed = True
@@ -201,14 +209,14 @@ class MonotonicityCheck(SrHealthReportCheck):
                 if not self.has_single_passed(key, self._result['monotonicity'][joint_result][key]):
                     passed = False
                     break
-        return passed
+        return passed and bool(self._result["monotonicity"])
 
     """
-        Checks the sensors range and return them in high to low order.
-        @param: float first_sensor_value
-        @param: float second_sensor_value
+        Checks if the single test execution result passed
+        @param name: name of the test
+        @param value: value to be compared with the thresholds
+        @return bool check passed
     """
-
     def has_single_passed(self, name, value):
         output = False
         if name == 'is_monotonic':
@@ -219,6 +227,11 @@ class MonotonicityCheck(SrHealthReportCheck):
             output = MonotonicityCheck.PASSED_THRESHOLDS['lower_raw_sensor_value'] < value
         return output
 
+    """
+        Checks the sensors range and return them in high to low order.
+        @param: float first_sensor_value
+        @param: float second_sensor_value
+    """
     @staticmethod
     def check_sensor_range(first_sensor_value, second_sensor_value):
 

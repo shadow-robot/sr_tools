@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Shadow Robot Company Ltd.
+# Copyright 2022-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -33,14 +33,14 @@ class BacklashCheck(SrHealthReportCheck):
 
     """
         Initialize the BacklashCheck object
-        @param port: String indicating the USB port to use to communicate with the MST sensor
-        @param baudrate: Integer indicating the baud rate used to communicate with the device
-        @param timeout: Maximum amount of time (in seconds) the port will wait to get a reading from the MST
+        @param hand_side: String indicating the side
+        @param fingers_to_test: List of finger prefixes to test
     """
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
-        self._name = "Backlash"
+        self._name = "backlash"
+        self._result = {'backlash': {}}
         self.joint_limits = {}
         self._set_joint_limits()
 
@@ -58,29 +58,18 @@ class BacklashCheck(SrHealthReportCheck):
     """
     def move_fingers_to_start_position(self):
         self.switch_controller_mode('position')
-
         for finger in self.fingers_to_check:
-            # if finger.finger_name.lower() != "wr":
-
             finger.move_finger(0, 'position')
-            """
-            else:
-                for joint_index, joint_object in finger.joints_dict.items():
-                    if joint_index.lower() == "j3":
-                        joint_object.move_joint(math.radians(0), 'position')
-                    else:
-                        joint_object.move_joint(math.radians(0), 'position')
-            """
+            rospy.logwarn(f"Moving to start {finger.finger_name}")
 
     """
         Runs the backlash check for all selected fingers and assings the result into the _result variable.
     """
     def run_check(self):
 
-        result = {"backlash": {}}
         if self._stopped_execution:
             self._stopped_execution = False
-            return result
+            return
 
         self.move_fingers_to_start_position()
 
@@ -97,26 +86,22 @@ class BacklashCheck(SrHealthReportCheck):
                 if finger_object.finger_name in ('ff', 'mf', 'rf', 'lf') and joint.joint_index != "j1":
                     # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     joint_result = self.wiggle_joint(joint)
-                    result['backlash'][joint.joint_name] = joint_result
-                elif finger_object.finger_name == 'th':
+                    self._result['backlash'][joint.joint_name] = joint_result
+                elif finger_object.finger_name in ('th', 'wr'):
                     joint_result = self.wiggle_joint(joint)
-                    # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
-                    result['backlash'][joint.joint_name] = joint_result
-                elif finger_object.finger_name == 'wr':
-                    joint_result = self.wiggle_joint(joint)
-                    # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
-                    result['backlash'][joint.joint_name] = joint_result
+                    self._result['backlash'][joint.joint_name] = joint_result
 
                 if self._stopped_execution:
                     break
             if self._stopped_execution:
-                return {}
+                return
 
             self.switch_controller_mode("position")
             self.move_finger_to_side(finger_object, 'left')
 
         self._stopped_execution = False
-        self._result = result
+
+        return
 
     """
         Moves the finger to the left/right joint limit of J4
@@ -191,7 +176,6 @@ class BacklashCheck(SrHealthReportCheck):
         # Casting the numpy methods to float, as the yaml package cannot handle it automatically.
         result['std'] = float(np.std(times))
         result['avg'] = float(np.mean(times))
-        self._result = result
         return result
 
     '''
@@ -208,7 +192,7 @@ class BacklashCheck(SrHealthReportCheck):
 
     """
         Checks if the test execution result passed
-        @return Bool value
+        @return bool check passed
     """
     def has_passed(self):
         # to be edited after value confirmation with Luke and production
@@ -220,8 +204,14 @@ class BacklashCheck(SrHealthReportCheck):
                 if not self.has_single_passed(key, joint_data[key]):
                     passed = False
                     break
-        return passed
+        return passed and bool(self._result["backlash"])
 
+    """
+        Checks if the single test execution result passed
+        @param name: name of the test
+        @param value: value to be compared with the thresholds
+        @return bool check passed
+    """
     def has_single_passed(self, name, value):
         return value < self.PASSED_THRESHOLDS[name]
 

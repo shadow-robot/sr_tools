@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Shadow Robot Company Ltd.
+# Copyright 2022-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -27,12 +27,19 @@ class TactileCheck(SrHealthReportCheck):
 
     _REASONABLE_RANGE = {"pst": [200, 1200], "bt_sp": [1800, 2400], "bt_2sp": [1800, 2400]}
     _FINGERS = ("FF", "MF", "RF", "LF", "TH")
+    TIMEOUT = 2
     PASSED_THRESHOLDS = {'connected': True, 'reasonable': True}
 
+    """
+        Initialize the TactileCheck object
+        @param hand_side: String indicating the side
+    """
     def __init__(self, hand_side):
         super().__init__(hand_side, self._FINGERS)
         self._name = "Tactile"
         self._topic_name = f"/{self._hand_prefix}/tactile"
+        self._result = {'tactile': {}}
+
         try:
             serials = rospy.get_param("/diagnostic_aggregator/load_diagnostic_analyzer/hand_serials_list")
             if len(serials) == 2:
@@ -50,6 +57,7 @@ class TactileCheck(SrHealthReportCheck):
 
         self._expected_tactile_type = self.get_expected_tactile_type()
         self._topic_type_string = None
+        self._fingers_to_test = self.get_fingertips_from_config_file()
 
     """
         Checks the expected type from general_info.yaml file
@@ -67,26 +75,38 @@ class TactileCheck(SrHealthReportCheck):
         return tactile_type_from_file
 
     """
+        Gets the fingertips defined in general_info.yaml file.
+        @return: list
+    """
+    def get_fingertips_from_config_file(self):
+        fingertips = {}
+        file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
+        try:
+            with open(file_, 'r', encoding="ASCII") as yaml_file:
+                output = yaml.safe_load(yaml_file)
+                fingertips = [fingertip.upper() for fingertip in output['sensors']['tip']]
+        except FileNotFoundError:
+            rospy.logerr(f"General info for {self._serial} does not exists!")
+        return fingertips
+
+    """
         Runs check for tested fingers
     """
     def run_check(self):
-        result = {"tactile": {}}
-        result["tactile"] = dict.fromkeys(self._fingers_to_test, '')
+
+        self._result["tactile"] = dict.fromkeys(self._fingers_to_test, '')
 
         if not self.check_if_tactile_type_match():
-            result["tactile"] = "Wrong tactile definition in general_info.yaml!"
+            self._result["tactile"] = "Wrong tactile definition in general_info.yaml!"
         else:
-            for finger in self._fingers_to_test:
-                result["tactile"][finger] = {}
-                result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
-                result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
+            for finger in self.get_fingertips_from_config_file():
+                self._result["tactile"][finger] = {}
+                self._result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
+                self._result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
                 if self._stopped_execution:
                     self._stopped_execution = False
-                    return {}
-
-        self._result = result
-
-        return result
+                    return
+        return
 
     """
         Checks the expected type from general_info.yaml file and topic type match
@@ -116,8 +136,7 @@ class TactileCheck(SrHealthReportCheck):
         expected_diagnostic_name = f"{self._hand_prefix} Tactile {finger_to_index_mapping[finger]}"
 
         now = rospy.get_time()
-        timeout = 2
-        while rospy.get_time() - now < timeout:
+        while rospy.get_time() - now < TactileCheck.TIMEOUT:
             if self._stopped_execution:
                 break
             # 2s to give more time for messages to arrive due to low publishing rate of /diagnostics
@@ -173,26 +192,33 @@ class TactileCheck(SrHealthReportCheck):
 
     """
         Returns the result dictionary
-        @return: dict results
+        @return: dict check results
     """
     def get_result(self):
         return self._result
 
     """
         Checks if the test execution result passed
-        @return Bool value
+        @return bool check passed
     """
     def has_passed(self):
+
         passed = True
         for finger in self._fingers_to_test:
             if not isinstance(self._result["tactile"], dict):
                 passed = False
                 break
             for key in self._result["tactile"][finger].keys():
-                if not self._result["tactile"][finger][key]:
+                if not self.has_single_passed(key, self.PASSED_THRESHOLDS[key]):
                     passed = False
                     break
-        return passed
+        return passed and not isinstance(self._result["tactile"], str)
 
+    """
+        Checks if the single test execution result passed
+        @param name: name of the test
+        @param value: value to be compared with the thresholds
+        @return bool check passed
+    """
     def has_single_passed(self, name, value):
         return self.PASSED_THRESHOLDS[name] == value

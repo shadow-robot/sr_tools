@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Shadow Robot Company Ltd.
+# Copyright 2022-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -26,6 +26,11 @@ class OverrunCheck(SrHealthReportCheck):
     CHECK_TIME = 10  # enough time to give reasonable result
     PASSED_THRESHOLDS = {'overrun_average': 1, 'drop_average': 1}
 
+    """
+        Initialize the OverrunCheck object
+        @param hand_side: String indicating the side
+        @param fingers_to_test: List of finger prefixes to test
+    """
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
 
@@ -34,7 +39,7 @@ class OverrunCheck(SrHealthReportCheck):
         self.iterations = 0
         self.overrun_average = 0
         self.drop_average = 0
-        self._result = None
+        self._result = {'overrun': {}}
 
         rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self._overruns_callback)
         rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self._drops_callback)
@@ -83,21 +88,32 @@ class OverrunCheck(SrHealthReportCheck):
             rospy.sleep(0.5)
             if self._stopped_execution:
                 self._stopped_execution = False
-                return {}
+                return
 
-        result = {}
-        result["overrun"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+        self._result["overrun"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+        return
 
-        self._result = result
-
+    """
+        Checks if the test execution result passed
+        @return bool check passed
+    """
     def has_passed(self):
         output = True
         for name in OverrunCheck.PASSED_THRESHOLDS:
-            if not self.has_single_passed(name, self._result["overrun"][name]):
+            try:
+                if not self.has_single_passed(name, self._result["overrun"][name]):
+                    output = False
+                    break
+            except KeyError:
                 output = False
-                break
-        return output
+        return output and bool(self._result["overrun"])
 
+    """
+        Checks if the single test execution result passed
+        @param name: name of the test
+        @param value: value to be compared with the thresholds
+        @return bool check passed
+    """
     def has_single_passed(self, name, value):
         return value < OverrunCheck.PASSED_THRESHOLDS[name]
 

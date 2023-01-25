@@ -36,7 +36,7 @@ class TestMonotonicityCheck(TestCase):
         test_joint_name = "test_joint"
         test_joint_higher_value = 2
         test_joint_lower_value = 0.2
-        self.monotonicity_check._add_result_to_dict(test_joint_name, test_joint_higher_value, test_joint_lower_value)  
+        self.monotonicity_check._add_result_to_dict(test_joint_name, test_joint_higher_value, test_joint_lower_value)
 
         result_joint_dict = self.monotonicity_check._dict_of_monotonic_joints[test_joint_name]
         self.assertTrue(result_joint_dict["is_monotonic"])

@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=W0212
+
 from unittest import TestCase
 import rospy
 import rostest
@@ -28,7 +30,7 @@ class TestBacklashCheck(TestCase):
     def setUpClass(cls):
         cls.backlash_check = BacklashCheck("right", "FF")
 
-    def test_set_joint_limits(self):  # pylint: disable=W0212
+    def test_set_joint_limits(self):
         self.backlash_check._set_joint_limits()
         self.assertTrue(self.backlash_check.joint_limits)
         self.assertTrue(isinstance(self.backlash_check.joint_limits, dict))

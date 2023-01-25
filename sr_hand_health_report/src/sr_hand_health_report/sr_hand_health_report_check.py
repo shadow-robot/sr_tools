@@ -13,8 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+
 from collections import OrderedDict
-from operator import indexOf
+import math
 from std_msgs.msg import Float64
 import rospy
 from sensor_msgs.msg import JointState
@@ -22,7 +23,7 @@ from sr_controllers_tools.sr_controller_helper import ControllerHelper
 from sr_robot_msgs.msg import EthercatDebug
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
-import math
+
 
 COUPLED_JOINTS = ["J1", "J2"]
 FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
@@ -48,7 +49,7 @@ class Finger:
         for joint in self.joints_dict.values():
             joint.move_joint(command, control_type)
 
-    def _get_sorting_value(self):
+    def get_sorting_value(self):
         """
             Gets the value to sort based on the index in PREFIXES
             @return int

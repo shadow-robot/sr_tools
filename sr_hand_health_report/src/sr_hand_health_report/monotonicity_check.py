@@ -62,7 +62,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         self.switch_controller_mode("effort")
 
         Finger.PREFIXES = ("FF", 'MF', 'LF', 'RF', 'TH', 'WR')
-        self.fingers_to_check.sort(reverse=False, key=lambda x: x._get_sorting_value())
+        self.fingers_to_check.sort(reverse=False, key=lambda x: x.get_sorting_value())
 
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)

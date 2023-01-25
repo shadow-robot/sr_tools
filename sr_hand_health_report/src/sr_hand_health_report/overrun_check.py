@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from sys import breakpointhook
 import rospy
 from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck
 from diagnostic_msgs.msg import DiagnosticArray
@@ -49,9 +48,8 @@ class OverrunCheck(SrHealthReportCheck):
             Overrun callback
             @param: DiagnosticArray data
         """
-        overrun = OverrunCheck.get_recent_overruns(data)
-
-        self.overrun_average += int(float(overrun))
+        overrun_value = OverrunCheck.get_recent_overruns(data)
+        self.overrun_average += int(float(overrun_value))
         self.drop_average += self.number_of_drops
         self.number_of_drops = 0
         self.iterations += 1

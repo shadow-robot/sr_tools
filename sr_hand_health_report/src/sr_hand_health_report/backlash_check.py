@@ -31,12 +31,12 @@ class BacklashCheck(SrHealthReportCheck):
     FINGERS = ("TH", "FF", "MF", "RF", "LF")
     PASSED_THRESHOLDS = {'std': 0.015, 'avg': 0.01}
 
-    """
-        Initialize the BacklashCheck object
-        @param hand_side: String indicating the side
-        @param fingers_to_test: List of finger prefixes to test
-    """
     def __init__(self, hand_side, fingers_to_test):
+        """
+            Initialize the BacklashCheck object
+            @param hand_side: String indicating the side
+            @param fingers_to_test: List of finger prefixes to test
+        """
         super().__init__(hand_side, fingers_to_test)
         self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
         self._name = "backlash"
@@ -44,32 +44,34 @@ class BacklashCheck(SrHealthReportCheck):
         self.joint_limits = {}
         self._set_joint_limits()
 
-    """
-        Sets the joint limits from the URDF
-    """
     def _set_joint_limits(self):
+        """
+            Sets the joint limits from the URDF
+        """
         joint_list = [joint_name.lower() for joint_name in self._joint_msg.name]
         for joint in URDF.from_parameter_server().joints:
             if joint.name.lower() in joint_list:
                 self.joint_limits[joint.name.lower()] = joint.limit
 
-    """
-        Moves tested fingers into 0 degree joint anglees in position control mode.
-    """
     def move_fingers_to_start_position(self):
+        """
+            Moves tested fingers into 0 degree joint anglees in position control mode.
+        """
         self.switch_controller_mode('position')
         for finger in self.fingers_to_check:
             finger.move_finger(0, 'position')
             rospy.logwarn(f"Moving to start {finger.finger_name}")
 
-    """
-        Runs the backlash check for all selected fingers and assings the result into the _result variable.
-    """
     def run_check(self):
-
+        """
+            Runs the backlash check for all selected fingers and assings the result into the _result variable.
+        """
+        self._result = {'backlash': {}}
         if self._stopped_execution:
             self._stopped_execution = False
             return
+        rospy.loginfo("Running Backlash Check")
+        result = dict(self._result)
 
         self.move_fingers_to_start_position()
 
@@ -86,10 +88,10 @@ class BacklashCheck(SrHealthReportCheck):
                 if finger_object.finger_name in ('ff', 'mf', 'rf', 'lf') and joint.joint_index != "j1":
                     # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     joint_result = self.wiggle_joint(joint)
-                    self._result['backlash'][joint.joint_name] = joint_result
+                    result['backlash'][joint.joint_name] = joint_result
                 elif finger_object.finger_name in ('th', 'wr'):
                     joint_result = self.wiggle_joint(joint)
-                    self._result['backlash'][joint.joint_name] = joint_result
+                    result['backlash'][joint.joint_name] = joint_result
 
                 if self._stopped_execution:
                     break
@@ -99,27 +101,27 @@ class BacklashCheck(SrHealthReportCheck):
             self.switch_controller_mode("position")
             self.move_finger_to_side(finger_object, 'left')
 
-        self._stopped_execution = False
-
+        self._result = result
+        self._stopped_execution = True
         return
 
-    """
-        Moves the finger to the left/right joint limit of J4
-        @param finger_object: Finger object indicating which finger to move
-        @param side: String defining the side, 'right' or 'left'
-    """
     def move_finger_to_side(self, finger_object, side):
+        """
+            Moves the finger to the left/right joint limit of J4
+            @param finger_object: Finger object indicating which finger to move
+            @param side: String defining the side, 'right' or 'left'
+        """
         angle = math.radians(-20) if side == 'right' else math.radians(20)
         angle *= self._side_sign_map[finger_object.finger_name]
         if "J4" in finger_object.joints_dict:
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
 
-    """
-        Moves the joint repeatably by switching the PWM sign and sending the commands to the effort controller.
-        The result is being save into the _results variable and contains the average and standard deviation.
-        @param joint: Joint object indicating which joint to 'wiggle'
-    """
     def wiggle_joint(self, joint):
+        """
+            Moves the joint repeatably by switching the PWM sign and sending the commands to the effort controller.
+            The result is being save into the _results variable and contains the average and standard deviation.
+            @param joint: Joint object indicating which joint to 'wiggle'
+        """
         test_times = []
         total_time = None
 
@@ -190,14 +192,12 @@ class BacklashCheck(SrHealthReportCheck):
             joint.move_joint(0, 'effort')
     '''
 
-    """
-        Checks if the test execution result passed
-        @return bool check passed
-    """
     def has_passed(self):
-        # to be edited after value confirmation with Luke and production
+        """
+            Checks if the test execution result passed
+            @return bool check passed
+        """
         passed = True
-
         for joint_name in self._result['backlash'].keys():
             joint_data = self._result['backlash'][joint_name]
             for key in self.PASSED_THRESHOLDS:
@@ -206,13 +206,13 @@ class BacklashCheck(SrHealthReportCheck):
                     break
         return passed and bool(self._result["backlash"])
 
-    """
-        Checks if the single test execution result passed
-        @param name: name of the test
-        @param value: value to be compared with the thresholds
-        @return bool check passed
-    """
     def has_single_passed(self, name, value):
+        """
+            Checks if the single test execution result passed
+            @param name: name of the test
+            @param value: value to be compared with the thresholds
+            @return bool check passed
+        """
         return value < self.PASSED_THRESHOLDS[name]
 
 

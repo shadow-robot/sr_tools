@@ -40,10 +40,19 @@ class Finger:
         self.joints_dict = OrderedDict()
 
     def move_finger(self, command, control_type):
+        """
+            Moves the finger with given command for the control_type
+            @param command to apply on the finger
+            @param control_type type of control
+        """
         for joint in self.joints_dict.values():
             joint.move_joint(command, control_type)
 
     def _get_sorting_value(self):
+        """
+            Gets the value to sort based on the index in PREFIXES
+            @return int
+        """
         return self.PREFIXES.index(self.finger_name.upper())
 
 
@@ -73,21 +82,42 @@ class Joint:
         self._current_position = float()
 
     def move_joint(self, command, control_type):
+        """
+            Moves the joint with given command for the control_type
+            @param command to apply on the joint
+            @param control_type type of control
+        """
         if control_type == "effort":
             self._pwm_command_publisher.publish(command)
         elif control_type == "position":
             self._position_command_publisher.publish(command)
 
     def set_current_position(self, new_position):
+        """
+            Sets the current position of the joint
+            @param new_position to update the position
+        """
         self._current_position = new_position
 
     def get_current_position(self):
+        """
+            Gets the raw sensor value
+            @return float current joint position
+        """
         return self._current_position
 
     def set_raw_sensor_data(self, new_raw_sensor_data):
+        """
+            Sets the raw sensor value
+            @param new_raw_sensor_data to update the raw sensor value
+        """
         self._raw_sensor_data = new_raw_sensor_data
 
     def get_raw_sensor_data(self):
+        """
+            Gets the raw sensor value
+            @return float
+        """
         return self._raw_sensor_data
 
 
@@ -137,6 +167,9 @@ class SrHealthReportCheck:
                                      "wrj1": -1, "wrj2": 1}
 
     def _init_map_finger_joints(self):
+        """
+            Initializes the dictionary for joints to fingers.
+        """
         fingers_to_joint_map = OrderedDict()
         for joint in self._joint_msg.name:  # pylint: disable=E1101
             finger_name = joint[3:-2]
@@ -147,6 +180,9 @@ class SrHealthReportCheck:
         return fingers_to_joint_map
 
     def _init_controller_joints(self):
+        """
+            Initializes the controllers for available joints
+        """
         controller_joints_names = []
         for finger, joint in self._fingers_to_joint_map.items():
             for joint_index in joint:
@@ -159,6 +195,10 @@ class SrHealthReportCheck:
         return controller_joints_names
 
     def _init_finger_objects(self, fingers_to_test=None):
+        """
+            Initializes raw sensor data list
+            @param fingers_to_test list of finger prefixes to test
+        """
         fingers_to_check = []
         if not fingers_to_test:
             fingers_to_test = self._fingers_to_test
@@ -174,6 +214,9 @@ class SrHealthReportCheck:
         return fingers_to_check
 
     def _init_raw_sensor_data_list(self):
+        """
+            Initializes raw sensor data list
+        """
         raw_sensor_names_list = []
         if "FF" in self._fingers_to_joint_map:
             for joint_index in self._fingers_to_joint_map["FF"]:
@@ -212,6 +255,10 @@ class SrHealthReportCheck:
         return raw_sensor_names_list
 
     def _joint_states_callback(self, sensor_msg):
+        """
+            JointStates message callback
+            @param sensor_msg message on the topic bus
+        """
         joint_dict = {}
         for name, position in zip(sensor_msg.name, sensor_msg.position):
             joint_dict.update({name.lower(): position})
@@ -221,6 +268,10 @@ class SrHealthReportCheck:
                 joint.set_current_position(joint_dict[joint.joint_name])
 
     def _raw_data_sensor_callback(self, ethercat_data):
+        """
+            EthercatDebug message callback
+            @param ethercat_data message on the topic bus
+        """
         for i in range(len(self._raw_sensor_names_list)):
             self._raw_sensor_data_map[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
 
@@ -238,6 +289,10 @@ class SrHealthReportCheck:
                 joint.set_raw_sensor_data(raw_sensor_data_list)
 
     def switch_controller_mode(self, control_type):
+        """
+            Switches the control type
+            @param control_type str
+        """
         if control_type == "trajectory":
             rospy.loginfo("Changing trajectory controllers to RUN")
             self.ctrl_helper.change_trajectory_ctrl("run")
@@ -250,60 +305,89 @@ class SrHealthReportCheck:
             self.ctrl_helper.change_hand_ctrl(control_type)
 
     def drive_joint_to_position(self, joint, command):
+        """
+            Drives the joint to given position, leaves the controllers switched to effort mode
+            @param joint Joint object
+            @param command float
+        """
         self.switch_controller_mode("position")
         joint.move_joint(command, "position")
         self.switch_controller_mode("effort")
 
     def drive_joint_with_pwm(self, joint, command, duration, rate):  # pylint: disable=R0201
+        """
+            Drives the joint with a given comman value, for a time defined by duration with a specific rate.
+            @param joint Joint object
+            @param command float
+            @param duration float
+            @param rate float
+        """
         now = rospy.Time.now()
         while rospy.Time.now() < now + rospy.Duration(duration):
             joint.move_joint(command, "effort")
             rate.sleep()
         joint.move_joint(0, "effort")
 
-    """
-        Get the result of the test
-        @return: Dictionary containing the result of the test
-    """
     def get_result(self):
+        """
+            Get the result of the test
+            @return: Dictionary containing the result of the test
+        """
         return self._result
 
-    """
-        Moves tested fingers into 0 degree joint anglees in position control mode.
-    """
     def move_fingers_to_start_position(self):
+        """
+            Moves tested fingers into 0 degree joint anglees in position control mode.
+        """
         self.switch_controller_mode('position')
         for finger in self.fingers_to_check:
             finger.move_finger(0, 'position')
             rospy.logwarn(f"Moving to start {finger.finger_name}")
 
-    """
-        Moves the finger to the left/right joint limit of J4
-        @param finger_object: Finger object indicating which finger to move
-        @param side: String defining the side, 'right' or 'left'
-    """
     def move_finger_to_side(self, finger_object, side):
+        """
+            Moves the finger to the left/right joint limit of J4
+            @param finger_object: Finger object indicating which finger to move
+            @param side: String defining the side, 'right' or 'left'
+        """
         angle = math.radians(-20) if side == 'right' else math.radians(20)
         angle *= self._side_sign_map[finger_object.finger_name]
         if "J4" in finger_object.joints_dict:
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
             rospy.logwarn(f"moving {finger_object.finger_name} to {side}")
 
-    """
-        Checks if the test execution result passed
-        @return Bool value
-    """
     def has_passed(self):
+        """
+            Checks if the test execution result passed
+            @return Bool value
+        """
         raise NotImplementedError("The function 'has_passed' must be implemented")
 
     def has_single_passed(self, name, value):
         raise NotImplementedError("The function 'has_single_passed' must be implemented")
 
     def stop_test(self):
+        """
+            Stops the check execution.
+        """
         self._stopped_execution = True
 
     def is_stopped(self):
+        """
+            Checks if the check is stopped (through external interference or by completion)
+            @return Bool value
+        """
         return self._stopped_execution
 
+    def set_runnable(self):
+        """
+            Sets the check to a state where it can start.
+        """
+        self._stopped_execution = False
+
     def get_name(self):
+        """
+            Gets the name of the check
+            @return str
+        """
         return self._name

@@ -30,11 +30,11 @@ class TactileCheck(SrHealthReportCheck):
     TIMEOUT = 2
     PASSED_THRESHOLDS = {'connected': True, 'reasonable': True}
 
-    """
-        Initialize the TactileCheck object
-        @param hand_side: String indicating the side
-    """
     def __init__(self, hand_side):
+        """
+            Initialize the TactileCheck object
+            @param hand_side: String indicating the side
+        """
         super().__init__(hand_side, self._FINGERS)
         self._name = "Tactile"
         self._topic_name = f"/{self._hand_prefix}/tactile"
@@ -59,11 +59,11 @@ class TactileCheck(SrHealthReportCheck):
         self._topic_type_string = None
         self._fingers_to_test = self.get_fingertips_from_config_file()
 
-    """
-        Checks the expected type from general_info.yaml file
-        @return: str expected fingertype
-    """
     def get_expected_tactile_type(self):
+        """
+            Checks the expected type from general_info.yaml file
+            @return: str expected fingertype
+        """
         tactile_type_from_file = {}
         file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
         try:
@@ -74,11 +74,11 @@ class TactileCheck(SrHealthReportCheck):
             rospy.logerr(f"General info for {self._serial} does not exists!")
         return tactile_type_from_file
 
-    """
-        Gets the fingertips defined in general_info.yaml file.
-        @return: list
-    """
     def get_fingertips_from_config_file(self):
+        """
+            Gets the fingertips defined in general_info.yaml file.
+            @return: list
+        """
         fingertips = {}
         file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"
         try:
@@ -89,30 +89,40 @@ class TactileCheck(SrHealthReportCheck):
             rospy.logerr(f"General info for {self._serial} does not exists!")
         return fingertips
 
-    """
-        Runs check for tested fingers
-    """
     def run_check(self):
+        """
+            Runs check for tested fingers
+        """
+        self._result = {'tactile': {}}
+        if self._stopped_execution:
+            self._stopped_execution = False
+            return
+        result = dict(self._result)
 
-        self._result["tactile"] = dict.fromkeys(self._fingers_to_test, '')
+        rospy.loginfo("Running Tactile Check")
+
+        result["tactile"] = dict.fromkeys(self._fingers_to_test, '')
 
         if not self.check_if_tactile_type_match():
-            self._result["tactile"] = "Wrong tactile definition in general_info.yaml!"
+            result["tactile"] = "Wrong tactile definition in general_info.yaml!"
         else:
             for finger in self.get_fingertips_from_config_file():
-                self._result["tactile"][finger] = {}
-                self._result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
-                self._result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
+                result["tactile"][finger] = {}
+                result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
+                result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
                 if self._stopped_execution:
                     self._stopped_execution = False
                     return
+
+        self._result = result
+        self._stopped_execution = True
         return
 
-    """
-        Checks the expected type from general_info.yaml file and topic type match
-        @return: bool
-    """
     def check_if_tactile_type_match(self):
+        """
+            Checks the expected type from general_info.yaml file and topic type match
+            @return: bool
+        """
         check = False
         try:
             self._topic_type_string = (rostopic.get_topic_type(self._topic_name)[0]).split('/')[-1]
@@ -126,11 +136,11 @@ class TactileCheck(SrHealthReportCheck):
                 check = True
         return check
 
-    """
-        Checks the tactile sensor is present on the finger
-        @return: bool
-    """
     def is_sensor_connected(self, finger):
+        """
+            Checks the tactile sensor is present on the finger
+            @return: bool
+        """
         connected = False
         finger_to_index_mapping = {"FF": 1, "MF": 2, "RF": 3, "LF": 4, "TH": 5}
         expected_diagnostic_name = f"{self._hand_prefix} Tactile {finger_to_index_mapping[finger]}"
@@ -155,12 +165,12 @@ class TactileCheck(SrHealthReportCheck):
                 break
         return connected
 
-    """
-        Checks the values reported from the tactile sensor are within reasonable range
-        @param: Finger object to be tested
-        @return: bool
-    """
     def is_reasonable(self, finger):
+        """
+            Checks the values reported from the tactile sensor are within reasonable range
+            @param: Finger object to be tested
+            @return: bool
+        """
         reasonable = False
         try:
             topic_type = rostopic.get_topic_class(self._topic_name)[0]
@@ -190,19 +200,18 @@ class TactileCheck(SrHealthReportCheck):
             pass
         return reasonable
 
-    """
-        Returns the result dictionary
-        @return: dict check results
-    """
     def get_result(self):
+        """
+            Returns the result dictionary
+            @return: dict check results
+        """
         return self._result
 
-    """
-        Checks if the test execution result passed
-        @return bool check passed
-    """
     def has_passed(self):
-
+        """
+            Checks if the test execution result passed
+            @return bool check passed
+        """
         passed = True
         for finger in self._fingers_to_test:
             if not isinstance(self._result["tactile"], dict):
@@ -214,11 +223,11 @@ class TactileCheck(SrHealthReportCheck):
                     break
         return passed and not isinstance(self._result["tactile"], str)
 
-    """
-        Checks if the single test execution result passed
-        @param name: name of the test
-        @param value: value to be compared with the thresholds
-        @return bool check passed
-    """
     def has_single_passed(self, name, value):
+        """
+            Checks if the single test execution result passed
+            @param name: name of the test
+            @param value: value to be compared with the thresholds
+            @return bool check passed
+        """
         return self.PASSED_THRESHOLDS[name] == value

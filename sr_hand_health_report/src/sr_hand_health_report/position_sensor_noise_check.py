@@ -24,32 +24,36 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
 
     PASSED_THRESHOLDS = "CHECK PASSED"
 
-    """
-        Initialize the PositionSensorNoiseCheck object
-        @param hand_side: String indicating the side
-        @param fingers_to_test: List of finger prefixes to test
-    """
     def __init__(self, hand_side, fingers_to_test):
+        """
+            Initialize the PositionSensorNoiseCheck object
+            @param hand_side: String indicating the side
+            @param fingers_to_test: List of finger prefixes to test
+        """
         super().__init__(hand_side, fingers_to_test)
         self._name = "Position Sensor Noise"
-        self._check_duration = rospy.Duration(5.0)
+        self._check_duration = rospy.Duration(3.0)
         self._shared_dict = {}
         self._publishing_rate = rospy.Rate(200)
         self._initial_raw_value = None
         self._result = {'position_sensor_noise': {}}
 
-    """
-        Runs the test for selected fingers.
-        @return: Dictionary with the results of the check
-    """
     def run_check(self):
-        result = {"position_sensor_noise": {}}
+        """
+            Runs the test for selected fingers.
+            @return: Dictionary with the results of the check
+        """
+        self._result = {'position_sensor_noise': {}}
+        if self._stopped_execution:
+            self._stopped_execution = False
+            return
         rospy.loginfo("Running Position Sensor Noise Check")
+        result = dict(self._result)
 
         for finger in self.fingers_to_check:
-            rospy.loginfo("collecting and analyzing data for FINGER {}".format(finger.finger_name))
+            rospy.loginfo("collecting and analyzing data for finger {}".format(finger.finger_name))
             for joint in finger.joints_dict.values():
-                rospy.loginfo("collecting and analyzing data for JOINT {}".format(joint.joint_name))
+                rospy.loginfo("collecting and analyzing data for joint {}".format(joint.joint_name))
                 self._initial_raw_value = joint.get_raw_sensor_data()
                 self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
 
@@ -59,17 +63,19 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 self._stopped_execution = False
                 return
 
-        self._result["position_sensor_noise"].update(dict(self._shared_dict))
+        result["position_sensor_noise"].update(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
+        self._result = result
+        self._stopped_execution = True
         return
 
-    """
-        Checks the sensor noise and saves the result to _shared_dict
-        @param initial_raw_value: Float value of raw sensor reading
-        @param Joint: Joint object being under test
-        @param dictionary: Dictionary where the result is saved
-    """
     def check_joint_raw_sensor_value(self, initial_raw_value, joint, dictionary):
+        """
+            Checks the sensor noise and saves the result to _shared_dict
+            @param initial_raw_value: Float value of raw sensor reading
+            @param Joint: Joint object being under test
+            @param dictionary: Dictionary where the result is saved
+        """
         status = ""
         test_failed = False
         if joint.joint_name != self._hand_prefix + "_wrj1" and joint.joint_name != self._hand_prefix + "_thj5":
@@ -102,21 +108,21 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 name = joint.joint_name + "_1"
                 dictionary[name] = status
 
-    """
-        Checks if the test execution result passed
-        @return bool check passed
-    """
     def has_passed(self):
+        """
+            Checks if the test execution result passed
+            @return bool check passed
+        """
         for key in self._result:
             if not self.has_single_passed(key, self._result[key]):
                 return False
         return True and bool(self._result['position_sensor_noise'])
 
-    """
-        Checks if the single test execution result passed
-        @param name: name of the test
-        @param value: value to be compared with the thresholds
-        @return bool check passed
-    """
     def has_single_passed(self, _, value):
+        """
+            Checks if the single test execution result passed
+            @param name: name of the test
+            @param value: value to be compared with the thresholds
+            @return bool check passed
+        """
         return self.PASSED_THRESHOLDS in value

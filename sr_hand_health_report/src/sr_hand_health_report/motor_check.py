@@ -24,22 +24,28 @@ class MotorCheck(SrHealthReportCheck):
 
     PASSED_THRESHOLDS = True
 
-    """
-        Initialize the MotorCheck object
-        @param hand_side: String indicating the side
-        @param fingers_to_test: List of finger prefixes to test
-    """
     def __init__(self, hand_side, fingers_to_test):
+        """
+            Initialize the MotorCheck object
+            @param hand_side: String indicating the side
+            @param fingers_to_test: List of finger prefixes to test
+        """
         super().__init__(hand_side, fingers_to_test)
         self._topic_name = '/diagnostics_agg'
         self._name = "Motor"
         self._result = {"motor": {}}
 
-    """
-        Runs the check for all fingers to test
-        @return: dict the result
-    """
     def run_check(self):
+        """
+            Runs the check for all fingers to test
+            @return: dict the result
+        """
+        self._result = {"motor": {}}
+        if self._stopped_execution:
+            self._stopped_execution = False
+            return
+        rospy.loginfo("Running Motor Check")
+        result = dict(self._result)
 
         try:
             received_msg = rospy.wait_for_message(self._topic_name, DiagnosticArray, 5)
@@ -56,24 +62,27 @@ class MotorCheck(SrHealthReportCheck):
                     if "Temperature" in item.key:
                         working_state = True
                         break
-                self._result['motor'][motor_name] = working_state
+                result['motor'][motor_name] = working_state
             if self._stopped_execution:
                 self._stopped_execution = False
                 return
+
+        self._result = result
+        self._stopped_execution = True
         return
 
-    """
-        Checks if the test execution result passed
-        @return bool check passed
-    """
     def has_passed(self):
+        """
+            Checks if the test execution result passed
+            @return bool check passed
+        """
         return all(result for result in self._result['motor'].values()) and bool(self._result["motor"])
 
-    """
-        Checks if the single test execution result passed
-        @param name: name of the test
-        @param value: value to be compared with the thresholds
-        @return bool check passed
-    """
     def has_single_passed(self, name, value):
+        """
+            Checks if the single test execution result passed
+            @param name: name of the test
+            @param value: value to be compared with the thresholds
+            @return bool check passed
+        """
         return value == MotorCheck.PASSED_THRESHOLDS

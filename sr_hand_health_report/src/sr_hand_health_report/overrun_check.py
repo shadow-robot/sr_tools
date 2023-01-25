@@ -26,12 +26,12 @@ class OverrunCheck(SrHealthReportCheck):
     CHECK_TIME = 10  # enough time to give reasonable result
     PASSED_THRESHOLDS = {'overrun_average': 1, 'drop_average': 1}
 
-    """
-        Initialize the OverrunCheck object
-        @param hand_side: String indicating the side
-        @param fingers_to_test: List of finger prefixes to test
-    """
     def __init__(self, hand_side, fingers_to_test):
+        """
+            Initialize the OverrunCheck object
+            @param hand_side: String indicating the side
+            @param fingers_to_test: List of finger prefixes to test
+        """
         super().__init__(hand_side, fingers_to_test)
 
         self._name = "Overrun"
@@ -44,11 +44,11 @@ class OverrunCheck(SrHealthReportCheck):
         rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self._overruns_callback)
         rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self._drops_callback)
 
-    """
-        Overrun callback
-        @param: DiagnosticArray data
-    """
     def _overruns_callback(self, data):
+        """
+            Overrun callback
+            @param: DiagnosticArray data
+        """
         overrun = OverrunCheck.get_recent_overruns(data)
 
         self.overrun_average += int(float(overrun))
@@ -56,30 +56,36 @@ class OverrunCheck(SrHealthReportCheck):
         self.number_of_drops = 0
         self.iterations += 1
 
-    """
-        Drops callback
-        @param: EthercatDebug data
-    """
     def _drops_callback(self, data):
+        """
+            Drops callback
+            @param: EthercatDebug data
+        """
         if data.sensors[10] == 0:
             self.number_of_drops += 1
 
-    """
-        Get overruns from message
-        @param: DiagnosticArray message
-    """
     @staticmethod
     def get_recent_overruns(msg):
+        """
+            Get overruns from message
+            @param: DiagnosticArray message
+        """
         for status in msg.status:
             for value_dict in status.values:
                 if value_dict.key == 'Recent Control Loop Overruns':
                     return value_dict.value
         raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
 
-    """
-        Runs the check for CHECK_TIME time
-    """
     def run_check(self):
+        """
+            Runs the check for CHECK_TIME time
+        """
+        self._result = {'overrun': {}}
+        if self._stopped_execution:
+            self._stopped_execution = False
+            return
+        rospy.loginfo("Running Overrun Check")
+
         self.overrun_average = 0
         self.drop_average = 0
 
@@ -90,14 +96,15 @@ class OverrunCheck(SrHealthReportCheck):
                 self._stopped_execution = False
                 return
 
-        self._result["overrun"] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+        self._result['overrun'] = {'overrun_average': self.overrun_average, 'drop_average': self.drop_average}
+        self._stopped_execution = True
         return
 
-    """
-        Checks if the test execution result passed
-        @return bool check passed
-    """
     def has_passed(self):
+        """
+            Checks if the test execution result passed
+            @return bool check passed
+        """
         output = True
         for name in OverrunCheck.PASSED_THRESHOLDS:
             try:
@@ -108,13 +115,13 @@ class OverrunCheck(SrHealthReportCheck):
                 output = False
         return output and bool(self._result["overrun"])
 
-    """
-        Checks if the single test execution result passed
-        @param name: name of the test
-        @param value: value to be compared with the thresholds
-        @return bool check passed
-    """
     def has_single_passed(self, name, value):
+        """
+            Checks if the single test execution result passed
+            @param name: name of the test
+            @param value: value to be compared with the thresholds
+            @return bool check passed
+        """
         return value < OverrunCheck.PASSED_THRESHOLDS[name]
 
 

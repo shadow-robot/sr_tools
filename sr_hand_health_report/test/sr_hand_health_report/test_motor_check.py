@@ -34,6 +34,7 @@ class TestMotorCheck(TestCase):
         expected_result = True
         self.assertTrue(self.motor_check.has_single_passed("test", test_input_value), expected_result)
 
+
 if __name__ == "__main__":
     rospy.init_node('test_sr_hand_health_report_node', anonymous=True)
     rostest.rosrun(PKG, 'test_sr_hand_health_report', TestMotorCheck)

@@ -18,7 +18,6 @@ from unittest import TestCase
 import rospy
 import rostest
 from sr_hand_health_report.backlash_check import BacklashCheck
-from sensor_msgs.msg import JointState
 
 PKG = "sr_hand_health_report"
 
@@ -29,7 +28,7 @@ class TestBacklashCheck(TestCase):
     def setUpClass(cls):
         cls.backlash_check = BacklashCheck("right", "FF")
 
-    def test_set_joint_limits(self):
+    def test_set_joint_limits(self):  # pylint: disable=W0212
         self.backlash_check._set_joint_limits()
         self.assertTrue(self.backlash_check.joint_limits)
         self.assertTrue(isinstance(self.backlash_check.joint_limits, dict))

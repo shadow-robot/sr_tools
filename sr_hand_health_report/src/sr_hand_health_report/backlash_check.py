@@ -180,18 +180,6 @@ class BacklashCheck(SrHealthReportCheck):
         result['avg'] = float(np.mean(times))
         return result
 
-    '''
-    def _debounce(self, joint, timeout=1):
-        if joint.get_current_position() < self.joint_limits[joint.joint_name].lower + math.radians(1):
-            joint.move_joint(-self.FINGER_PWM, 'effort')
-            rospy.sleep(timeout)
-            joint.move_joint(0, 'effort')
-        if joint.get_current_position() > self.joint_limits[joint.joint_name].upper - math.radians(1):
-            joint.move_joint(self.FINGER_PWM, 'effort')
-            rospy.sleep(timeout)
-            joint.move_joint(0, 'effort')
-    '''
-
     def has_passed(self):
         """
             Checks if the test execution result passed

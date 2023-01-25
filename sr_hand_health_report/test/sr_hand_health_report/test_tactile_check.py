@@ -21,6 +21,7 @@ from sr_hand_health_report.tactile_check import TactileCheck
 
 PKG = "sr_hand_health_report"
 
+
 class TestTactileCheck(TestCase):
 
     @classmethod

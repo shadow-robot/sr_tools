@@ -14,16 +14,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=W0212
+
 from unittest import TestCase
 import rospy
 import rostest
-import numpy as np
-from sr_hand_health_report.monotonicity_check import MonotonicityCheck, SW_LIMITS_FOR_JOINTS
-from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportCheck,
-                                                               Finger,
-                                                               Joint,
-                                                               SENSOR_CUTOUT_THRESHOLD,
-                                                               NR_OF_BITS_NOISE_WARNING)
+from sr_hand_health_report.monotonicity_check import MonotonicityCheck
 
 
 PKG = "sr_hand_health_report"
@@ -40,7 +36,7 @@ class TestMonotonicityCheck(TestCase):
         test_joint_name = "test_joint"
         test_joint_higher_value = 2
         test_joint_lower_value = 0.2
-        self.monotonicity_check._add_result_to_dict(test_joint_name, test_joint_higher_value, test_joint_lower_value)
+        self.monotonicity_check._add_result_to_dict(test_joint_name, test_joint_higher_value, test_joint_lower_value)  
 
         result_joint_dict = self.monotonicity_check._dict_of_monotonic_joints[test_joint_name]
         self.assertTrue(result_joint_dict["is_monotonic"])
@@ -56,10 +52,10 @@ class TestMonotonicityCheck(TestCase):
         test_value_1 = 2
         test_value_2 = 3
         result = self.monotonicity_check.check_sensor_range(test_value_1, test_value_2)
-        self.assertTrue(result[0]>=result[1])
+        self.assertTrue(result[0] >= result[1])
 
     def test_get_raw_sensor_value(self):
-        test_input = [2,3]
+        test_input = [2, 3]
         expected_result = 2.5
         self.assertTrue(self.monotonicity_check.get_raw_sensor_value(test_input) == expected_result)
 

@@ -21,6 +21,7 @@ from sr_hand_health_report.position_sensor_noise_check import PositionSensorNois
 
 PKG = "sr_hand_health_report"
 
+
 class TestPositionSensorNoiseCheck(TestCase):
 
     @classmethod

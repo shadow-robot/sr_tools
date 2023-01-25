@@ -211,7 +211,7 @@ class SrHealthReportCheck:
                     fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(),
                                                                          joint_index.lower())
 
-        fingers_to_check.sort(reverse=False, key=lambda x: x._get_sorting_value())
+        fingers_to_check.sort(reverse=False, key=lambda x: x.get_sorting_value())
         return fingers_to_check
 
     def _init_raw_sensor_data_list(self):

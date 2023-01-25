@@ -50,6 +50,7 @@ class MotorCheck(SrHealthReportCheck):
             received_msg = rospy.wait_for_message(self._topic_name, DiagnosticArray, 5)
         except rospy.ROSException:
             rospy.logerr(f"Did not receive any message on {self._topic_name} topic")
+            return
 
         for _, message in enumerate(received_msg.status):
             if "SRDMotor" in message.name and self._hand_prefix in message.name and \

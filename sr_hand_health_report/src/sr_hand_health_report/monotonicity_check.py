@@ -16,7 +16,6 @@
 from builtins import round
 import rospy
 from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportCheck,
-                                                               Finger,
                                                                SENSOR_CUTOUT_THRESHOLD,
                                                                NR_OF_BITS_NOISE_WARNING)
 import numpy as np

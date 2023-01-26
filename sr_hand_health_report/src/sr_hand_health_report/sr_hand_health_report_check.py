@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import OrderedDict
+import abc
 import math
 from std_msgs.msg import Float64
 import rospy
@@ -38,7 +38,7 @@ class Finger:
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
-        self.joints_dict = OrderedDict()
+        self.joints_dict = {}
 
     def move_finger(self, command, control_type):
         """
@@ -122,7 +122,7 @@ class Joint:
         return self._raw_sensor_data
 
 
-class SrHealthReportCheck:
+class SrHealthReportCheck(abc.ABC):
     def __init__(self, hand_side, fingers_to_test):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
@@ -141,7 +141,7 @@ class SrHealthReportCheck:
         self._fingers_to_test = fingers_to_test
         self.fingers_to_check = self._init_finger_objects()
 
-        self._raw_sensor_data_map = OrderedDict()
+        self._raw_sensor_data_map = {}
         self._raw_sensor_names_list = self._init_raw_sensor_data_list()
 
         self._raw_data_sensor_subscriber = rospy.Subscriber("/%s/debug_etherCAT_data" % (self._hand_prefix),
@@ -171,7 +171,7 @@ class SrHealthReportCheck:
         """
             Initializes the dictionary for joints to fingers.
         """
-        fingers_to_joint_map = OrderedDict()
+        fingers_to_joint_map = {}
         for joint in self._joint_msg.name:  # pylint: disable=E1101
             finger_name = joint[3:-2]
             if self._hand_prefix in joint:
@@ -357,6 +357,7 @@ class SrHealthReportCheck:
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
             rospy.logwarn(f"moving {finger_object.finger_name} to {side}")
 
+    @abc.abstractmethod
     def has_passed(self):
         """
             Checks if the test execution result passed
@@ -364,6 +365,7 @@ class SrHealthReportCheck:
         """
         raise NotImplementedError("The function 'has_passed' must be implemented")
 
+    @abc.abstractmethod
     def has_single_passed(self, name, value):
         raise NotImplementedError("The function 'has_single_passed' must be implemented")
 

@@ -353,7 +353,7 @@ class SrHealthReportCheck:
         """
         angle = math.radians(-20) if side == 'right' else math.radians(20)
         angle *= self._side_sign_map[finger_object.finger_name]
-        if "J4" in finger_object.joints_dict:
+        if "J4" in finger_object.joints_dict and finger_object.finger_name not in ('th', 'wr'):
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
             rospy.logwarn(f"moving {finger_object.finger_name} to {side}")
 

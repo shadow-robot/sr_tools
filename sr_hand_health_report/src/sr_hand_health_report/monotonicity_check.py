@@ -42,7 +42,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._older_raw_sensor_value = 0
         self._previous_difference = 0
         self._pwm_command = 250
-        self._check_duration = rospy.Duration(4.0)
+        self._check_duration = rospy.Duration(7.0)
         self._first_end_stop_sensor_value = None
         self._second_end_stop_sensor_value = None
         self._result = {'monotonicity': {}}
@@ -61,17 +61,22 @@ class MonotonicityCheck(SrHealthReportCheck):
         self.move_fingers_to_start_position()
         self.switch_controller_mode("effort")
 
-        Finger.PREFIXES = ("FF", 'MF', 'LF', 'RF', 'TH', 'WR')
-        self.fingers_to_check.sort(reverse=False, key=lambda x: x.get_sorting_value())
+        self.switch_controller_mode("position")
+        for finger in self.fingers_to_check:
+            self.move_finger_to_side(finger, 'right')
 
         for finger in self.fingers_to_check:
+            finger.move_finger(0, 'position')
+            self.switch_controller_mode("effort")
             self._run_check_per_finger(finger)
             if self._stopped_execution:
                 self._stopped_execution = False
                 return
 
+            self.switch_controller_mode("position")
+            self.move_finger_to_side(finger, 'left')
+
         result["monotonicity"] = dict(self._dict_of_monotonic_joints)
-        self.switch_controller_mode("position")
         self._result = result
         self._stopped_execution = True
         return
@@ -252,8 +257,8 @@ class MonotonicityCheck(SrHealthReportCheck):
     @staticmethod
     def get_raw_sensor_value(data):
         """
-            Checks the sensors range and return them in high to low order.
-            @param: list of data
+            Gets the raw sensor value
+            @param: list of float data
             @return: float average of the data
         """
         return sum(data) / len(data)

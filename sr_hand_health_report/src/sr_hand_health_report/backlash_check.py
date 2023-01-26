@@ -55,7 +55,7 @@ class BacklashCheck(SrHealthReportCheck):
 
     def move_fingers_to_start_position(self):
         """
-            Moves tested fingers into 0 degree joint anglees in position control mode.
+            Moves tested fingers into 0-degree joint anglees in position control mode.
         """
         self.switch_controller_mode('position')
         for finger in self.fingers_to_check:
@@ -86,7 +86,6 @@ class BacklashCheck(SrHealthReportCheck):
             for joint in finger_object.joints_dict.values():
                 rospy.logwarn(f"Running check for {joint.joint_name}")
                 if finger_object.finger_name in ('ff', 'mf', 'rf', 'lf') and joint.joint_index != "j1":
-                    # rospy.logerr(f"Wiggling {finger_object.finger_name} {joint.joint_index}")
                     joint_result = self.wiggle_joint(joint)
                     result['backlash'][joint.joint_name] = joint_result
                 elif finger_object.finger_name in ('th', 'wr'):
@@ -119,7 +118,8 @@ class BacklashCheck(SrHealthReportCheck):
     def wiggle_joint(self, joint):
         """
             Moves the joint repeatably by switching the PWM sign and sending the commands to the effort controller.
-            The result is being save into the _results variable and contains the average and standard deviation.
+            The result is being save into the _result variable and contains the average and standard deviation of
+            the collected over time durations between move direction changes.
             @param joint: Joint object indicating which joint to 'wiggle'
         """
         test_times = []
@@ -198,7 +198,7 @@ class BacklashCheck(SrHealthReportCheck):
         """
             Checks if the single test execution result passed
             @param name: name of the test
-            @param value: value to be compared with the thresholds
+            @param value: value to be compared with the associated threshold
             @return bool check passed
         """
         return value < self.PASSED_THRESHOLDS[name]

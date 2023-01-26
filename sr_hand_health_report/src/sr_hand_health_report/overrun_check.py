@@ -40,23 +40,23 @@ class OverrunCheck(SrHealthReportCheck):
         self.drop_average = 0
         self._result = {'overrun': {}}
 
-        rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self._overruns_callback)
-        rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self._drops_callback)
+        rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self._get_overrun_count_callback)
+        rospy.Subscriber(f"/{self._hand_prefix}/debug_etherCAT_data", EthercatDebug, self._get_drop_count_callback)
 
-    def _overruns_callback(self, data):
+    def _get_overrun_count_callback(self, data):
         """
-            Overrun callback
+            Callback to collect the overrun count
             @param: DiagnosticArray data
         """
         overrun_value = OverrunCheck.get_recent_overruns(data)
-        self.overrun_average += int(float(overrun_value))
+        self.overrun_average += overrun_value
         self.drop_average += self.number_of_drops
         self.number_of_drops = 0
         self.iterations += 1
 
-    def _drops_callback(self, data):
+    def _get_drop_count_callback(self, data):
         """
-            Drops callback
+            Callback to collect the drop count
             @param: EthercatDebug data
         """
         if data.sensors[10] == 0:
@@ -71,7 +71,7 @@ class OverrunCheck(SrHealthReportCheck):
         for status in msg.status:
             for value_dict in status.values:
                 if value_dict.key == 'Recent Control Loop Overruns':
-                    return value_dict.value
+                    return int(value_dict.value)
         raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
 
     def run_check(self):
@@ -89,7 +89,7 @@ class OverrunCheck(SrHealthReportCheck):
 
         start_time = rospy.get_rostime()
         while rospy.get_rostime().secs - start_time.secs < self.CHECK_TIME:
-            rospy.sleep(0.5)
+            rospy.sleep(0.5)  # Sleep for a bit not to put too much load on the CPU
             if self._stopped_execution:
                 self._stopped_execution = False
                 return

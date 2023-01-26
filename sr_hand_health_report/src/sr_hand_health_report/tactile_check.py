@@ -47,11 +47,6 @@ class TactileCheck(SrHealthReportCheck):
             else:
                 self._serial = serials[0]
         except KeyError:
-            pass
-
-        try:
-            self._serial
-        except Exception:
             rospy.logerr("No hand detected!")
             sys.exit(1)
 
@@ -62,7 +57,7 @@ class TactileCheck(SrHealthReportCheck):
     def get_expected_tactile_type(self):
         """
             Checks the expected type from general_info.yaml file
-            @return: str expected fingertype
+            @return: str expected fingertip type (pst/bt_sp/bt_2p)
         """
         tactile_type_from_file = {}
         file_ = f"{rospkg.RosPack().get_path('sr_hand_config')}/{self._serial}/general_info.yaml"

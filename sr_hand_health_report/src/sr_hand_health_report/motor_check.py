@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2022-2023 Shadow Robot Company Ltd.
-#
+
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
 # Software Foundation version 2 of the License.
@@ -16,6 +16,7 @@
 
 import rospy
 from sr_hand_health_report.sr_hand_health_report_check import SrHealthReportCheck
+
 from diagnostic_msgs.msg import DiagnosticArray
 
 

@@ -95,7 +95,7 @@ class BacklashCheck(SrHealthReportCheck):
                 if self._stopped_execution:
                     break
             if self._stopped_execution:
-                return
+                break
 
             self.switch_controller_mode("position")
             self.move_finger_to_side(finger_object, 'left')

@@ -101,7 +101,7 @@ class MonotonicityCheck(SrHealthReportCheck):
             @param: int value of PWM command to be sent
             @param: Joint object to run the check on.
         """
-        rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+        rospy.loginfo(f"Analyzing joint {joint.joint_name}")
         joint_name = finger.finger_name + joint.joint_index
         extend_command = self.command_sign_map[joint_name]*command
         flex_command = -extend_command
@@ -161,7 +161,7 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     def _add_result_to_dict(self, joint_name, higher_value, lower_value):
         """
-            Add the results to the result dicttionary
+            Add the results to the result dictionary
             @param: str joint name
             @param: float higher range value
             @param: float lower range value

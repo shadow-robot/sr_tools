@@ -321,7 +321,7 @@ class SrHealthReportCheck(abc.ABC):
             @param joint Joint object
             @param command float
             @param duration float
-            @param rate float
+            @param rate rospy.Rate()
         """
         now = rospy.Time.now()
         while rospy.Time.now() < now + rospy.Duration(duration):
@@ -367,6 +367,12 @@ class SrHealthReportCheck(abc.ABC):
 
     @abc.abstractmethod
     def has_single_passed(self, name, value):
+        """
+            Checks if the single test execution result passed.
+            @param name: str defining the key from the childs PASSED_THRESHOLDS class variable
+            @param value: value returned from the test execution, to be compared against PASSED_THRESHOLDS key
+            @return Bool value
+        """
         raise NotImplementedError("The function 'has_single_passed' must be implemented")
 
     def stop_test(self):

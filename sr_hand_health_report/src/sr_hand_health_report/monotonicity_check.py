@@ -131,15 +131,12 @@ class MonotonicityCheck(SrHealthReportCheck):
                                           self._publishing_rate)
 
     def _add_result_to_dict(self, joint_name, higher_value, lower_value):
-<<<<<<< HEAD
-=======
         """
             Add the results to the result dictionary
             @param: str joint name
             @param: float higher range value
             @param: float lower range value
         """
->>>>>>> facd690... Jesus's comments
         self._dict_of_monotonic_joints[joint_name] = {}
         self._dict_of_monotonic_joints[joint_name]["is_monotonic"] = self._is_joint_monotonous
         self._dict_of_monotonic_joints[joint_name]["higher_raw_sensor_value"] = higher_value

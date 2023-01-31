@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-from collections import OrderedDict
+
+import abc
+import math
 from std_msgs.msg import Float64
 import rospy
 from sensor_msgs.msg import JointState
@@ -22,6 +24,7 @@ from sr_robot_msgs.msg import EthercatDebug
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import ChangeControlType
 
+
 COUPLED_JOINTS = ["J1", "J2"]
 FINGERS_WITHOUT_COUPLED_JOINTS = ["WR", "TH"]
 SENSOR_CUTOUT_THRESHOLD = 200
@@ -29,17 +32,33 @@ NR_OF_BITS_NOISE_WARNING = 3
 
 
 class Finger:
+
+    PREFIXES = ("FF", 'MF', 'RF', 'LF', 'TH', 'WR')
+
     def __init__(self, hand_prefix, finger_name):
         self._hand_prefix = hand_prefix
         self.finger_name = finger_name
-        self.joints_dict = OrderedDict()
+        self.joints_dict = {}
 
     def move_finger(self, command, control_type):
+        """
+            Moves the finger with given command for the control_type
+            @param command to apply on the finger
+            @param control_type type of control
+        """
         for joint in self.joints_dict.values():
             joint.move_joint(command, control_type)
 
+    def get_sorting_value(self):
+        """
+            Gets the value to sort based on the index in PREFIXES
+            @return int
+        """
+        return self.PREFIXES.index(self.finger_name.upper())
+
 
 class Joint:
+
     def __init__(self, hand_prefix, finger_name, joint_index):
         self._finger_name = finger_name
         self.joint_index = joint_index
@@ -64,32 +83,56 @@ class Joint:
         self._current_position = float()
 
     def move_joint(self, command, control_type):
+        """
+            Moves the joint with given command for the control_type
+            @param command to apply on the joint
+            @param control_type type of control
+        """
         if control_type == "effort":
             self._pwm_command_publisher.publish(command)
         elif control_type == "position":
             self._position_command_publisher.publish(command)
 
     def set_current_position(self, new_position):
+        """
+            Sets the current position of the joint
+            @param new_position to update the position
+        """
         self._current_position = new_position
 
     def get_current_position(self):
+        """
+            Gets the raw sensor value
+            @return float current joint position
+        """
         return self._current_position
 
     def set_raw_sensor_data(self, new_raw_sensor_data):
+        """
+            Sets the raw sensor value
+            @param new_raw_sensor_data to update the raw sensor value
+        """
         self._raw_sensor_data = new_raw_sensor_data
 
     def get_raw_sensor_data(self):
+        """
+            Gets the raw sensor value
+            @return float
+        """
         return self._raw_sensor_data
 
 
-class SrHealthReportCheck:
+class SrHealthReportCheck(abc.ABC):
     def __init__(self, hand_side, fingers_to_test):
         self._hand_prefix = hand_side[0] + "h"
         self._hand_name = hand_side + "_hand"
+        self._name = ""
         self._result = None
+        self._stopped_execution = False
 
         self._joint_msg = rospy.wait_for_message("/joint_states", JointState)
         self._fingers_to_joint_map = self._init_map_finger_joints()
+
         self._controller_joints_names = self._init_controller_joints()
 
         self.ctrl_helper = ControllerHelper([self._hand_prefix], [self._hand_prefix + "_"],
@@ -98,7 +141,7 @@ class SrHealthReportCheck:
         self._fingers_to_test = fingers_to_test
         self.fingers_to_check = self._init_finger_objects()
 
-        self._raw_sensor_data_map = OrderedDict()
+        self._raw_sensor_data_map = {}
         self._raw_sensor_names_list = self._init_raw_sensor_data_list()
 
         self._raw_data_sensor_subscriber = rospy.Subscriber("/%s/debug_etherCAT_data" % (self._hand_prefix),
@@ -106,6 +149,8 @@ class SrHealthReportCheck:
 
         self._joint_states_subscriber = rospy.Subscriber("/joint_states", JointState,
                                                          self._joint_states_callback)
+
+        self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
 
         if self._hand_prefix == "lh":
             self.command_sign_map = {"ffj1": -1, "ffj2": -1, "ffj3": 1, "ffj4": -1,
@@ -123,15 +168,22 @@ class SrHealthReportCheck:
                                      "wrj1": -1, "wrj2": 1}
 
     def _init_map_finger_joints(self):
-        fingers_to_joint_map = OrderedDict()
+        """
+            Initializes the dictionary for joints to fingers.
+        """
+        fingers_to_joint_map = {}
         for joint in self._joint_msg.name:  # pylint: disable=E1101
             finger_name = joint[3:-2]
-            if finger_name not in fingers_to_joint_map:
-                fingers_to_joint_map[finger_name] = []
-            fingers_to_joint_map[finger_name].append(joint[-2:])
+            if self._hand_prefix in joint:
+                if finger_name not in fingers_to_joint_map:
+                    fingers_to_joint_map[finger_name] = []
+                fingers_to_joint_map[finger_name].append(joint[-2:])
         return fingers_to_joint_map
 
     def _init_controller_joints(self):
+        """
+            Initializes the controllers for available joints
+        """
         controller_joints_names = []
         for finger, joint in self._fingers_to_joint_map.items():
             for joint_index in joint:
@@ -144,19 +196,28 @@ class SrHealthReportCheck:
         return controller_joints_names
 
     def _init_finger_objects(self, fingers_to_test=None):
+        """
+            Initializes raw sensor data list
+            @param fingers_to_test list of finger prefixes to test
+        """
         fingers_to_check = []
         if not fingers_to_test:
             fingers_to_test = self._fingers_to_test
 
         for i, finger in enumerate(self._fingers_to_joint_map):
-            if finger in self._fingers_to_joint_map:
+            if finger in fingers_to_test:
                 fingers_to_check.append(Finger(self._hand_prefix, finger.lower()))
                 for joint_index in self._fingers_to_joint_map[finger]:
                     fingers_to_check[i].joints_dict[joint_index] = Joint(self._hand_prefix, finger.lower(),
                                                                          joint_index.lower())
+
+        fingers_to_check.sort(reverse=False, key=lambda x: x.get_sorting_value())
         return fingers_to_check
 
     def _init_raw_sensor_data_list(self):
+        """
+            Initializes raw sensor data list
+        """
         raw_sensor_names_list = []
         if "FF" in self._fingers_to_joint_map:
             for joint_index in self._fingers_to_joint_map["FF"]:
@@ -195,6 +256,10 @@ class SrHealthReportCheck:
         return raw_sensor_names_list
 
     def _joint_states_callback(self, sensor_msg):
+        """
+            JointStates message callback
+            @param sensor_msg message on the topic bus
+        """
         joint_dict = {}
         for name, position in zip(sensor_msg.name, sensor_msg.position):
             joint_dict.update({name.lower(): position})
@@ -204,6 +269,10 @@ class SrHealthReportCheck:
                 joint.set_current_position(joint_dict[joint.joint_name])
 
     def _raw_data_sensor_callback(self, ethercat_data):
+        """
+            EthercatDebug message callback
+            @param ethercat_data message on the topic bus
+        """
         for i in range(len(self._raw_sensor_names_list)):
             self._raw_sensor_data_map[self._raw_sensor_names_list[i]] = ethercat_data.sensors[i]
 
@@ -221,6 +290,10 @@ class SrHealthReportCheck:
                 joint.set_raw_sensor_data(raw_sensor_data_list)
 
     def switch_controller_mode(self, control_type):
+        """
+            Switches the control type
+            @param control_type str
+        """
         if control_type == "trajectory":
             rospy.loginfo("Changing trajectory controllers to RUN")
             self.ctrl_helper.change_trajectory_ctrl("run")
@@ -233,11 +306,23 @@ class SrHealthReportCheck:
             self.ctrl_helper.change_hand_ctrl(control_type)
 
     def drive_joint_to_position(self, joint, command):
+        """
+            Drives the joint to given position, leaves the controllers switched to effort mode
+            @param joint Joint object
+            @param command float
+        """
         self.switch_controller_mode("position")
         joint.move_joint(command, "position")
         self.switch_controller_mode("effort")
 
     def drive_joint_with_pwm(self, joint, command, duration, rate):  # pylint: disable=R0201
+        """
+            Drives the joint with a given comman value, for a time defined by duration with a specific rate.
+            @param joint Joint object
+            @param command float
+            @param duration float
+            @param rate float
+        """
         now = rospy.Time.now()
         while rospy.Time.now() < now + rospy.Duration(duration):
             joint.move_joint(command, "effort")
@@ -245,10 +330,67 @@ class SrHealthReportCheck:
         joint.move_joint(0, "effort")
 
     def get_result(self):
+        """
+            Get the result of the test
+            @return: Dictionary containing the result of the test
+        """
         return self._result
 
+    def move_fingers_to_start_position(self):
+        """
+            Moves tested fingers into 0 degree joint anglees in position control mode.
+        """
+        self.switch_controller_mode('position')
+        for finger in self.fingers_to_check:
+            finger.move_finger(0, 'position')
+            rospy.logwarn(f"Moving to start {finger.finger_name}")
+
+    def move_finger_to_side(self, finger_object, side):
+        """
+            Moves the finger to the left/right joint limit of J4
+            @param finger_object: Finger object indicating which finger to move
+            @param side: String defining the side, 'right' or 'left'
+        """
+        angle = math.radians(-20) if side == 'right' else math.radians(20)
+        angle *= self._side_sign_map[finger_object.finger_name]
+        if "J4" in finger_object.joints_dict and finger_object.finger_name not in ('th', 'wr'):
+            finger_object.joints_dict['J4'].move_joint(angle, 'position')
+            rospy.logwarn(f"moving {finger_object.finger_name} to {side}")
+
+    @abc.abstractmethod
     def has_passed(self):
+        """
+            Checks if the test execution result passed
+            @return Bool value
+        """
         raise NotImplementedError("The function 'has_passed' must be implemented")
 
+    @abc.abstractmethod
     def has_single_passed(self, name, value):
         raise NotImplementedError("The function 'has_single_passed' must be implemented")
+
+    def stop_test(self):
+        """
+            Stops the check execution.
+        """
+        self._stopped_execution = True
+
+    def is_stopped(self):
+        """
+            Checks if the check is stopped (through external interference or by completion)
+            @return Bool value
+        """
+        return self._stopped_execution
+
+    def set_runnable(self):
+        """
+            Sets the check to a state where it can start.
+        """
+        self._stopped_execution = False
+
+    def get_name(self):
+        """
+            Gets the name of the check
+            @return str
+        """
+        return self._name

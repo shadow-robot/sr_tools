@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,29 +25,57 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
     PASSED_THRESHOLDS = "CHECK PASSED"
 
     def __init__(self, hand_side, fingers_to_test):
+        """
+            Initialize the PositionSensorNoiseCheck object
+            @param hand_side: String indicating the side
+            @param fingers_to_test: List of finger prefixes to test
+        """
         super().__init__(hand_side, fingers_to_test)
-        self._check_duration = rospy.Duration(5.0)
+        self._name = "Position Sensor Noise"
+        self._check_duration = rospy.Duration(3.0)
         self._shared_dict = {}
         self._publishing_rate = rospy.Rate(200)
         self._initial_raw_value = None
+        self._result = {'position_sensor_noise': {}}
 
     def run_check(self):
-        result = {"position_sensor_noise": {}}
+        """
+            Runs the test for selected fingers.
+            @return: Dictionary with the results of the check
+        """
+        self._result = {'position_sensor_noise': {}}
+        if self._stopped_execution:
+            self._stopped_execution = False
+            return
         rospy.loginfo("Running Position Sensor Noise Check")
-        rospy.sleep(3.0)
+        result = dict(self._result)
 
         for finger in self.fingers_to_check:
-            rospy.loginfo("collecting and analyzing data for FINGER {}".format(finger.finger_name))
+            rospy.loginfo("collecting and analyzing data for finger {}".format(finger.finger_name))
             for joint in finger.joints_dict.values():
-                rospy.loginfo("collecting and analyzing data for JOINT {}".format(joint.joint_name))
+                rospy.loginfo("collecting and analyzing data for joint {}".format(joint.joint_name))
                 self._initial_raw_value = joint.get_raw_sensor_data()
                 self.check_joint_raw_sensor_value(self._initial_raw_value, joint, self._shared_dict)
+
+                if self._stopped_execution:
+                    break
+            if self._stopped_execution:
+                self._stopped_execution = False
+                return
+
         result["position_sensor_noise"].update(dict(self._shared_dict))
         rospy.loginfo("Position Sensor Noise Check finished, exporting results")
         self._result = result
-        return result
+        self._stopped_execution = True
+        return
 
     def check_joint_raw_sensor_value(self, initial_raw_value, joint, dictionary):
+        """
+            Checks the sensor noise and saves the result to _shared_dict
+            @param initial_raw_value: Float value of raw sensor reading
+            @param Joint: Joint object being under test
+            @param dictionary: Dictionary where the result is saved
+        """
         status = ""
         test_failed = False
         if joint.joint_name != self._hand_prefix + "_wrj1" and joint.joint_name != self._hand_prefix + "_thj5":
@@ -55,6 +83,8 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         for index in range(len(initial_raw_value)):
             time = rospy.Time.now() + self._check_duration
             while rospy.Time.now() < time and test_failed is not True:
+                if self._stopped_execution:
+                    break
                 difference = joint.get_raw_sensor_data()[index] - initial_raw_value[index]
                 if abs(difference) <= SENSOR_CUTOUT_THRESHOLD:
                     if abs(difference) < NR_OF_BITS_NOISE_WARNING:
@@ -68,6 +98,9 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                         status = "{} bits noise - CHECK FAILED".format(abs(difference) + 1)
                         test_failed = True
                 self._publishing_rate.sleep()
+
+            if self._stopped_execution:
+                break
             print("Finished loop for {}".format(joint.joint_name))
             if joint.joint_name not in dictionary:
                 dictionary[joint.joint_name] = status
@@ -76,10 +109,20 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
                 dictionary[name] = status
 
     def has_passed(self):
+        """
+            Checks if the test execution result passed
+            @return bool check passed
+        """
         for key in self._result:
             if not self.has_single_passed(key, self._result[key]):
                 return False
         return bool(self._result['position_sensor_noise'])
 
     def has_single_passed(self, _, value):
+        """
+            Checks if the single test execution result passed
+            @param name: name of the test
+            @param value: value to be compared with the thresholds
+            @return bool check passed
+        """
         return self.PASSED_THRESHOLDS in value

@@ -106,37 +106,27 @@ class BacklashCheck(SrHealthReportCheck):
         test_start_time = rospy.get_rostime()
         timeout_condition = True
 
-        while len(test_times) < self.TEST_COUNT and timeout_condition and not rospy.is_shutdown():
+        def _apply_joint_pwm(pwm_value):
+            nonlocal success, test_time, joint
+            difference = 0
+            starting_position = joint.get_current_position()
+            start_time = rospy.get_rostime()
+            joint.move_joint(pwm_value, 'effort')
+            current_time = 0
+            while abs(difference) < self.THRESHOLD and not rospy.is_shutdown():
+                difference = joint.get_current_position() - starting_position
+                current_time = rospy.get_rostime() - start_time
+                time.sleep(0.01)
+                if current_time > rospy.Duration.from_sec(self.WIGGLING_TIME):
+                    test_time += rospy.Duration.from_sec(self.WIGGLING_TIME)
+                    success = False
+                    break
 
+        while len(test_times) < self.TEST_COUNT and timeout_condition and not rospy.is_shutdown():
             success = True
             test_time = rospy.get_rostime()
-            difference = 0
-            starting_position = joint.get_current_position()
-            start_time = rospy.get_rostime()
-            joint.move_joint(-self.FINGER_PWM, 'effort')
-            current_time = 0
-            while abs(difference) < self.THRESHOLD and not rospy.is_shutdown():
-                difference = joint.get_current_position() - starting_position
-                current_time = rospy.get_rostime() - start_time
-                time.sleep(0.01)
-                if current_time > rospy.Duration.from_sec(self.WIGGLING_TIME):
-                    test_time += rospy.Duration.from_sec(self.WIGGLING_TIME)
-                    success = False
-                    break
-
-            difference = 0
-            starting_position = joint.get_current_position()
-            start_time = rospy.get_rostime()
-            joint.move_joint(self.FINGER_PWM, 'effort')
-            current_time = 0
-            while abs(difference) < self.THRESHOLD and not rospy.is_shutdown():
-                difference = joint.get_current_position() - starting_position
-                current_time = rospy.get_rostime() - start_time
-                time.sleep(0.01)
-                if current_time > rospy.Duration.from_sec(self.WIGGLING_TIME):
-                    test_time += rospy.Duration.from_sec(self.WIGGLING_TIME)
-                    success = False
-                    break
+            _apply_joint_pwm(-self.FINGER_PWM)
+            _apply_joint_pwm(self.FINGER_PWM)
 
             timeout_condition = rospy.get_rostime() - test_start_time < rospy.Duration.from_sec(3 * self.WIGGLING_TIME)
 

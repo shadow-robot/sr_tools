@@ -69,7 +69,13 @@ class MonotonicityCheck(SrHealthReportCheck):
             self._run_check_per_joint(joint, command, finger)
 
     def _run_check_per_joint(self, joint, command, finger):
-        rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+        """
+            Runs the check for the provided finger
+            @param: Finger object to run the check on.
+            @param: int value of PWM command to be sent
+            @param: Joint object to run the check on.
+        """
+        rospy.loginfo(f"Analyzing joint {joint.joint_name}")
         joint_name = finger.finger_name + joint.joint_index
         extend_command = self.command_sign_map[joint_name]*command
         flex_command = -extend_command
@@ -125,6 +131,15 @@ class MonotonicityCheck(SrHealthReportCheck):
                                           self._publishing_rate)
 
     def _add_result_to_dict(self, joint_name, higher_value, lower_value):
+<<<<<<< HEAD
+=======
+        """
+            Add the results to the result dictionary
+            @param: str joint name
+            @param: float higher range value
+            @param: float lower range value
+        """
+>>>>>>> facd690... Jesus's comments
         self._dict_of_monotonic_joints[joint_name] = {}
         self._dict_of_monotonic_joints[joint_name]["is_monotonic"] = self._is_joint_monotonous
         self._dict_of_monotonic_joints[joint_name]["higher_raw_sensor_value"] = higher_value

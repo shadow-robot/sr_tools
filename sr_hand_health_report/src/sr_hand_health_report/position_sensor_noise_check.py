@@ -79,7 +79,7 @@ class PositionSensorNoiseCheck(SrHealthReportCheck):
         for key in self._result:
             if not self.has_single_passed(key, self._result[key]):
                 return False
-        return True
+        return bool(self._result['position_sensor_noise'])
 
     def has_single_passed(self, _, value):
         return self.PASSED_THRESHOLDS in value

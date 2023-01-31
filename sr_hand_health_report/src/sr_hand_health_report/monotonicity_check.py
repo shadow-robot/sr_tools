@@ -58,7 +58,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         self.switch_controller_mode('position')
         for finger in self.fingers_to_check:
             # if finger.finger_name.lower() != "wr":
-            finger.move_finger(0, 'position')     
+            finger.move_finger(0, 'position')
 
     def _run_check_per_finger(self, finger):
         for joint in finger.joints_dict.values():
@@ -108,7 +108,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._second_end_stop_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
 
         higher_value, lower_value = self.check_sensor_range(self._first_end_stop_sensor_value,
-                                                       self._second_end_stop_sensor_value)
+                                                            self._second_end_stop_sensor_value)
 
         self._add_result_to_dict(joint.joint_name, higher_value, lower_value)
         self._reset_joint_to_position(finger, joint, extend_command, flex_command)
@@ -191,10 +191,9 @@ class MonotonicityCheck(SrHealthReportCheck):
         output = True
         if name == "is_monotonic":
             output = value == self.PASSED_THRESHOLDS
-        elif name == "higher_raw_sensor_value" or name == "lower_raw_sensor_value":
+        elif name in ("higher_raw_sensor_value", "lower_raw_sensor_value"):
             output = value > 100 and value < 4000
         return output
-
 
     @staticmethod
     def check_sensor_range(first_sensor_value, second_sensor_value):

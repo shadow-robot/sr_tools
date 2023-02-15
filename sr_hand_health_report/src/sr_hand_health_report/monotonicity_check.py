@@ -211,5 +211,8 @@ class MonotonicityCheck(SrHealthReportCheck):
         return higher_value, lower_value
 
     @staticmethod
+    # The data argument is expected to be a list with 1 or 2 elements due to "wrj1" and "thj5" using 2 sensors.
+    # For single element list (for example thes value of J3, J4) this method will return directly the value,
+    # but for "wrj1" and "thj5 this returns a two element list which are averaged.
     def get_raw_sensor_value(data):
         return sum(data) / len(data)

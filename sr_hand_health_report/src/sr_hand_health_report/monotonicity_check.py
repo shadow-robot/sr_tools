@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -15,13 +15,18 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 from builtins import round
 import rospy
-from sr_hand_health_report_check import SrHealthReportCheck, SENSOR_CUTOUT_THRESHOLD, NR_OF_BITS_NOISE_WARNING
+from sr_hand_health_report.sr_hand_health_report_check import (SrHealthReportCheck,
+                                                               SENSOR_CUTOUT_THRESHOLD,
+                                                               NR_OF_BITS_NOISE_WARNING)
 import numpy as np
 
 SW_LIMITS_FOR_JOINTS = {"wrj1": -0.785, "thj5": 1.047}
 
 
 class MonotonicityCheck(SrHealthReportCheck):
+
+    PASSED_THRESHOLDS = True
+
     def __init__(self, hand_side, fingers_to_test):
         super().__init__(hand_side, fingers_to_test)
         self._is_joint_monotonous = True
@@ -35,16 +40,25 @@ class MonotonicityCheck(SrHealthReportCheck):
         self._second_end_stop_sensor_value = None
 
     def run_check(self):
-        result = {"monotonicity_check": []}
+        result = {"monotonicity": []}
         rospy.loginfo("Running Monotonicity Check")
+        self.move_fingers_to_start_position()
         self.switch_controller_mode("effort")
 
         for finger in self.fingers_to_check:
             self._run_check_per_finger(finger)
 
-        result["monotonicity_check"].append(self._dict_of_monotonic_joints)
+        result["monotonicity"] = self._dict_of_monotonic_joints
+        self._result = result
         rospy.loginfo("Monotonicity Check finished, exporting results")
+        self.switch_controller_mode("position")
         return result
+
+    def move_fingers_to_start_position(self):
+        self.switch_controller_mode('position')
+        for finger in self.fingers_to_check:
+            # if finger.finger_name.lower() != "wr":
+            finger.move_finger(0, 'position')
 
     def _run_check_per_finger(self, finger):
         for joint in finger.joints_dict.values():
@@ -55,7 +69,13 @@ class MonotonicityCheck(SrHealthReportCheck):
             self._run_check_per_joint(joint, command, finger)
 
     def _run_check_per_joint(self, joint, command, finger):
-        rospy.loginfo("Analyzing joint {}".format(joint.joint_name))
+        """
+            Runs the check for the provided finger
+            @param: Finger object to run the check on.
+            @param: int value of PWM command to be sent
+            @param: Joint object to run the check on.
+        """
+        rospy.loginfo(f"Analyzing joint {joint.joint_name}")
         joint_name = finger.finger_name + joint.joint_index
         extend_command = self.command_sign_map[joint_name]*command
         flex_command = -extend_command
@@ -72,7 +92,7 @@ class MonotonicityCheck(SrHealthReportCheck):
         is_joint_monotonous = True
 
         time = rospy.Time.now() + self._check_duration
-        while rospy.Time.now() < time:
+        while rospy.Time.now() < time and not rospy.is_shutdown():
             if end_reached is False:
                 joint.move_joint(extend_command, "effort")
             else:
@@ -84,11 +104,11 @@ class MonotonicityCheck(SrHealthReportCheck):
             if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)) and end_reached is False:
                 time = rospy.Time.now() + self._check_duration
                 end_reached = True
-                self._first_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
-        self._second_end_stop_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+                self._first_end_stop_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
+        self._second_end_stop_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
 
-        higher_value, lower_value = check_sensor_range(self._first_end_stop_sensor_value,
-                                                       self._second_end_stop_sensor_value)
+        higher_value, lower_value = self.check_sensor_range(self._first_end_stop_sensor_value,
+                                                            self._second_end_stop_sensor_value)
 
         self._add_result_to_dict(joint.joint_name, higher_value, lower_value)
         self._reset_joint_to_position(finger, joint, extend_command, flex_command)
@@ -111,6 +131,12 @@ class MonotonicityCheck(SrHealthReportCheck):
                                           self._publishing_rate)
 
     def _add_result_to_dict(self, joint_name, higher_value, lower_value):
+        """
+            Add the results to the result dictionary
+            @param: str joint name
+            @param: float higher range value
+            @param: float lower range value
+        """
         self._dict_of_monotonic_joints[joint_name] = {}
         self._dict_of_monotonic_joints[joint_name]["is_monotonic"] = self._is_joint_monotonous
         self._dict_of_monotonic_joints[joint_name]["higher_raw_sensor_value"] = higher_value
@@ -118,11 +144,11 @@ class MonotonicityCheck(SrHealthReportCheck):
 
     def _check_monotonicity(self, joint):
         if self._older_raw_sensor_value == 0:
-            self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+            self._older_raw_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
 
-        difference_between_raw_data = (get_raw_sensor_value(joint.get_raw_sensor_data()) -
+        difference_between_raw_data = (self.get_raw_sensor_value(joint.get_raw_sensor_data()) -
                                        self._older_raw_sensor_value)
-        self._older_raw_sensor_value = get_raw_sensor_value(joint.get_raw_sensor_data())
+        self._older_raw_sensor_value = self.get_raw_sensor_value(joint.get_raw_sensor_data())
         if abs(difference_between_raw_data) <= SENSOR_CUTOUT_THRESHOLD:
             if abs(difference_between_raw_data) > NR_OF_BITS_NOISE_WARNING:
                 if abs(self._previous_difference) > NR_OF_BITS_NOISE_WARNING:
@@ -149,21 +175,44 @@ class MonotonicityCheck(SrHealthReportCheck):
                 limit_reached = True
         return limit_reached
 
+    def get_result(self):
+        return self._result
 
-def check_sensor_range(first_sensor_value, second_sensor_value):
-    """
-    This function records the minimum and maximum range hit by the joint
-    during the monotonicity check, this is collected to sanity check the
-    sensor range
-    """
-    if first_sensor_value > second_sensor_value:
-        higher_value = first_sensor_value
-        lower_value = second_sensor_value
-    else:
-        higher_value = second_sensor_value
-        lower_value = first_sensor_value
-    return higher_value, lower_value
+    def has_passed(self):
+        passed = True
+        for joint_result in self._result['monotonicity'].keys():
+            for key in self._result['monotonicity'][list(self._result['monotonicity'].keys())[0]]:
+                if not self.has_single_passed(key, self._result['monotonicity'][joint_result][key]):
+                    passed = False
+                    break
+        return passed
 
+    def has_single_passed(self, name, value):
+        output = True
+        if name == "is_monotonic":
+            output = value == self.PASSED_THRESHOLDS
+        elif name in ("higher_raw_sensor_value", "lower_raw_sensor_value"):
+            output = value > 100 and value < 4000
+        return output
 
-def get_raw_sensor_value(data):
-    return sum(data) / len(data)
+    @staticmethod
+    def check_sensor_range(first_sensor_value, second_sensor_value):
+        """
+        This function records the minimum and maximum range hit by the joint
+        during the monotonicity check, this is collected to sanity check the
+        sensor range
+        """
+        if first_sensor_value > second_sensor_value:
+            higher_value = first_sensor_value
+            lower_value = second_sensor_value
+        else:
+            higher_value = second_sensor_value
+            lower_value = first_sensor_value
+        return higher_value, lower_value
+
+    @staticmethod
+    # The data argument is expected to be a list with 1 or 2 elements due to "wrj1" and "thj5" using 2 sensors.
+    # For single element list (for example thes value of J3, J4) this method will return directly the value,
+    # but for "wrj1" and "thj5 this returns a two element list which are averaged.
+    def get_raw_sensor_value(data):
+        return sum(data) / len(data)

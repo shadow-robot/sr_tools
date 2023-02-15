@@ -38,7 +38,6 @@ class BacklashCheck(SrHealthReportCheck):
             @param fingers_to_test: List of finger prefixes to test
         """
         super().__init__(hand_side, fingers_to_test)
-        self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
         self._name = "backlash"
         self._result = {'backlash': {}}
         self.joint_limits = {}
@@ -111,7 +110,7 @@ class BacklashCheck(SrHealthReportCheck):
             @param side: String defining the side, 'right' or 'left'
         """
         angle = math.radians(-20) if side == 'right' else math.radians(20)
-        angle *= self._side_sign_map[finger_object.finger_name]
+        angle *= self._j4_side_sign_map[finger_object.finger_name]
         if "J4" in finger_object.joints_dict:
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
 

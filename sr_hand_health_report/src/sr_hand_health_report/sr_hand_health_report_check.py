@@ -150,7 +150,7 @@ class SrHealthReportCheck(abc.ABC):
         self._joint_states_subscriber = rospy.Subscriber("/joint_states", JointState,
                                                          self._joint_states_callback)
 
-        self._side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
+        self._j4_side_sign_map = {"ff": -1, "mf": -1, "rf": 1, "lf": 1, "th": 1, "wr": 1}
 
         if self._hand_prefix == "lh":
             self.command_sign_map = {"ffj1": -1, "ffj2": -1, "ffj3": 1, "ffj4": -1,
@@ -352,7 +352,7 @@ class SrHealthReportCheck(abc.ABC):
             @param side: String defining the side, 'right' or 'left'
         """
         angle = math.radians(-20) if side == 'right' else math.radians(20)
-        angle *= self._side_sign_map[finger_object.finger_name]
+        angle *= self._j4_side_sign_map[finger_object.finger_name]
         if "J4" in finger_object.joints_dict and finger_object.finger_name not in ('th', 'wr'):
             finger_object.joints_dict['J4'].move_joint(angle, 'position')
             rospy.logwarn(f"moving {finger_object.finger_name} to {side}")

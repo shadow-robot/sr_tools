@@ -98,13 +98,19 @@ class TactileCheck(SrHealthReportCheck):
 
         result["tactile"] = dict.fromkeys(self._fingers_to_test, '')
 
-        if not self.check_if_tactile_type_match():
-            result["tactile"] = "Wrong tactile definition in general_info.yaml!"
-        else:
+        if self.check_if_tactile_type_match():
             for finger in self.get_fingertips_from_config_file():
                 result["tactile"][finger] = {}
                 result["tactile"][finger]["connected"] = self.is_sensor_connected(finger)
                 result["tactile"][finger]["reasonable"] = self.is_reasonable(finger)
+                if self._stopped_execution:
+                    self._stopped_execution = False
+                    return
+        else:
+            for finger in self.get_fingertips_from_config_file():
+                result["tactile"][finger] = {}
+                result["tactile"][finger]["connected"] = "Configuration fail"
+                result["tactile"][finger]["reasonable"] = "Configuration fail"
                 if self._stopped_execution:
                     self._stopped_execution = False
                     return

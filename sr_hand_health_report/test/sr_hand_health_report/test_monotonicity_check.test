@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="test_backlash_check" pkg="sr_hand_health_report" type="test_monotonicity_check.py" time-limit="300.0"/>
+</launch>

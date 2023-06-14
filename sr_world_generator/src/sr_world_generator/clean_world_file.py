@@ -30,10 +30,10 @@ class WorldFileCleaner:
     """
     _xml_tree: ET.ElementTree = None
 
-    def __init__(self, dry_run: bool = False):
+    def __init__(self, dry_run: bool = False) -> None:
         self._dry_run = dry_run
 
-    def load_world_file(self, file_path: str):
+    def load_world_file(self, file_path: str) -> bool:
         """
         Loads the world file from the specified path.
 
@@ -53,7 +53,7 @@ class WorldFileCleaner:
             return False
         return True
 
-    def remove_models(self, removed_model_names: "list[str]"):
+    def remove_models(self, removed_model_names: "list[str]") -> None:
         """
         Removes any models with names in the supplied list from the world file.
 
@@ -71,7 +71,7 @@ class WorldFileCleaner:
                     rospy.loginfo(f'Removing model: {name}')
                     parent.remove(model)
 
-    def remove_state(self):
+    def remove_state(self) -> None:
         """
         Removes the state information from the world file.
         """
@@ -82,7 +82,7 @@ class WorldFileCleaner:
                 rospy.loginfo('Removing state information.')
                 parent.remove(state)
 
-    def save_world_file(self, output_file_path: str):
+    def save_world_file(self, output_file_path: str) -> bool:
         """
         Saves the world file to the specified path.
 
@@ -117,5 +117,5 @@ if __name__ == '__main__':
     world_file_cleaner.remove_models(removed_model_names_param)
     world_file_cleaner.remove_state()
     if not world_file_cleaner.save_world_file(output_file_path_param):
-        sys.exit(0)
+        sys.exit(1)
     rospy.loginfo(f'Cleaned world file saved to: {output_file_path_param}')

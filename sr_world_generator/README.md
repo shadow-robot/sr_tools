@@ -1,3 +1,5 @@
 # sr_world_generator
 
-This package contains code for creating, modifying and saving new `.world` and `.scene` files. For detailed instructions on how to use it, please see [this page](https://shadow-experimental.readthedocs.io/en/latest/user_guide/1_6_software_description.html#creating-a-new-world-scene).
+A lot of the code here is deprecated, since we changed our `.world` and `.scene` generation method; it is kept in case it is useful, e.g. for manual world changes.
+
+We now simply run a simulated robot as normal, rely on `gazebo2rviz` populating Rviz from Gazebo, save the world and scene files using Gazebo and Rviz's GUIs respectively, then clean the world file using [clean_world_file.launch](launch/clean_world_file.launch).

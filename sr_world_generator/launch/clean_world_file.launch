@@ -1,0 +1,39 @@
+<!--
+ Copyright 2023 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+    <!-- Whether to run in dry run mode; if true, nothing is saved. -->
+    <arg name="dry_run" default="false"/>
+    <!-- The name of the input world file to be cleaned, e.g. "new_world.world". -->
+    <arg name="input_file_name"/>
+    <!-- The directory containing the input world file to be cleaned, e.g. "/home/user". -->
+    <arg name="input_file_directory" default="/home/user"/>
+    <!-- The path to the input world file to be cleaned, e.g. "/home/user/new_world.world". -->
+    <arg name="input_file_path" default="$(arg input_file_directory)/$(arg input_file_name)"/>
+    <!-- The name of the output cleaned world file, e.g. "new_world.world". -->
+    <arg name="output_file_name" default="$(arg input_file_name)"/>
+    <!-- The directory to save the output cleaned world file, e.g. "/home/user". -->
+    <arg name="output_file_directory" default="$(arg input_file_directory)"/>
+    <!-- The path to the output cleaned world file, e.g. "/home/user/new_world.world". -->
+    <arg name="output_file_path" default="$(arg output_file_directory)/$(arg output_file_name)"/>
+    <!-- The names of the models to be removed from the world file, e.g. "['ur10esrh']". -->
+    <arg name="removed_model_names" default="['ur10esrh']"/>
+    <!-- The node that will do the world file cleaning -->
+    <node name="clean_file" pkg="sr_world_generator" type="clean_world_file.py" output="screen">
+        <!-- The parameters of the node as defined above. -->
+        <param name="dry_run" value="$(arg dry_run)"/>
+        <param name="input_file_path" value="$(arg input_file_path)"/>
+        <param name="output_file_path" value="$(arg output_file_path)"/>
+        <rosparam param="removed_model_names" subst_value="True">$(arg removed_model_names)</rosparam>
+    </node>
+</launch>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2023 Shadow Robot Company Ltd.
+# Copyright 2023, 2024 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -123,5 +123,5 @@ if __name__ == '__main__':
     # Opens Gazebo and loads the (cleaned) world file. Then, reads all world
     # broadcasted models (to /gazebo/model_states) and overrides the output
     # world file so that all models are imported using "<include>" tags
-    gws = GazeboWorldSaver(gazebo_generated_world_file_path=output_file_path_param, # Input world file
+    gws = GazeboWorldSaver(gazebo_generated_world_file_path=output_file_path_param,  # Input world file
                            output_world_file_path=output_file_path_param)

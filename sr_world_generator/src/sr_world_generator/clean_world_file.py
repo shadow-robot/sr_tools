@@ -71,7 +71,7 @@ class WorldFileCleaner:
                 if name in removed_model_names:
                     rospy.loginfo(f'Removing model: {name}')
                     parent.remove(model)
-    
+
     # Deprecated. Keeping it here in case we find a use for it in the future
     def remove_state(self) -> None:
         """

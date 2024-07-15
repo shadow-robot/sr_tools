@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019, 2022 Shadow Robot Company Ltd.
+# Copyright 2019, 2022, 2024 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -73,7 +73,7 @@ class GazeboWorldSaver:
     def _extract_model_data_from_msg(self):
         for model_name, pose in zip(self.gazebo_model_states_msg.name,
                                     self.gazebo_model_states_msg.pose):  # pylint: disable=E1101
-            if model_name == 'ursr':
+            if model_name in ['ursr', 'ur10esrh']:
                 continue
             position_as_list = [pose.position.x, pose.position.y, pose.position.z]
             orientation_as_list = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
@@ -106,6 +106,7 @@ class GazeboWorldSaver:
 
     def _initiate_world_file(self):
         self._remove_output_file_if_exists()
+        # Currently, we are saving the world file with SDF version 1.4. This may require being updated in the future.
         leading_string = '<?xml version="1.0" ?>\n' + '<sdf version="1.4">\n' + '  <world name="default">\n'
         self._save_to_world_file(leading_string)
 

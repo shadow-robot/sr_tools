@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2023 Shadow Robot Company Ltd.
+# Copyright 2023, 2024 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -20,6 +20,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 import rospy
+from sr_world_generator.save_world_file import GazeboWorldSaver
 
 
 class WorldFileCleaner:
@@ -71,6 +72,7 @@ class WorldFileCleaner:
                     rospy.loginfo(f'Removing model: {name}')
                     parent.remove(model)
 
+    # Deprecated. Keeping it here in case we find a use for it in the future
     def remove_state(self) -> None:
         """
         Removes the state information from the world file.
@@ -115,7 +117,11 @@ if __name__ == '__main__':
     if not world_file_cleaner.load_world_file(input_file_path_param):
         sys.exit(0)
     world_file_cleaner.remove_models(removed_model_names_param)
-    world_file_cleaner.remove_state()
     if not world_file_cleaner.save_world_file(output_file_path_param):
         sys.exit(1)
     rospy.loginfo(f'Cleaned world file saved to: {output_file_path_param}')
+    # Opens Gazebo and loads the (cleaned) world file. Then, reads all world
+    # broadcasted models (to /gazebo/model_states) and overrides the output
+    # world file so that all models are imported using "<include>" tags
+    gws = GazeboWorldSaver(gazebo_generated_world_file_path=output_file_path_param,  # Input world file
+                           output_world_file_path=output_file_path_param)

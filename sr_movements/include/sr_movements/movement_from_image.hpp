@@ -29,9 +29,9 @@
 #define _MOVEMENT_FROM_IMAGE_HPP_
 
 #include <string>
+#include <boost/smart_ptr.hpp>
 #include <Magick++.h>
 #include "sr_movements/partial_movement.hpp"
-#include <boost/smart_ptr.hpp>
 
 namespace shadowrobot
 {
